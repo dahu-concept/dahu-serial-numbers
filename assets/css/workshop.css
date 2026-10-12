@@ -1,0 +1,421 @@
+/*
+ * ------------------------------------------------------------------------
+ * DAHU SERIAL NUMBERS — THE PACKING SCREEN
+ * ------------------------------------------------------------------------
+ *
+ * Not an admin screen, and styled on its own terms. It prints its own
+ * document and loads no other stylesheet — not the theme's, not WordPress's —
+ * so there is nothing here to override and nothing that can override it.
+ *
+ * It therefore does not carry the shared `--dahu-admin-` token block, which
+ * exists so that several plugins' admin screens look like one family. There
+ * is no family here: this is the only page of its kind, and the values it
+ * needs are different ones. A bench tablet is read at arm's length, under
+ * workshop lighting, by somebody holding a part in one hand.
+ *
+ * The class prefix is `dahu-packing` rather than the plugin's full slug. It
+ * is read a hundred times in workshop.js, nothing else is loaded on the page
+ * to collide with it, and the admin screens keep the full prefix where
+ * collisions are real.
+ */
+
+:root {
+	--dahu-packing-bg: #10151a;
+	--dahu-packing-surface: #fff;
+	--dahu-packing-sunken: #f1f3f5;
+	--dahu-packing-border: #ced4da;
+	--dahu-packing-text: #10151a;
+	--dahu-packing-text-muted: #596270;
+	--dahu-packing-text-invert: #fff;
+	--dahu-packing-accent: #1d6fb8;
+	--dahu-packing-success: #0a7a33;
+	--dahu-packing-warning: #9a3412;
+	--dahu-packing-caution: #8a6100;
+
+	--dahu-packing-radius: 8px;
+	--dahu-packing-gap: 12px;
+	--dahu-packing-gap-lg: 20px;
+
+	/*
+	 * Nothing you tap is smaller than this. A mis-tap on a bench is a serial
+	 * number on the wrong line, which is a parcel that leaves wrong.
+	 */
+	--dahu-packing-touch: 52px;
+
+	--dahu-packing-transition: .15s ease;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+
+	:root {
+		--dahu-packing-transition: 0s;
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body.dahu-packing {
+	background: var( --dahu-packing-sunken );
+	color: var( --dahu-packing-text );
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	/* Read at arm's length, so larger than a desktop screen would use. */
+	font-size: 18px;
+	line-height: 1.5;
+	margin: 0;
+	padding: 0;
+}
+
+.dahu-packing__noscript {
+	background: var( --dahu-packing-warning );
+	color: var( --dahu-packing-text-invert );
+	margin: 0;
+	padding: var( --dahu-packing-gap-lg );
+}
+
+.dahu-packing__root {
+	margin: 0 auto;
+	max-width: 900px;
+	padding: 0 var( --dahu-packing-gap ) var( --dahu-packing-gap-lg );
+}
+
+/* --- Header ------------------------------------------------------------ */
+
+.dahu-packing__header {
+	align-items: center;
+	background: var( --dahu-packing-bg );
+	color: var( --dahu-packing-text-invert );
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --dahu-packing-gap );
+	justify-content: space-between;
+	margin: 0 calc( var( --dahu-packing-gap ) * -1 ) var( --dahu-packing-gap-lg );
+	padding: var( --dahu-packing-gap ) var( --dahu-packing-gap-lg );
+}
+
+.dahu-packing__shop {
+	font-weight: 600;
+}
+
+.dahu-packing__header-actions {
+	align-items: center;
+	display: flex;
+	gap: var( --dahu-packing-gap );
+}
+
+.dahu-packing__station {
+	opacity: .85;
+}
+
+/* --- Messages ---------------------------------------------------------- */
+
+.dahu-packing__message {
+	align-items: center;
+	border-left: 6px solid var( --dahu-packing-text-muted );
+	border-radius: var( --dahu-packing-radius );
+	background: var( --dahu-packing-surface );
+	display: flex;
+	gap: var( --dahu-packing-gap );
+	justify-content: space-between;
+	margin-bottom: var( --dahu-packing-gap-lg );
+	padding: var( --dahu-packing-gap ) var( --dahu-packing-gap-lg );
+}
+
+/*
+ * A successful scan shows the serial number it just recorded, and nothing
+ * else: the person needs to read back what the shop heard, because a reader
+ * that dropped a character is the failure this screen cannot otherwise catch.
+ */
+.dahu-packing__message--success {
+	border-left-color: var( --dahu-packing-success );
+}
+
+.dahu-packing__message--warning {
+	border-left-color: var( --dahu-packing-caution );
+}
+
+.dahu-packing__message--error {
+	border-left-color: var( --dahu-packing-warning );
+}
+
+.dahu-packing__message--info {
+	border-left-color: var( --dahu-packing-accent );
+}
+
+.dahu-packing__message-text {
+	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+	word-break: break-all;
+}
+
+.dahu-packing__message-close {
+	background: none;
+	border: 0;
+	color: var( --dahu-packing-text-muted );
+	cursor: pointer;
+	font-size: 28px;
+	line-height: 1;
+	min-height: var( --dahu-packing-touch );
+	min-width: var( --dahu-packing-touch );
+}
+
+/* --- Panels ------------------------------------------------------------ */
+
+.dahu-packing__panel {
+	background: var( --dahu-packing-surface );
+	border-radius: var( --dahu-packing-radius );
+	padding: var( --dahu-packing-gap-lg );
+}
+
+.dahu-packing__bar {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --dahu-packing-gap );
+	justify-content: space-between;
+	margin-bottom: var( --dahu-packing-gap-lg );
+}
+
+.dahu-packing__title {
+	font-size: 1.3em;
+	margin: 0;
+}
+
+.dahu-packing__search {
+	display: flex;
+	gap: var( --dahu-packing-gap );
+}
+
+.dahu-packing__empty {
+	color: var( --dahu-packing-text-muted );
+	margin: 0;
+	padding: var( --dahu-packing-gap-lg ) 0;
+	text-align: center;
+}
+
+/* --- Fields and buttons ------------------------------------------------ */
+
+.dahu-packing__label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: var( --dahu-packing-gap );
+}
+
+.dahu-packing__field {
+	background: var( --dahu-packing-surface );
+	border: 2px solid var( --dahu-packing-border );
+	border-radius: var( --dahu-packing-radius );
+	display: block;
+	font: inherit;
+	margin-top: 4px;
+	min-height: var( --dahu-packing-touch );
+	padding: 0 var( --dahu-packing-gap );
+	width: 100%;
+}
+
+/*
+ * The scan field. Bigger than everything else on the screen, in a monospaced
+ * face, and in capitals: a serial number read back at a glance is how a
+ * mis-scan is caught before the parcel is taped shut.
+ */
+.dahu-packing__field--scan {
+	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+	font-size: 1.4em;
+	letter-spacing: .04em;
+	min-height: calc( var( --dahu-packing-touch ) * 1.3 );
+	text-transform: uppercase;
+}
+
+/*
+ * The capitals are for the value, not for the instruction. Without this the
+ * placeholder is shouted — "SCAN OR TYPE A SERIAL NUMBER", in capitals, across
+ * the widest field on the screen — which a screenshot showed and no rule
+ * could.
+ */
+.dahu-packing__field--scan::placeholder {
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+.dahu-packing__button {
+	background: var( --dahu-packing-sunken );
+	border: 2px solid var( --dahu-packing-border );
+	border-radius: var( --dahu-packing-radius );
+	color: var( --dahu-packing-text );
+	cursor: pointer;
+	font: inherit;
+	font-weight: 600;
+	min-height: var( --dahu-packing-touch );
+	padding: 0 var( --dahu-packing-gap-lg );
+	transition: background var( --dahu-packing-transition );
+	width: 100%;
+}
+
+.dahu-packing__button--quiet {
+	width: auto;
+}
+
+.dahu-packing__button--primary {
+	background: var( --dahu-packing-accent );
+	border-color: var( --dahu-packing-accent );
+	color: var( --dahu-packing-text-invert );
+}
+
+.dahu-packing__button.is-selected {
+	background: var( --dahu-packing-accent );
+	border-color: var( --dahu-packing-accent );
+	color: var( --dahu-packing-text-invert );
+}
+
+.dahu-packing__button[disabled] {
+	cursor: default;
+	opacity: .6;
+}
+
+.dahu-packing__signin .dahu-packing__label {
+	margin-bottom: var( --dahu-packing-gap-lg );
+}
+
+/* --- The queue --------------------------------------------------------- */
+
+.dahu-packing__queue {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.dahu-packing__queue-item + .dahu-packing__queue-item {
+	margin-top: var( --dahu-packing-gap );
+}
+
+.dahu-packing__order {
+	align-items: center;
+	background: var( --dahu-packing-sunken );
+	border: 2px solid var( --dahu-packing-border );
+	border-radius: var( --dahu-packing-radius );
+	cursor: pointer;
+	display: flex;
+	flex-wrap: wrap;
+	font: inherit;
+	gap: var( --dahu-packing-gap );
+	min-height: var( --dahu-packing-touch );
+	padding: var( --dahu-packing-gap );
+	text-align: left;
+	width: 100%;
+}
+
+.dahu-packing__order-number {
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+}
+
+.dahu-packing__order-customer {
+	flex: 1;
+}
+
+.dahu-packing__badge {
+	background: var( --dahu-packing-surface );
+	border: 1px solid var( --dahu-packing-border );
+	border-radius: 999px;
+	font-size: .85em;
+	font-variant-numeric: tabular-nums;
+	padding: 2px 12px;
+	white-space: nowrap;
+}
+
+.dahu-packing__badge--ready {
+	background: var( --dahu-packing-success );
+	border-color: var( --dahu-packing-success );
+	color: var( --dahu-packing-text-invert );
+}
+
+/* --- An order's lines -------------------------------------------------- */
+
+.dahu-packing__line {
+	border-top: 1px solid var( --dahu-packing-border );
+	padding: var( --dahu-packing-gap ) 0;
+}
+
+.dahu-packing__line-head {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --dahu-packing-gap );
+}
+
+.dahu-packing__line-name {
+	flex: 1;
+	font-weight: 600;
+	min-width: 12em;
+}
+
+.dahu-packing__serials {
+	list-style: none;
+	margin: var( --dahu-packing-gap ) 0 0;
+	padding: 0;
+}
+
+.dahu-packing__serial {
+	align-items: center;
+	background: var( --dahu-packing-sunken );
+	border-radius: var( --dahu-packing-radius );
+	display: flex;
+	gap: var( --dahu-packing-gap );
+	justify-content: space-between;
+	margin-bottom: 6px;
+	padding: 6px var( --dahu-packing-gap );
+}
+
+.dahu-packing__serial-value {
+	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+	word-break: break-all;
+}
+
+.dahu-packing__remove {
+	background: none;
+	border: 0;
+	color: var( --dahu-packing-warning );
+	cursor: pointer;
+	font: inherit;
+	min-height: var( --dahu-packing-touch );
+	padding: 0 var( --dahu-packing-gap );
+	text-decoration: underline;
+}
+
+/* --- Scanning and shipping --------------------------------------------- */
+
+.dahu-packing__scanbox,
+.dahu-packing__shipbox {
+	border-top: 2px solid var( --dahu-packing-border );
+	margin-top: var( --dahu-packing-gap-lg );
+	padding-top: var( --dahu-packing-gap-lg );
+}
+
+.dahu-packing__scanning,
+.dahu-packing__ready {
+	color: var( --dahu-packing-text-muted );
+	margin: 0 0 var( --dahu-packing-gap );
+}
+
+.dahu-packing__ready {
+	color: var( --dahu-packing-success );
+	font-weight: 600;
+}
+
+.dahu-packing__shipbox .dahu-packing__label {
+	margin-bottom: var( --dahu-packing-gap );
+}
+
+/* --- Focus ------------------------------------------------------------- */
+
+/*
+ * The same ring on :focus as on :focus-visible. Relying on :focus-visible
+ * alone leaves no ring at all in browsers that do not have it yet — and this
+ * screen is driven almost entirely from the keyboard, because a barcode
+ * reader is a keyboard.
+ */
+.dahu-packing :is( a, button, input ):focus,
+.dahu-packing :is( a, button, input ):focus-visible {
+	outline: 3px solid var( --dahu-packing-accent );
+	outline-offset: 2px;
+}

@@ -1,0 +1,767 @@
+# Copyright (C) 2026 Hugo Vial-Jaime
+# This file is distributed under the MIT licence.
+msgid ""
+msgstr ""
+"Project-Id-Version: Dahu Serial Numbers\n"
+"Report-Msgid-Bugs-To: https://dahu-concept.fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2026-10-08 18:06+0000\n"
+"X-Domain: dahu-serial-numbers\n"
+
+#: includes/class-dahu-serial-numbers-workshop.php:262
+msgid "%1$d of %2$d"
+msgstr ""
+
+#. translators: 1: month name, 2: year. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:517
+msgid "%1$s %2$d"
+msgstr ""
+
+#. translators: 1: status before, 2: status after. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:392
+msgid "%1$s → %2$s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:250
+msgid "%d to scan"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:103
+msgid "%s unit on file:"
+msgid_plural "%s units on file:"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: number of units. */
+#: includes/class-dahu-serial-numbers-order-metabox.php:106 includes/class-dahu-serial-numbers-shipment.php:79
+msgid "%s unit on this order still has no serial number."
+msgid_plural "%s units on this order still have no serial number."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-dahu-serial-numbers-stations.php:64
+msgid "A login is required."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:326
+msgid "A post is never deleted. The history points at post ids, and a line that answers “who packed this parcel” with a missing id answers nothing — so switching off refuses every future sign-in while leaving the past readable."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-manager.php:818
+msgid "A serial number and an order are both required."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin.php:65
+msgid "All serial numbers"
+msgstr ""
+
+#. translators: %d: order number. */
+#: includes/class-dahu-serial-numbers-manager.php:840
+msgid "Already attached to order #%d — left as it is."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:135
+msgid "Any status"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:79
+msgid "Assigned to an order"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:246
+msgid "Back to the list"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:225
+msgid "Bench 1"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:377
+msgid "By"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:266
+msgid "Carrier"
+msgstr ""
+
+#. translators: %s: carrier name. */
+#: includes/class-dahu-serial-numbers-shipment.php:273
+msgid "Carrier: %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:259
+msgid "Choose which line you are packing."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:231
+msgid "Create post"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:254
+msgid "Created"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:38
+msgid "Dahu Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:36
+msgid "Dahu Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:39
+msgid "Dahu Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:140
+msgid "Delete the serial numbers and their history when the plugin is deleted"
+msgstr ""
+
+#. translators: %d: order id. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:481
+msgid "Deleted order #%d"
+msgstr ""
+
+#. translators: %d: product id. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:454
+msgid "Deleted product #%d"
+msgstr ""
+
+#. translators: %d: user id. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:554
+msgid "Deleted user #%d"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:87
+msgid "Destroyed"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:378
+msgid "Details"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:273
+msgid "Dismiss"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-product-field.php:52
+msgid "Each unit of this product carries its own serial number"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-product-field.php:111
+msgid "Each unit of this variation carries its own serial number"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:375
+msgid "Event"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:264
+msgid "Every unit on this order has been scanned."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:246
+msgid "Existing posts"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:152
+msgid "Filter"
+msgstr ""
+
+#. translators: %d: minimum number of characters. */
+#: includes/class-dahu-serial-numbers-admin-stations.php:215
+msgid "Generated for you, and shown rather than hidden so you can write it down once. At least %d characters."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:86
+msgid "Going back to stock"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:366
+msgid "History"
+msgstr ""
+
+#: dahu-serial-numbers.php:212
+msgid "Hugo Vial-Jaime — Dahu-Concept"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:84
+msgid "In repair"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:78
+msgid "In stock"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-station-auth-provider.php:331
+msgid "Invalid credentials."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-station-auth-provider.php:184
+msgid "Invalid token."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:331
+msgid "Last checked"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:185 includes/class-dahu-serial-numbers-admin-serials.php:332
+msgid "Last movement"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:255
+msgid "Last sign-in"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-order-metabox.php:139
+msgid "Line"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:192 includes/class-dahu-serial-numbers-admin-stations.php:251 includes/class-dahu-serial-numbers-workshop.php:241
+msgid "Login"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:184 includes/class-dahu-serial-numbers-admin-serials.php:329
+msgid "Made"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:123
+msgid "Make the packing screen reachable"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:265
+msgid "Mark as shipped"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:268
+msgid "Marking as shipped…"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-station-auth-provider.php:171
+msgid "Missing token."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:376
+msgid "Movement"
+msgstr ""
+
+#. translators: 1: current status label, 2: wanted status label. */
+#: includes/class-dahu-serial-numbers-manager.php:638
+msgid "Moving from “%1$s” to “%2$s” is not allowed."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:223 includes/class-dahu-serial-numbers-admin-stations.php:252
+msgid "Name"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:293 includes/class-dahu-serial-numbers-admin-stations.php:300
+msgid "New password"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:184
+msgid "New post"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:382
+msgid "No history line, which should not happen: filing a unit writes one."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:249
+msgid "No order matches that."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:76
+msgid "No order status was selected, so the queue has gone back to watching orders being processed. A queue that watches nothing shows an empty screen with no explanation."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:263
+msgid "No serial number needed"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:196
+msgid "No serial number on file yet."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:311
+msgid "No unit on file under %s."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:261
+msgid "No workshop post yet. The packing screen needs one to sign in with."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:370
+msgid "Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:194
+msgid "Nothing matches those filters."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-order-metabox.php:88
+msgid "Nothing on this order carries a serial number."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-log.php:48
+msgid "Nothing to record: the serial number is empty."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:248
+msgid "Nothing waiting to be packed."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:314
+msgid "Off"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:127
+msgid "Off until you ask for it. The packing screen is a page that opens without a WordPress session — it signs in with a workshop post of its own — and a plugin that switched one on at activation would have opened a door the shop did not ask for."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:144
+msgid "Off, and worth leaving off. The serial numbers and their history are the only record of which unit went to which customer, going back as far as you have been serialising — and a warranty claim arrives two years later. Uninstalling is also, most of the time, a step in reinstalling."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:312
+msgid "On"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:183 includes/class-dahu-serial-numbers-admin-serials.php:347
+msgid "Order"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:269
+msgid "Order marked as shipped."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-rest.php:749
+msgid "Order not found."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:105
+msgid "Order statuses the queue watches"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-product-field.php:59
+msgid "Orders of this product will ask the packing screen for one serial number per unit. On a variable product, ticking it here covers every variation that has no answer of its own."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-shipment.php:229
+msgid "Packed and shipped."
+msgstr ""
+
+#. translators: %s: shop name. */
+#: includes/class-dahu-serial-numbers-workshop.php:220
+msgid "Packing — %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:199 includes/class-dahu-serial-numbers-workshop.php:242
+msgid "Password"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:167
+msgid "Password replaced, and the post signed out everywhere it was signed in."
+msgstr ""
+
+#. translators: %s: workshop post name. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:537
+msgid "Post: %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:181 includes/class-dahu-serial-numbers-admin-serials.php:326
+msgid "Product"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-order-metabox.php:124
+msgid "Read-only here on purpose: a serial number is assigned by scanning the unit at the bench, so that the history records which bench did it and when."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:251
+msgid "Ready"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:330 includes/class-dahu-serial-numbers-statuses.php:77
+msgid "Received"
+msgstr ""
+
+#. translators: %s: the carrier's error message. */
+#: includes/class-dahu-serial-numbers-rest.php:583
+msgid "Recorded as shipped, but the carrier could not create the label: %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:245
+msgid "Refresh"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:260
+msgid "Remove"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:304
+msgid "Replace"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:85
+msgid "Replaced"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:81
+msgid "Return expected"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:82
+msgid "Returned, as described"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:83
+msgid "Returned, not as described"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:147
+msgid "Save changes"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:257
+msgid "Scan into this line"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:252
+msgid "Scan or type a serial number"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:258
+msgid "Scanning into: %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:124
+msgid "Search a serial number"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:247
+msgid "Search an order"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:130 includes/class-dahu-serial-numbers-admin-serials.php:179 includes/class-dahu-serial-numbers-order-metabox.php:138
+msgid "Serial number"
+msgstr ""
+
+#. translators: 1: serial number, 2: current status label. */
+#: includes/class-dahu-serial-numbers-rest.php:408
+msgid "Serial number %1$s is not in stock — it is currently “%2$s”."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-manager.php:863
+msgid "Serial number %s could not be attached."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-manager.php:514
+msgid "Serial number %s could not be filed."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-manager.php:693
+msgid "Serial number %s could not be updated."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-manager.php:460
+msgid "Serial number %s is already on file."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-rest.php:388
+msgid "Serial number %s is already on this order."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-rest.php:510
+msgid "Serial number %s is not on this order."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-rest.php:393
+msgid "Serial number %s is on another order."
+msgstr ""
+
+#. translators: 1: maximum number of characters, 2: serial number. */
+#: includes/class-dahu-serial-numbers-manager.php:448
+msgid "Serial number longer than %1$d characters: %2$s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:35 includes/class-dahu-serial-numbers-admin.php:53 includes/class-dahu-serial-numbers-admin.php:54 includes/class-dahu-serial-numbers-admin.php:64 includes/class-dahu-serial-numbers-order-metabox.php:48 includes/class-dahu-serial-numbers-product-field.php:51 includes/class-dahu-serial-numbers-product-field.php:105
+msgid "Serial numbers"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-station-auth-provider.php:200
+msgid "Session expired, please sign in again."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:272
+msgid "Session over. Sign in again."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:37 includes/class-dahu-serial-numbers-admin.php:85 includes/class-dahu-serial-numbers-admin.php:86
+msgid "Settings"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:67
+msgid "Settings saved."
+msgstr ""
+
+#. translators: %s: the carrier's error message. */
+#: includes/class-dahu-serial-numbers-shipment.php:152
+msgid "Shipment refused: the carrier could not create the label (%s). Nothing was recorded as shipped."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-statuses.php:80
+msgid "Shipped"
+msgstr ""
+
+#. translators: %s: comma-separated serial numbers. */
+#: includes/class-dahu-serial-numbers-shipment.php:265
+msgid "Shipped with serial numbers: %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-shipment.php:268
+msgid "Shipped. No serial number was on this order."
+msgstr ""
+
+#. translators: 1: rows shown, 2: total rows. */
+#: includes/class-dahu-serial-numbers-admin-serials.php:251
+msgid "Showing %1$s of %2$s matching units."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:226
+msgid "Shown on the packing screen and in the history. Defaults to the login."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:240
+msgid "Sign in"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:243
+msgid "Sign out"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:195
+msgid "Something the bench can read off a card: bench-1, packing-left."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:253
+msgid "State"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:133 includes/class-dahu-serial-numbers-admin-serials.php:180 includes/class-dahu-serial-numbers-admin-serials.php:325 includes/class-dahu-serial-numbers-order-metabox.php:140
+msgid "Status"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:143 includes/class-dahu-serial-numbers-admin-serials.php:149 includes/class-dahu-serial-numbers-admin-serials.php:182 includes/class-dahu-serial-numbers-admin-serials.php:327 includes/class-dahu-serial-numbers-order-metabox.php:141
+msgid "Supplier batch"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:328
+msgid "Supplier name"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:283
+msgid "Switch back on"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:283
+msgid "Switch off"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:261
+msgid "Take %s off this order?"
+msgstr ""
+
+#. translators: %d: quantity ordered on that line. */
+#: includes/class-dahu-serial-numbers-rest.php:350
+msgid "That line is for %d unit and already has its serial number."
+msgid_plural "That line is for %d units and already has all of them."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-dahu-serial-numbers-rest.php:316
+msgid "That order line cannot carry a serial number."
+msgstr ""
+
+#. translators: %s: the carrier's error message. */
+#: includes/class-dahu-serial-numbers-shipment.php:161
+msgid "The carrier could not create the label: %s"
+msgstr ""
+
+#. translators: %s: the carrier's error message. */
+#: includes/class-dahu-serial-numbers-shipment.php:289
+msgid "The carrier could not create the label: %s — the parcel was recorded as shipped anyway, so the units are on file. Add the tracking number by hand once you have it."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-manager.php:782
+msgid "The check on serial number %s could not be recorded."
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-log.php:73
+msgid "The history line for %s could not be written."
+msgstr ""
+
+#. translators: %s: login. */
+#: includes/class-dahu-serial-numbers-stations.php:84
+msgid "The login “%s” is already taken."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:98
+msgid "The packing queue"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:119
+msgid "The packing screen"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-product-field.php:110
+msgid "The parent product is ticked, so this variation already carries serial numbers. Tick this only to be explicit."
+msgstr ""
+
+#. translators: %d: minimum number of characters. */
+#: includes/class-dahu-serial-numbers-stations.php:73 includes/class-dahu-serial-numbers-stations.php:144
+msgid "The password must be at least %d characters long."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-order-metabox.php:76
+msgid "The plugin’s database tables are missing."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin.php:193
+msgid "The plugin’s database tables are missing. Deactivating and reactivating the plugin creates them."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:132
+msgid "The screen is on but no workshop post exists yet, so nobody can sign in to it."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-manager.php:439 includes/class-dahu-serial-numbers-rest.php:326
+msgid "The serial number is empty or unreadable."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:271
+msgid "The shop did not answer. Nothing was recorded — scan it again."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-station-auth-provider.php:142
+msgid "The sign-in token could not be issued."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:547
+msgid "The site"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-stations.php:105
+msgid "The workshop post could not be created."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:195
+msgid "This screen needs JavaScript. Serial numbers are scanned into it one at a time, and every scan is checked against the shop as it happens."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-rest.php:424
+msgid "This serial number is on file under a different product from this order line. Check before carrying on."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-station-auth-provider.php:210
+msgid "This workshop post has been deactivated."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:244
+msgid "To pack"
+msgstr ""
+
+#. translators: %d: number of minutes. */
+#: includes/class-dahu-serial-numbers-auth.php:188
+msgid "Too many failed attempts. Try again in %d minute."
+msgid_plural "Too many failed attempts. Try again in %d minutes."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:267
+msgid "Tracking number"
+msgstr ""
+
+#. translators: %s: tracking number. */
+#: includes/class-dahu-serial-numbers-shipment.php:281
+msgid "Tracking: %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:136
+msgid "Uninstalling"
+msgstr ""
+
+#. translators: %s: status key. */
+#: includes/class-dahu-serial-numbers-rest.php:726
+msgid "Unknown order status: %s"
+msgstr ""
+
+#. translators: %s: serial number. */
+#: includes/class-dahu-serial-numbers-manager.php:614 includes/class-dahu-serial-numbers-manager.php:760 includes/class-dahu-serial-numbers-manager.php:829 includes/class-dahu-serial-numbers-rest.php:369 includes/class-dahu-serial-numbers-rest.php:613
+msgid "Unknown serial number: %s"
+msgstr ""
+
+#. translators: %s: status key. */
+#: includes/class-dahu-serial-numbers-manager.php:474 includes/class-dahu-serial-numbers-manager.php:625
+msgid "Unknown status: %s"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:122 includes/class-dahu-serial-numbers-station-auth-provider.php:121 includes/class-dahu-serial-numbers-stations.php:135 includes/class-dahu-serial-numbers-stations.php:184
+msgid "Unknown workshop post."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:374
+msgid "When"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:101
+msgid "Which orders the packing screen lists. Completed orders are deliberately not the default: a completed order has left, and a queue that lists it invites somebody to open a parcel that is already on a van."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-workshop.php:270
+msgid "Working…"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:139
+msgid "Workshop post switched back on."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:143
+msgid "Workshop post switched off, and signed out everywhere it was signed in."
+msgstr ""
+
+#. translators: %s: workshop post login. */
+#: includes/class-dahu-serial-numbers-admin-stations.php:105
+msgid "Workshop post “%s” created."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:38 includes/class-dahu-serial-numbers-admin.php:73 includes/class-dahu-serial-numbers-admin.php:74
+msgid "Workshop posts"
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:33
+msgid "You do not have permission to change these settings."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-stations.php:34
+msgid "You do not have permission to manage workshop posts."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:28
+msgid "You do not have permission to view serial numbers."
+msgstr ""
+
+#: includes/class-dahu-serial-numbers-admin-serials.php:303
+msgid "← All serial numbers"
+msgstr ""
+

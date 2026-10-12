@@ -1,0 +1,262 @@
+/*
+ * ------------------------------------------------------------------------
+ * SHARED ADMIN TOKENS
+ * ------------------------------------------------------------------------
+ *
+ * This block is identical in every Dahu plugin, deliberately. The plugins
+ * are independent — each has to work with none of the others installed — so
+ * they cannot share a stylesheet, and the only way for their screens to
+ * look like one family is for each to declare the same tokens under the
+ * same names. A shop running three of them sees one interface rather than
+ * three.
+ *
+ * Values follow WordPress's own admin palette rather than inventing a
+ * brand: a plugin screen that ignores the admin it lives in reads as a
+ * foreign object, however well designed it is on its own.
+ *
+ * The `--dahu-admin-` prefix is what makes a declaration on :root safe
+ * here. Two plugins declaring it write the same values, so neither can
+ * surprise the other, and nothing outside the family can collide with it.
+ *
+ * Single source of truth: /Dev/dahu-public/UI-ADMIN-DAHU.md
+ */
+
+:root {
+	/* Surfaces */
+	--dahu-admin-surface: #fff;
+	--dahu-admin-surface-sunken: #f6f7f7;
+	--dahu-admin-border: #dcdcde;
+	--dahu-admin-border-strong: #c3c4c7;
+
+	/* Text */
+	--dahu-admin-text: #1d2327;
+	--dahu-admin-text-muted: #646970;
+
+	/* Intent */
+	--dahu-admin-accent: #2271b1;
+	--dahu-admin-accent-text: #fff;
+	--dahu-admin-success: #008a20;
+	--dahu-admin-warning: #b32d2e;
+	--dahu-admin-caution: #996800;
+	--dahu-admin-neutral: #50575e;
+
+	/* Shape */
+	--dahu-admin-radius: 4px;
+	--dahu-admin-radius-lg: 6px;
+	--dahu-admin-shadow: 0 1px 2px rgba( 0, 0, 0, .06 );
+	--dahu-admin-shadow-lg: 0 6px 20px rgba( 0, 0, 0, .16 );
+
+	/* Rhythm */
+	--dahu-admin-gap: 8px;
+	--dahu-admin-gap-lg: 14px;
+
+	/* Reading widths */
+	--dahu-admin-measure: 900px;
+	--dahu-admin-measure-wide: 1100px;
+
+	/* Motion. Short, and switched off below for anybody who asked. */
+	--dahu-admin-transition: .15s ease;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+
+	:root {
+		--dahu-admin-transition: 0s;
+	}
+}
+
+
+/*
+ * ------------------------------------------------------------------------
+ * DAHU SERIAL NUMBERS — ADMIN SCREENS
+ * ------------------------------------------------------------------------
+ *
+ * One sheet, enqueued on this plugin's screens only. Nothing here is an
+ * inline style in PHP: an inline style cannot follow the colour scheme the
+ * shop chose, cannot be overridden, and does not show up in a review of the
+ * CSS.
+ */
+
+.dahu-serial-numbers__intro {
+	color: var( --dahu-admin-text-muted );
+	max-width: var( --dahu-admin-measure );
+}
+
+.dahu-serial-numbers__panel {
+	background: var( --dahu-admin-surface );
+	border: 1px solid var( --dahu-admin-border );
+	border-radius: var( --dahu-admin-radius-lg );
+	box-shadow: var( --dahu-admin-shadow );
+	margin: var( --dahu-admin-gap-lg ) 0;
+	max-width: var( --dahu-admin-measure );
+	padding: var( --dahu-admin-gap-lg );
+}
+
+.dahu-serial-numbers__panel h2:first-child {
+	margin-top: 0;
+}
+
+.dahu-serial-numbers__hint {
+	color: var( --dahu-admin-text-muted );
+	font-size: .9em;
+	max-width: var( --dahu-admin-measure );
+}
+
+/*
+ * `caution`, not `warning`: these two sentences warn about something that has
+ * not happened and costs nothing yet — a screen switched on with no post to
+ * sign in with, a box that would delete data if it were ticked. `warning` is
+ * kept for an error or a loss.
+ */
+.dahu-serial-numbers__caution {
+	border-left: 3px solid var( --dahu-admin-caution );
+	color: var( --dahu-admin-text );
+	max-width: var( --dahu-admin-measure );
+	padding-left: var( --dahu-admin-gap-lg );
+}
+
+/*
+ * The summary line sits above the table it summarises, and nowhere else.
+ */
+.dahu-serial-numbers__summary {
+	color: var( --dahu-admin-text );
+	margin: var( --dahu-admin-gap-lg ) 0 var( --dahu-admin-gap );
+	max-width: var( --dahu-admin-measure-wide );
+}
+
+.dahu-serial-numbers__tally {
+	display: inline-block;
+	margin-right: var( --dahu-admin-gap-lg );
+	white-space: nowrap;
+}
+
+/*
+ * Every figure that lines up with another, and every date: without
+ * tabular-nums a digit changes width between rows and a column of dates
+ * stops being a column.
+ */
+.dahu-serial-numbers__num {
+	font-variant-numeric: tabular-nums;
+}
+
+.dahu-serial-numbers__table {
+	margin: var( --dahu-admin-gap ) 0 var( --dahu-admin-gap-lg );
+	max-width: var( --dahu-admin-measure-wide );
+}
+
+.dahu-serial-numbers__table th[scope="row"] {
+	color: var( --dahu-admin-text-muted );
+	font-weight: 600;
+	width: 14em;
+}
+
+.dahu-serial-numbers__filters {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --dahu-admin-gap );
+	margin: var( --dahu-admin-gap-lg ) 0;
+}
+
+.dahu-serial-numbers__fieldset {
+	border: 0;
+	display: grid;
+	gap: var( --dahu-admin-gap );
+	grid-template-columns: repeat( auto-fit, minmax( 220px, 1fr ) );
+	margin: 0 0 var( --dahu-admin-gap-lg );
+	padding: 0;
+}
+
+.dahu-serial-numbers__check {
+	display: block;
+	margin: var( --dahu-admin-gap ) 0;
+}
+
+.dahu-serial-numbers__state {
+	border-radius: var( --dahu-admin-radius );
+	display: inline-block;
+	font-size: .9em;
+	padding: 2px 8px;
+}
+
+.dahu-serial-numbers__state--on {
+	background: var( --dahu-admin-success );
+	color: var( --dahu-admin-accent-text );
+}
+
+/*
+ * A post that is off is not an error — it is a deliberate state somebody put
+ * it in — so it reads as neutral rather than as a failure. It still needs an
+ * outline: on a striped table the sunken surface is the row's own background,
+ * so without one the badge disappears and "Off" reads as a missing value
+ * rather than as a state. Seen on a screenshot, not in the CSS.
+ */
+.dahu-serial-numbers__state--off {
+	background: var( --dahu-admin-surface-sunken );
+	border: 1px solid var( --dahu-admin-border-strong );
+	color: var( --dahu-admin-text-muted );
+}
+
+/*
+ * The same border on the "on" badge, so the two badges are the same size and
+ * the column does not shift by two pixels between rows.
+ */
+.dahu-serial-numbers__state--on {
+	border: 1px solid var( --dahu-admin-success );
+}
+
+/*
+ * A row action is a link, never a framed button: a framed button is reserved
+ * for the action of the screen, and a column of them hierarchises nothing.
+ * Each of these is a one-field form, so the forms sit on one line.
+ */
+.dahu-serial-numbers__row-action,
+.dahu-serial-numbers__row-action form {
+	display: inline;
+}
+
+/*
+ * WordPress hides `.row-actions` until the row is hovered, which is right for
+ * a list of posts where the actions are "edit, trash, view" and the row has a
+ * title you can read without them. It is wrong here, and a screenshot is what
+ * said so: this row's actions include a text field you type a new password
+ * into, and a field that vanishes when the pointer leaves the row cannot be
+ * used at all.
+ *
+ * Revealed the way WordPress itself reveals them — `position: static` and
+ * `left: auto` — because the hiding is not `visibility`, it is `left:
+ * -9999em` on a relatively positioned block (wp-admin/css/list-tables.css).
+ * An override on `visibility` changed nothing, which a second screenshot said
+ * plainly: the actions were still off the left edge of the screen, and only
+ * the empty space they reserve in the row showed they were rendered at all.
+ */
+.dahu-serial-numbers__table .row-actions {
+	left: auto;
+	position: static;
+}
+
+.dahu-serial-numbers__inline-field {
+	max-width: 12em;
+}
+
+.dahu-serial-numbers__serial {
+	font-family: Consolas, Monaco, monospace;
+	letter-spacing: .02em;
+}
+
+.dahu-serial-numbers__context {
+	color: var( --dahu-admin-text-muted );
+	font-size: .9em;
+	word-break: break-word;
+}
+
+/*
+ * The same ring on :focus as on :focus-visible. Relying on :focus-visible
+ * alone leaves no ring at all in browsers that do not have it yet.
+ */
+.dahu-serial-numbers :is( a, button, input, select ):focus,
+.dahu-serial-numbers :is( a, button, input, select ):focus-visible {
+	box-shadow: 0 0 0 2px var( --dahu-admin-accent );
+	outline: 2px solid transparent;
+	transition: box-shadow var( --dahu-admin-transition );
+}
