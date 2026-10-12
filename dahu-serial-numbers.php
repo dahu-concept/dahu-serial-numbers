@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       Dahu Serial Numbers
  * Plugin URI:        https://dahu-concept.fr
- * Description:       Per-unit traceability for WooCommerce: a serial number on every item you ship, a lifecycle with a transition matrix that refuses the moves that make no sense, an append-only history, and a workshop screen where the number is captured at packing time.
- * Version:           1.0.0
+ * Description:       Per-unit traceability for WooCommerce: a serial number on every item you ship, a lifecycle with a transition matrix that refuses the moves that make no sense, an append-only history, a workshop screen where the number is captured at packing time, and a consignment ledger so a tracking number resolves to the units that travelled under it.
+ * Version:           1.1.0
  * Author:            Hugo Vial-Jaime
  * Author URI:        mailto:contact@dahu-concept.fr
  * License:           MIT
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'DAHU_SERIAL_NUMBERS_VERSION', '1.0.0' );
+define( 'DAHU_SERIAL_NUMBERS_VERSION', '1.1.0' );
 define( 'DAHU_SERIAL_NUMBERS_FILE', __FILE__ );
 define( 'DAHU_SERIAL_NUMBERS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'DAHU_SERIAL_NUMBERS_URL', plugin_dir_url( __FILE__ ) );

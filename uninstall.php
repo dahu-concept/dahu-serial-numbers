@@ -17,6 +17,11 @@
  * the login lockout counters, the schema version. The data goes only when the
  * box was ticked, and the box says what it does.
  *
+ * The drop order below matters and used to be wrong: it said credentials
+ * first and traceability last, and dropped the serials table first. On a
+ * shop large enough for this to time out half way, that is the one order
+ * that loses the irreplaceable table and keeps the tokens.
+ *
  * @package DahuSerialNumbers
  */
 
@@ -51,21 +56,41 @@ function dahu_serial_numbers_uninstall_site() {
 		// reinstall believes the tables are already up to date, and skips
 		// the dbDelta that would have created them.
 		delete_option( 'dahu_serial_numbers_schema' );
+		delete_option( 'dahu_serial_numbers_consignments_api' );
 
 		return;
 	}
 
-	foreach ( array( 'dahu_serial_numbers', 'dahu_serial_numbers_log', 'dahu_serial_numbers_stations', 'dahu_serial_numbers_tokens' ) as $suffix ) {
+	$suffixes = array(
+		// Credentials first: cheap to recreate, and the thing least worth
+		// keeping if this is interrupted.
+		'dahu_serial_numbers_tokens',
+		'dahu_serial_numbers_stations',
+		// Then the consignment record. The contents go before the headers,
+		// and that order is a choice between two bad remnants rather than a
+		// derivation: interrupted here, what survives is the headers —
+		// reference, direction, order, carrier, tracking number, dates —
+		// which is still a readable list of parcels. The other way round
+		// leaves rows holding a consignment id that no longer names
+		// anything, which is unreadable.
+		'dahu_serial_numbers_consignment_serials',
+		'dahu_serial_numbers_consignments',
+		// The history and the units themselves last. If a timeout stops this
+		// part way, what is left behind is the answer to "where did this unit
+		// go", which is the only part nobody can rebuild.
+		'dahu_serial_numbers_log',
+		'dahu_serial_numbers',
+	);
+
+	foreach ( $suffixes as $suffix ) {
 		$table = $wpdb->prefix . $suffix;
 
-		// Tokens and posts first, serials and history last: if this is
-		// interrupted — a timeout on a large history table — what is left
-		// behind is the traceability data rather than the credentials.
 		$wpdb->query( "DROP TABLE IF EXISTS {$table}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix, uninstall.
 	}
 
 	delete_option( 'dahu_serial_numbers_settings' );
 	delete_option( 'dahu_serial_numbers_schema' );
+	delete_option( 'dahu_serial_numbers_consignments_api' );
 
 	// The serialised flag lives on products, which survive the plugin. Left
 	// in place on purpose: a reinstall finds the shop's choices intact, and a

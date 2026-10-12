@@ -111,6 +111,14 @@ PHP class.
 
 ### Grafting your carrier onto it
 
+> **Upgrading from 1.0.0?** `dahu_serial_numbers_before_shipment` gained a
+> parameter in **second** position — `$consignment_id` — so `$order` is now the
+> third. A listener registered with `10, 4` and the old order of arguments
+> receives an integer where it expects the order, and fails; the extension
+> catches that, closes the parcel anyway, and the only trace is a note on the
+> order. Update the signature to `( $tracking, $consignment_id, $order,
+> $carrier, $station_id )` and register it with `10, 5`.
+
 A carrier integration is a plugin of its own — thirty lines, two filters, and
 no changes here. Whatever you have a contract with: Chronopost, Colissimo,
 Sendcloud, a freight forwarder, a courier who takes a CSV once a day.
@@ -126,7 +134,7 @@ Sendcloud, a freight forwarder, a courier who takes a CSV once a day.
 //    into every unit's history.
 add_filter(
     'dahu_serial_numbers_before_shipment',
-    function ( $tracking, $order, $carrier, $station_id ) {
+    function ( $tracking, $consignment_id, $order, $carrier, $station_id ) {
 
         // Already have one — a label printed earlier, a number typed at the
         // bench? Leave it alone.
@@ -134,7 +142,14 @@ add_filter(
             return $tracking;
         }
 
+        // The parcel is already open and already holds its units, so you can
+        // tell the carrier exactly what is in the box: put them on the
+        // customs declaration, the packing list, wherever they belong.
+        $consignment = Dahu_Serial_Numbers_Consignments::get( $consignment_id );
+        $serials     = $consignment ? $consignment['serials'] : array();
+
         $label = my_carrier_api_create_label( array(
+            'contents' => implode( ', ', $serials ),
             'weight'  => $order->get_meta( '_cart_weight' ),
             'name'    => $order->get_formatted_shipping_full_name(),
             'address' => $order->get_shipping_address_1(),
@@ -149,7 +164,7 @@ add_filter(
         return $label['tracking_number'];
     },
     10,
-    4
+    5
 );
 
 // 2. Build a link somebody can follow. Nothing is guessed by default: there is
@@ -157,11 +172,12 @@ add_filter(
 //    worse than none.
 add_filter(
     'dahu_serial_numbers_tracking_url',
-    function ( $url, $tracking, $carrier, $order ) {
+    function ( $url, $tracking, $carrier, $order, $consignment_id ) {
+        // $order can be null when the link is built from a consignment alone.
         return 'https://my-carrier.example/track/' . rawurlencode( $tracking );
     },
     10,
-    4
+    5
 );
 ```
 
@@ -185,6 +201,88 @@ moves at all:
 ```php
 add_filter( 'dahu_serial_numbers_block_on_label_failure', '__return_true' );
 ```
+
+## Consignments
+
+A **consignment** is the set of units that left the shop — or came back —
+together, under one reference: `C-2026-00042` going out, `R-2026-00007` coming
+in. It answers the question nothing else could: *which units were in the parcel
+with this tracking number?* Before, the carrier and tracking number were order
+meta, one of each per order, and the link between a number and its units had to
+be guessed from the history.
+
+Closing a parcel now opens a consignment, puts the units in it, and closes it.
+The order meta (carrier, tracking number, reference) is still written, as a
+mirror of the most recent outbound parcel, for the theme, the e-mail or the
+export that reads it.
+
+**It is a ledger, not an actor.** The register moves no unit between statuses;
+`Dahu_Serial_Numbers_Shipment` does that, and uses the register to write down
+what it did. There is still no carrier API, no label, no manifest: the carrier
+is a name you type and the tracking number a string you paste.
+
+### Partial shipments
+
+`Dahu_Serial_Numbers_Shipment::ship()` takes `$args['serials']` to ship only
+some of an order, and `POST /orders/{id}/shipment` takes the same `serials`
+argument. Omit it and the whole order ships exactly as before.
+
+The completeness check — *every unit on the order has a serial number* — applies
+to a whole-order shipment only. It does not apply to a partial one: an order
+that leaves in two parcels necessarily has units without a serial while the
+first goes out, and refusing that would make the only way to ship half an order
+to lie about the other half. Every serial named must be assigned to the order,
+or the call is refused. By default the order moves to *completed* only when
+nothing is left to send; otherwise its status is left alone.
+
+### The consignments screen
+
+**Serial numbers → Consignments** in the admin. One search box takes a
+reference, a tracking number or a serial number. It is read-only but for one
+button: **cancel a consignment that is still open**. That is the way out when a
+process died between moving the units and closing the parcel, which would
+otherwise leave the units unable to join any other consignment — including the
+one that records their return. A closed consignment can never be cancelled: the
+parcel has gone.
+
+### Reading the register over REST
+
+| | |
+|---|---|
+| `GET /consignments` | a list; **requires at least one** of `order_id`, `tracking`, `reference`, `serial` |
+| `GET /consignments/{reference}` | one consignment and its units |
+
+The list refuses an unscoped request on purpose. The token that guards these
+routes belongs to a workshop post — a tablet shared on a bench, not a person —
+and an unnarrowed list would hand it the shop's whole shipping history. Packing
+always has a context (an order, a label, a unit in your hand), so nothing
+legitimate is lost.
+
+Writing to the register is **not** exposed over REST, deliberately. A
+carrier integration runs in the same PHP process and does not need a route, and
+a route would let a bench token write arbitrary movement records.
+
+### The tables are a public contract
+
+`dahu_serial_numbers_consignments` and `dahu_serial_numbers_consignment_serials`
+(with your table prefix) may be read by other plugins. Changes to them are
+**additive only**. The version of the contract is
+`Dahu_Serial_Numbers_Consignments::API_VERSION`, readable without loading the
+class from the option `dahu_serial_numbers_consignments_api`, and returned by
+`GET /consignments` as `api_version`. The database schema is at version 3.
+
+### Two known limits
+
+- **A cancelled consignment keeps its units.** Somebody did put them in that
+  box, and the fact is part of the story. So every reader must look at `status`
+  before counting departures; only `closed` ones happened.
+- **"Already in another open consignment" is not enforced under concurrency.**
+  The check is a read followed by an insert. Two benches closing two parcels in
+  the same instant can both be told a unit is free and both record it. The
+  status matrix catches it — `shipped` to `shipped` is refused, so the second
+  movement fails and that unit comes back out of its consignment — but the
+  guarantee is not the database's. A uniqueness table that closes the gap is
+  additive and will come in a later release.
 
 ## Which products carry serial numbers
 
@@ -235,7 +333,7 @@ outside 1–12 is dropped rather than written to the column.
 
 ## The API
 
-Nine routes under `dahu-serial-numbers/v1`, used by the packing screen. Every
+Eleven routes under `dahu-serial-numbers/v1`, used by the packing screen. Every
 one of them but sign-in requires a bearer token issued to a workshop post.
 
 | | |
@@ -246,7 +344,9 @@ one of them but sign-in requires a bearer token issued to a workshop post.
 | `GET /orders/{id}` | one order, its lines and their serial numbers |
 | `POST /orders/{id}/serials` | assign one serial number to one line |
 | `DELETE /orders/{id}/serials/{serial}` | take it back off |
-| `POST /orders/{id}/shipment` | close the parcel |
+| `POST /orders/{id}/shipment` | close the parcel; optional `serials` ships only those units |
+| `GET /consignments` | consignments matching `order_id`, `tracking`, `reference` or `serial` (one is required) |
+| `GET /consignments/{reference}` | one consignment and its units |
 | `GET /serials/{serial}` | one unit, with its history |
 | `POST /serials/{serial}/checks` | record a physical check |
 
@@ -284,10 +384,10 @@ somewhere the database is not reachable, which is never the case here.
 | `dahu_serial_numbers_token_ttl` | how long a session lasts |
 | `dahu_serial_numbers_auth_max_attempts` | failures before a login locks |
 | `dahu_serial_numbers_auth_lockout_window` | how long it stays locked |
-| `dahu_serial_numbers_before_shipment` | create a carrier label, return a tracking number |
-| `dahu_serial_numbers_block_on_label_failure` | refuse the parcel when the carrier fails, instead of recording it |
-| `dahu_serial_numbers_shipment_status` | where an order goes once shipped |
-| `dahu_serial_numbers_tracking_url` | build a link to follow a parcel |
+| `dahu_serial_numbers_before_shipment` | create a carrier label, return a tracking number — `( $tracking, $consignment_id, $order, $carrier, $station_id )` |
+| `dahu_serial_numbers_block_on_label_failure` | refuse the parcel when the carrier fails, instead of recording it — 4th parameter `$consignment_id` |
+| `dahu_serial_numbers_shipment_status` | where an order goes once shipped — 3rd parameter `$consignment_id`; the default is `completed` only when nothing is left to send, an empty string (status unchanged) otherwise |
+| `dahu_serial_numbers_tracking_url` | build a link to follow a parcel — 5th parameter `$consignment_id`; `$order` (4th) can be `null` |
 
 **Actions**
 
@@ -295,7 +395,10 @@ somewhere the database is not reachable, which is never the case here.
 |---|---|
 | `dahu_serial_numbers_created` | a unit was filed |
 | `dahu_serial_numbers_transitioned` | a unit moved |
-| `dahu_serial_numbers_shipped` | a parcel was closed |
+| `dahu_serial_numbers_shipped` | a parcel was closed — 5th parameter `$consignment_id` |
+| `dahu_serial_numbers_consignment_opened` | a consignment was opened |
+| `dahu_serial_numbers_consignment_closed` | a consignment was closed |
+| `dahu_serial_numbers_consignment_cancelled` | a consignment was cancelled |
 | `dahu_serial_numbers_station_credentials_revoked` | a post was switched off, or its password changed |
 
 ## Times

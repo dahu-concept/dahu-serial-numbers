@@ -260,3 +260,8 @@
 	outline: 2px solid transparent;
 	transition: box-shadow var( --dahu-admin-transition );
 }
+
+.dahu-serial-numbers__subrow td {
+	color: var( --dahu-admin-text-muted );
+	font-size: .9em;
+}

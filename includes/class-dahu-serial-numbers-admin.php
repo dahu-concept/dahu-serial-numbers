@@ -70,6 +70,15 @@ class Dahu_Serial_Numbers_Admin {
 
 		add_submenu_page(
 			self::SLUG,
+			__( 'Consignments', 'dahu-serial-numbers' ),
+			__( 'Consignments', 'dahu-serial-numbers' ),
+			self::CAPABILITY,
+			self::SLUG . '-consignments',
+			array( 'Dahu_Serial_Numbers_Admin_Consignments', 'render' )
+		);
+
+		add_submenu_page(
+			self::SLUG,
 			__( 'Workshop posts', 'dahu-serial-numbers' ),
 			__( 'Workshop posts', 'dahu-serial-numbers' ),
 			// Higher than the rest, deliberately: a workshop post is a

@@ -406,6 +406,29 @@ body.dahu-packing {
 	margin-bottom: var( --dahu-packing-gap );
 }
 
+/* The parcel's own measurements: one weight, then three sides side by side. */
+
+.dahu-packing__parcel {
+	border: 0;
+	margin: 0 0 var( --dahu-packing-gap );
+	padding: 0;
+}
+
+.dahu-packing__parcel legend {
+	padding: 0;
+}
+
+.dahu-packing__sublabel {
+	display: block;
+	margin-bottom: var( --dahu-packing-gap );
+}
+
+.dahu-packing__sides {
+	display: grid;
+	gap: var( --dahu-packing-gap );
+	grid-template-columns: repeat( 3, 1fr );
+}
+
 /* --- Focus ------------------------------------------------------------- */
 
 /*

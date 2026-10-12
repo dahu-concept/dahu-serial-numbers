@@ -189,7 +189,95 @@ class Dahu_Serial_Numbers_Rest {
 						'required' => false,
 						'type'     => 'string',
 					),
+					// Omitted means the whole order, which is what the
+					// packing screen sends. Named units mean one parcel out
+					// of several, and the completeness check that applies to
+					// a whole order does not apply to them.
+					'serials'  => array(
+						'required' => false,
+						'type'     => 'array',
+						'items'    => array( 'type' => 'string' ),
+					),
+					// The parcel itself, in the shop's own units. Nothing here
+					// computes a weight from the goods: only the person who
+					// taped the box knows how it was filled.
+					'weight'   => array(
+						'required' => false,
+						'type'     => 'number',
+					),
+					'length'   => array(
+						'required' => false,
+						'type'     => 'number',
+					),
+					'width'    => array(
+						'required' => false,
+						'type'     => 'number',
+					),
+					'height'   => array(
+						'required' => false,
+						'type'     => 'number',
+					),
 				),
+			)
+		);
+
+		// Read-only, on purpose. The write side of the consignment ledger —
+		// opening one, putting units in it, closing it — is PHP only, and a
+		// carrier integration runs in the same process, so it does not need
+		// a route. Exposing it here would hand a bench token the ability to
+		// write arbitrary movement records, including inbound ones that
+		// belong to an after-sales screen with its own permissions.
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/consignments',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'consignments' ),
+				'permission_callback' => $guard,
+				'args'                => array(
+					'direction' => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'status'    => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'order_id'  => array(
+						'required' => false,
+						'type'     => 'integer',
+					),
+					'tracking'  => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'reference' => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'serial'    => array(
+						'required' => false,
+						'type'     => 'string',
+					),
+					'paged'     => array(
+						'required' => false,
+						'type'     => 'integer',
+					),
+					'per_page'  => array(
+						'required' => false,
+						'type'     => 'integer',
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/consignments/(?P<reference>[A-Za-z0-9_-]+)',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'consignment' ),
+				'permission_callback' => $guard,
 			)
 		);
 
@@ -554,24 +642,52 @@ class Dahu_Serial_Numbers_Rest {
 			return $order;
 		}
 
-		$result = Dahu_Serial_Numbers_Shipment::ship(
-			$order,
-			array(
-				'carrier'    => (string) $request->get_param( 'carrier' ),
-				'tracking'   => (string) $request->get_param( 'tracking' ),
-				'station_id' => Dahu_Serial_Numbers_Auth::station_id_from_request( $request ),
-			)
+		$args = array(
+			'carrier'    => (string) $request->get_param( 'carrier' ),
+			'tracking'   => (string) $request->get_param( 'tracking' ),
+			'station_id' => Dahu_Serial_Numbers_Auth::station_id_from_request( $request ),
+			'source'     => 'workshop',
 		);
+
+		// Only set when the caller sent it. An empty array is not the same
+		// request as no array at all: the first says "ship these units" and
+		// names none, the second says "ship the order", and conflating them
+		// would turn a client bug into a silent full shipment.
+		$named = $request->get_param( 'serials' );
+
+		if ( is_array( $named ) ) {
+			$args['serials'] = $named;
+		}
+
+		foreach ( array( 'weight', 'length', 'width', 'height' ) as $measure ) {
+			if ( null !== $request->get_param( $measure ) ) {
+				$args[ $measure ] = $request->get_param( $measure );
+			}
+		}
+
+		$result = Dahu_Serial_Numbers_Shipment::ship( $order, $args );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
 
 		$payload = array(
-			'success' => true,
-			'shipped' => $result['shipped'],
-			'status'  => $result['status'],
+			'success'     => true,
+			'shipped'     => $result['shipped'],
+			'status'      => $result['status'],
+			'consignment' => $result['reference'],
 		);
+
+		// The bench is the only place this can still be acted on: the units
+		// are in the box, the box is about to be taped, and nothing on file
+		// says where they are.
+		if ( ! empty( $result['unregistered'] ) ) {
+			$payload['warning'] = sprintf(
+				/* translators: %s: comma-separated serial numbers. */
+				__( 'These units could NOT be recorded in the parcel and did not ship: %s. Take them out of the box.', 'dahu-serial-numbers' ),
+				implode( ', ', $result['unregistered'] )
+			);
+		}
 
 		// The parcel went, but the carrier did not answer. Said on the screen
 		// rather than only in the order notes: the person at the bench is the
@@ -586,6 +702,130 @@ class Dahu_Serial_Numbers_Rest {
 		}
 
 		return new WP_REST_Response( $payload, 200 );
+	}
+
+	/**
+	 * GET /consignments
+	 *
+	 * The support query, and the reason the ledger exists: a tracking number
+	 * goes in, the units that were in that parcel come out.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response
+	 */
+	public static function consignments( WP_REST_Request $request ) { // phpcs:ignore Generic.Metrics.CyclomaticComplexity
+
+		$args = array(
+			'direction' => (string) $request->get_param( 'direction' ),
+			'status'    => (string) $request->get_param( 'status' ),
+			'order_id'  => (int) $request->get_param( 'order_id' ),
+			'tracking'  => (string) $request->get_param( 'tracking' ),
+			'reference' => (string) $request->get_param( 'reference' ),
+			'serial'    => (string) $request->get_param( 'serial' ),
+			'paged'     => (int) $request->get_param( 'paged' ),
+			'per_page'  => (int) $request->get_param( 'per_page' ),
+		);
+
+		// At least one narrowing parameter, always. The guard on this route
+		// is a workshop post's bearer token, and a workshop post is a shared
+		// login on a tablet that sits on a bench — not a person. An
+		// unnarrowed list hands that tablet the shop's entire shipping
+		// history: every order id, carrier, tracking number and, one
+		// sequential reference at a time, every unit that ever left.
+		//
+		// Packing always has a context — the order in front of you, a label,
+		// a unit in your hand — so nothing legitimate is lost by asking for
+		// it.
+		if ( ! $args['order_id'] && '' === $args['tracking'] && '' === $args['reference'] && '' === $args['serial'] ) {
+			return new WP_Error(
+				'dahu_serial_numbers_consignments_unscoped',
+				__( 'Say which parcel you are looking for: an order, a tracking number, a reference or a serial number.', 'dahu-serial-numbers' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$rows   = Dahu_Serial_Numbers_Consignments::query( $args );
+		$counts = Dahu_Serial_Numbers_Consignments::counts( wp_list_pluck( $rows, 'id' ) );
+		$out    = array();
+
+		foreach ( $rows as $row ) {
+			$out[] = self::consignment_summary( $row, isset( $counts[ $row['id'] ] ) ? $counts[ $row['id'] ] : 0 );
+		}
+
+		return new WP_REST_Response(
+			array(
+				'consignments' => $out,
+				'total'        => Dahu_Serial_Numbers_Consignments::count( $args ),
+				'api_version'  => Dahu_Serial_Numbers_Consignments::API_VERSION,
+			),
+			200
+		);
+	}
+
+	/**
+	 * GET /consignments/{reference}
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function consignment( WP_REST_Request $request ) {
+
+		// By reference only. `get()` would take the same string as an id when
+		// it happens to be numeric, and this is user input on a published
+		// route.
+		$consignment = Dahu_Serial_Numbers_Consignments::get_by_reference( (string) $request->get_param( 'reference' ) );
+
+		if ( ! $consignment ) {
+			return new WP_Error(
+				'dahu_serial_numbers_consignment_unknown',
+				__( 'No such consignment.', 'dahu-serial-numbers' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$payload            = self::consignment_summary( $consignment, (int) $consignment['count'] );
+		$payload['serials'] = $consignment['serials'];
+		$payload['note']    = (string) $consignment['note'];
+
+		return new WP_REST_Response( $payload, 200 );
+	}
+
+	/**
+	 * One consignment, as a list shows it.
+	 *
+	 * @param array $row   Row.
+	 * @param int   $count How many units are in it.
+	 * @return array<string,mixed>
+	 */
+	private static function consignment_summary( array $row, $count ) {
+
+		$directions = Dahu_Serial_Numbers_Consignments::direction_labels();
+		$statuses   = Dahu_Serial_Numbers_Consignments::status_labels();
+		$direction  = (string) $row['direction'];
+		$status     = (string) $row['status'];
+
+		return array(
+			'reference'        => (string) $row['reference'],
+			'direction'        => $direction,
+			'direction_label'  => isset( $directions[ $direction ] ) ? $directions[ $direction ] : $direction,
+			'status'           => $status,
+			'status_label'     => isset( $statuses[ $status ] ) ? $statuses[ $status ] : $status,
+			'order_id'         => $row['order_id'],
+			'carrier'          => (string) $row['carrier'],
+			'tracking'         => (string) $row['tracking'],
+			'tracking_url'     => Dahu_Serial_Numbers_Shipment::tracking_url_for_row( $row ),
+			'source'           => (string) $row['source'],
+			'count'            => (int) $count,
+			'weight'           => isset( $row['weight'] ) ? $row['weight'] : null,
+			'weight_unit'      => isset( $row['weight_unit'] ) ? (string) $row['weight_unit'] : '',
+			'length'           => isset( $row['length'] ) ? $row['length'] : null,
+			'width'            => isset( $row['width'] ) ? $row['width'] : null,
+			'height'           => isset( $row['height'] ) ? $row['height'] : null,
+			'dimension_unit'   => isset( $row['dimension_unit'] ) ? (string) $row['dimension_unit'] : '',
+			'parcel'           => Dahu_Serial_Numbers_Consignments::parcel_label( $row ),
+			'created_at'       => self::local( (string) $row['created_at'] ),
+			'closed_at'        => $row['closed_at'] ? self::local( (string) $row['closed_at'] ) : '',
+		);
 	}
 
 	/**
@@ -617,10 +857,21 @@ class Dahu_Serial_Numbers_Rest {
 			);
 		}
 
+		// The round trip. A unit that went out, came back and went out again
+		// has three consignments, and this is the only place a bench can see
+		// that sequence without reading the history line by line.
+		$parcels = Dahu_Serial_Numbers_Consignments::for_serial( $serial );
+		$travel  = array();
+
+		foreach ( $parcels as $parcel ) {
+			$travel[] = self::consignment_summary( $parcel, 0 );
+		}
+
 		return new WP_REST_Response(
 			array(
-				'serial'  => self::serial_payload( $row ),
-				'history' => self::history_payload( $serial ),
+				'serial'       => self::serial_payload( $row ),
+				'history'      => self::history_payload( $serial ),
+				'consignments' => $travel,
 			),
 			200
 		);
@@ -793,8 +1044,23 @@ class Dahu_Serial_Numbers_Rest {
 	 */
 	private static function order_detail( WC_Order $order ) {
 
-		$detail       = self::order_summary( $order );
-		$by_item      = Dahu_Serial_Numbers_Manager::get_by_order_items( array_keys( $order->get_items() ), $order->get_id() );
+		$detail  = self::order_summary( $order );
+		$by_item = Dahu_Serial_Numbers_Manager::get_by_order_items( array_keys( $order->get_items() ), $order->get_id() );
+
+		// Every parcel on the order, not just the last one. An order shipped
+		// in three goes out with three tracking numbers, and the screen that
+		// cannot show them is the screen that sends somebody to the phone.
+		$parcels          = Dahu_Serial_Numbers_Consignments::for_order( $order->get_id() );
+		$parcel_counts    = Dahu_Serial_Numbers_Consignments::counts( wp_list_pluck( $parcels, 'id' ) );
+		$detail['consignments'] = array();
+
+		foreach ( $parcels as $parcel ) {
+			$detail['consignments'][] = self::consignment_summary(
+				$parcel,
+				isset( $parcel_counts[ $parcel['id'] ] ) ? $parcel_counts[ $parcel['id'] ] : 0
+			);
+		}
+
 		$detail['lines'] = array();
 
 		foreach ( $order->get_items() as $item_id => $item ) {

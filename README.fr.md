@@ -119,6 +119,14 @@ tant que quelqu'un n'a pas écrit une classe PHP.
 
 ### Greffer son transporteur
 
+> **Mise à jour depuis la 1.0.0 ?** `dahu_serial_numbers_before_shipment` a
+> gagné un paramètre en **deuxième** position — `$consignment_id` — donc
+> `$order` passe en troisième. Un écouteur déclaré avec `10, 4` et l'ancien ordre
+> reçoit un entier là où il attend la commande, et échoue ; l'extension
+> l'attrape, ferme le colis quand même, et la seule trace est une note sur la
+> commande. Passez la signature à `( $tracking, $consignment_id, $order,
+> $carrier, $station_id )` et déclarez-la avec `10, 5`.
+
 Une intégration transporteur est une extension à elle seule — trente lignes,
 deux filtres, et rien à changer ici. Quel que soit le contrat : Chronopost,
 Colissimo, Sendcloud, un transitaire, un coursier qui prend un CSV une fois par
@@ -135,7 +143,7 @@ jour.
 //    l'historique de chaque unité.
 add_filter(
     'dahu_serial_numbers_before_shipment',
-    function ( $tracking, $order, $carrier, $station_id ) {
+    function ( $tracking, $consignment_id, $order, $carrier, $station_id ) {
 
         // Il y en a déjà un — étiquette imprimée plus tôt, numéro saisi au
         // poste ? On n'y touche pas.
@@ -143,7 +151,14 @@ add_filter(
             return $tracking;
         }
 
+        // Le colis est déjà ouvert et contient déjà ses unités : vous pouvez
+        // dire au transporteur exactement ce qu'il y a dans le carton — les
+        // mettre sur la déclaration en douane, le bordereau, où il faut.
+        $envoi  = Dahu_Serial_Numbers_Consignments::get( $consignment_id );
+        $series = $envoi ? $envoi['serials'] : array();
+
         $etiquette = mon_transporteur_api_creer_etiquette( array(
+            'contenu'  => implode( ', ', $series ),
             'poids'    => $order->get_meta( '_cart_weight' ),
             'nom'      => $order->get_formatted_shipping_full_name(),
             'adresse'  => $order->get_shipping_address_1(),
@@ -158,7 +173,7 @@ add_filter(
         return $etiquette['numero_de_suivi'];
     },
     10,
-    4
+    5
 );
 
 // 2. Construire un lien que quelqu'un peut suivre. Rien n'est deviné par
@@ -166,11 +181,13 @@ add_filter(
 //    extension, et un lien deviné qui tombe en 404 est pire que pas de lien.
 add_filter(
     'dahu_serial_numbers_tracking_url',
-    function ( $url, $tracking, $carrier, $order ) {
+    function ( $url, $tracking, $carrier, $order, $consignment_id ) {
+        // $order peut valoir null quand le lien est construit à partir d'un
+        // envoi seul.
         return 'https://mon-transporteur.example/suivi/' . rawurlencode( $tracking );
     },
     10,
-    4
+    5
 );
 ```
 
@@ -196,6 +213,93 @@ rien ne bouge du tout :
 ```php
 add_filter( 'dahu_serial_numbers_block_on_label_failure', '__return_true' );
 ```
+
+## Les envois (registre d'envois)
+
+Un **envoi** (*consignment*) est l'ensemble des unités parties — ou revenues —
+ensemble, sous une même référence : `C-2026-00042` en sortant, `R-2026-00007` en
+entrant. Il répond à la question que rien d'autre ne pouvait traiter : *quelles
+unités étaient dans le colis portant ce numéro de suivi ?* Avant, le
+transporteur et le numéro de suivi étaient des métas de commande, un de chaque
+par commande, et le lien entre un numéro et ses unités devait se deviner dans
+l'historique.
+
+Fermer un colis ouvre désormais un envoi, y place les unités, puis le ferme. Les
+métas de commande (transporteur, numéro de suivi, référence) sont toujours
+écrites, en miroir du dernier colis sortant, pour le thème, l'e-mail ou
+l'export qui les lit.
+
+**C'est un livre de comptes, pas un acteur.** Le registre ne déplace aucune
+unité d'un statut à l'autre ; c'est `Dahu_Serial_Numbers_Shipment` qui le fait,
+et qui se sert du registre pour noter ce qu'il a fait. Toujours pas d'API
+transporteur, d'étiquette ni de manifeste : le transporteur est un nom que vous
+saisissez, le numéro de suivi une chaîne que vous collez.
+
+### Expéditions partielles
+
+`Dahu_Serial_Numbers_Shipment::ship()` accepte `$args['serials']` pour n'expédier
+qu'une partie d'une commande, et `POST /orders/{id}/shipment` accepte le même
+argument `serials`. Omis, toute la commande part, comme avant.
+
+Le contrôle de complétude — *chaque unité de la commande a un numéro de série* —
+ne s'applique qu'à l'expédition de la commande entière. Il ne s'applique pas à
+une expédition partielle : une commande qui part en deux colis a forcément des
+unités sans numéro pendant que le premier part, et le refuser reviendrait à
+obliger à mentir sur l'autre moitié pour n'en expédier que la moitié. Chaque
+numéro nommé doit être affecté à la commande, sinon l'appel est refusé. Par
+défaut la commande ne passe à *terminée* que lorsqu'il ne reste rien à envoyer ;
+sinon son statut est laissé tel quel.
+
+### L'écran « Consignments »
+
+**Serial numbers → Consignments** dans l'administration. Une seule boîte de
+recherche accepte une référence, un numéro de suivi ou un numéro de série. Il est
+en lecture seule, sauf un bouton : **annuler un envoi resté ouvert**. C'est la
+sortie de secours quand un processus est mort entre le déplacement des unités et
+la fermeture du colis, ce qui rendrait sinon les unités incapables de rejoindre
+un autre envoi — y compris celui qui enregistre leur retour. Un envoi fermé n'est
+jamais annulable : le colis est parti.
+
+### Lire le registre en REST
+
+| | |
+|---|---|
+| `GET /consignments` | une liste ; **exige au moins un** paramètre parmi `order_id`, `tracking`, `reference`, `serial` |
+| `GET /consignments/{reference}` | un envoi et ses unités |
+
+La liste refuse volontairement une requête non cadrée. Le jeton qui garde ces
+routes est celui d'un poste d'atelier — une tablette partagée sur un établi, pas
+une personne — et une liste sans filtre lui livrerait tout l'historique
+d'expédition de la boutique. La préparation a toujours un contexte (une commande,
+une étiquette, une unité en main) : rien de légitime n'est perdu.
+
+L'écriture du registre n'est **pas** exposée en REST, délibérément. Une
+intégration transporteur tourne dans le même processus PHP et n'a pas besoin de
+route, et une route permettrait à un jeton d'établi d'écrire des mouvements
+arbitraires.
+
+### Les tables sont un contrat public
+
+`dahu_serial_numbers_consignments` et `dahu_serial_numbers_consignment_serials`
+(avec votre préfixe de tables) peuvent être lues par d'autres extensions. Leurs
+modifications sont **additives seulement**. La version du contrat est
+`Dahu_Serial_Numbers_Consignments::API_VERSION`, lisible sans charger la classe
+via l'option `dahu_serial_numbers_consignments_api`, et renvoyée par
+`GET /consignments` dans `api_version`. Le schéma de base est en version 3.
+
+### Deux limites connues
+
+- **Un envoi annulé garde ses unités.** Quelqu'un les a bien mises dans ce
+  carton, et le fait fait partie de l'histoire. Tout lecteur doit donc regarder
+  `status` avant de compter des départs ; seuls les envois `closed` ont eu lieu.
+- **« Déjà dans un autre envoi ouvert » n'est pas opposable sous concurrence.**
+  Le contrôle est une lecture suivie d'une insertion. Deux postes qui ferment
+  deux colis au même instant peuvent tous deux s'entendre dire que l'unité est
+  libre et tous deux l'enregistrer. La matrice de statuts rattrape — `shipped`
+  vers `shipped` est refusé, donc le second mouvement échoue et l'unité ressort
+  de son envoi — mais la garantie n'est pas celle de la base. Une table
+  d'unicité qui comble l'écart est additive et viendra dans une version
+  ultérieure.
 
 ## Quels produits portent un numéro de série
 
@@ -246,7 +350,7 @@ hors de 1-12 est écarté plutôt qu'écrit dans la colonne.
 
 ## L'API
 
-Neuf routes sous `dahu-serial-numbers/v1`, employées par l'écran d'atelier.
+Onze routes sous `dahu-serial-numbers/v1`, employées par l'écran d'atelier.
 Toutes sauf la connexion exigent un jeton délivré à un poste atelier.
 
 | | |
@@ -257,7 +361,9 @@ Toutes sauf la connexion exigent un jeton délivré à un poste atelier.
 | `GET /orders/{id}` | une commande, ses lignes et leurs numéros de série |
 | `POST /orders/{id}/serials` | affecter un numéro de série à une ligne |
 | `DELETE /orders/{id}/serials/{serial}` | le retirer |
-| `POST /orders/{id}/shipment` | fermer le colis |
+| `POST /orders/{id}/shipment` | fermer le colis ; `serials` optionnel n'expédie que ces unités |
+| `GET /consignments` | les envois correspondant à `order_id`, `tracking`, `reference` ou `serial` (un au moins est exigé) |
+| `GET /consignments/{reference}` | un envoi et ses unités |
 | `GET /serials/{serial}` | une unité, avec son historique |
 | `POST /serials/{serial}/checks` | enregistrer un pointage physique |
 
@@ -296,10 +402,10 @@ n'est jamais le cas ici.
 | `dahu_serial_numbers_token_ttl` | la durée d'une session |
 | `dahu_serial_numbers_auth_max_attempts` | les échecs avant verrouillage |
 | `dahu_serial_numbers_auth_lockout_window` | la durée du verrou |
-| `dahu_serial_numbers_before_shipment` | créer une étiquette, rendre un numéro de suivi |
-| `dahu_serial_numbers_block_on_label_failure` | refuser le colis si le transporteur échoue, au lieu de l'enregistrer |
-| `dahu_serial_numbers_shipment_status` | où va la commande une fois expédiée |
-| `dahu_serial_numbers_tracking_url` | construire un lien de suivi |
+| `dahu_serial_numbers_before_shipment` | créer une étiquette, rendre un numéro de suivi — `( $tracking, $consignment_id, $order, $carrier, $station_id )` |
+| `dahu_serial_numbers_block_on_label_failure` | refuser le colis si le transporteur échoue, au lieu de l'enregistrer — 4e paramètre `$consignment_id` |
+| `dahu_serial_numbers_shipment_status` | où va la commande une fois expédiée — 3e paramètre `$consignment_id` ; le défaut est `completed` seulement quand il ne reste rien à envoyer, chaîne vide (statut inchangé) sinon |
+| `dahu_serial_numbers_tracking_url` | construire un lien de suivi — 5e paramètre `$consignment_id` ; `$order` (4e) peut valoir `null` |
 
 **Actions**
 
@@ -307,7 +413,10 @@ n'est jamais le cas ici.
 |---|---|
 | `dahu_serial_numbers_created` | une unité a été enregistrée |
 | `dahu_serial_numbers_transitioned` | une unité a bougé |
-| `dahu_serial_numbers_shipped` | un colis a été fermé |
+| `dahu_serial_numbers_shipped` | un colis a été fermé — 5e paramètre `$consignment_id` |
+| `dahu_serial_numbers_consignment_opened` | un envoi a été ouvert |
+| `dahu_serial_numbers_consignment_closed` | un envoi a été fermé |
+| `dahu_serial_numbers_consignment_cancelled` | un envoi a été annulé |
 | `dahu_serial_numbers_station_credentials_revoked` | un poste a été désactivé, ou son mot de passe changé |
 
 ## Les dates

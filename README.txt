@@ -4,7 +4,7 @@ Tags: woocommerce, serial numbers, traceability, warranty, inventory
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -58,7 +58,21 @@ The plugin closes a parcel: every unit is recorded as having left, the carrier
 and tracking number go on the order, and the order moves on. It does not talk
 to a carrier — no label creation, no API credentials — because that needs an
 account and a configuration particular to one shop. A carrier integration plugs
-in with two filters and no changes to this plugin.
+in with two filters and no changes to this plugin. The filter that creates the label receives the consignment, so the integration knows which units it is labelling.
+
+= Consignments =
+
+A consignment is the set of units that left the shop, or came back, together,
+under one reference: C-2026-00042 going out, R-2026-00007 coming in. It answers
+the question support is actually asked: which units were in the parcel with this
+tracking number?
+
+* Partial shipments: ship part of an order in one parcel and the rest in another, each with its own tracking number. The completeness check applies to a whole-order shipment only, because an order leaving in two parcels necessarily has units without a serial while the first one goes.
+* A "Consignments" screen in the admin: search by reference, tracking number or serial number in one box. Its only action is cancelling a consignment left open by an interrupted process; a closed consignment can never be cancelled.
+* Two read-only REST routes, which require at least one of order, tracking number, reference or serial number, so that a shared bench token cannot list the whole shipping history. Writing to the register is deliberately not exposed over REST.
+* Two database tables that other plugins may read. Changes to them are additive only, and the contract version is in the option dahu_serial_numbers_consignments_api.
+
+The register records what was shipped; it moves no unit itself and talks to no carrier. Two known limits: a cancelled consignment keeps its units, so check its status before counting departures; and "already in another open consignment" is not enforced when two benches act in the same instant, where the status rules stop the second movement instead.
 
 = Reading a date out of a serial number =
 
@@ -79,7 +93,7 @@ of any kind, and ships no third-party library.
 
 == Installation ==
 
-1. Install and activate the plugin. Four database tables are created.
+1. Install and activate the plugin. Six database tables are created.
 2. Tick "Serial numbers" under Inventory on the products that carry one.
 3. Create a workshop post under Serial numbers → Workshop posts.
 4. Switch the packing screen on under Serial numbers → Settings, and open
@@ -124,10 +138,23 @@ records which bench did what.
 
 == Changelog ==
 
+= 1.1.0 =
+* Breaking: the filter dahu_serial_numbers_before_shipment now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ); the consignment id is the new second parameter.
+* New: consignment register recording which serial numbers left, or came back, together, under which reference.
+* New: partial shipments, by passing a list of serial numbers to ship part of an order.
+* New: Consignments screen in the admin, and read-only REST routes GET /consignments and GET /consignments/{reference}.
+* New: actions dahu_serial_numbers_consignment_opened, _closed and _cancelled.
+* Changed: dahu_serial_numbers_block_on_label_failure, dahu_serial_numbers_shipment_status, dahu_serial_numbers_tracking_url and dahu_serial_numbers_shipped each gain a trailing $consignment_id parameter; the tracking URL filter's order can be null.
+* Changed: the default order status after a shipment is completed only when nothing is left to send; otherwise the status is left alone.
+* Database schema is now version 3.
+
 = 1.0.0 =
 * First release.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+If you have a listener on dahu_serial_numbers_before_shipment, update it before anything else: it now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ) and must be registered with 5 accepted arguments, because the old signature hands your code an integer where it expects the order. The other changed hooks only gain trailing parameters. Two database tables for the consignment register are created on update.
 
 = 1.0.0 =
 First release.

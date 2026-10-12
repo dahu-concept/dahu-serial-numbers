@@ -3,7 +3,7 @@
 Document interne. L'extension publique est en anglais ; ce fichier est le seul
 du dépôt où les origines Annad sont nommées.
 
-Version 1.0.0, portée de `dahu-serials` le 8 octobre 2026.
+Version 1.0.0, portée de `dahu-serials` le 8 octobre 2026. Version 1.1.0 : registre d'envois (schéma en version 3), détaillé au §10.
 
 ---
 
@@ -506,7 +506,7 @@ L'assertion qui donne un sens au verrou est celle-ci : pendant le verrou,
 échecs mais laisserait passer un bon mot de passe passerait tous les autres
 tests du fichier.
 
-### 7.5 Huit routes, et pas une de plus
+### 7.5 Neuf routes, et pas une de plus
 
 La source avait deux espaces de noms et dix-huit routes, dont certaines
 n'existaient que parce qu'une première version de l'écran avait demandé une
@@ -514,8 +514,11 @@ forme légèrement différente. L'une était morte : un point d'entrée `declare
 avait été retiré de l'écran et laissé enregistré — **douze lignes ont été créées
 à travers lui** avant que quelqu'un le remarque.
 
-Le banc asserte le compte : huit. Une route que personne n'appelle n'est pas
-inoffensive, c'est une surface non authentifiée qui n'a plus de lecteur.
+Le banc asserte le compte, et le garde-fou a servi : il est passé à onze en
+1.1.0 quand le registre d'envois a ajouté ses deux routes de lecture (§10), et
+c'est bien ainsi qu'il doit bouger — par une décision, jamais par accident. Une
+route que personne n'appelle n'est pas inoffensive, c'est une surface non
+authentifiée qui n'a plus de lecteur.
 
 ### 7.6 Un écart de produit avertit, il ne refuse pas
 
@@ -627,7 +630,7 @@ les identifiants.
 
 ## 8. Modèle de données
 
-Quatre tables, contre dix-sept dans la source.
+Six tables depuis la 1.1.0 (quatre en 1.0.0), contre dix-sept dans la source.
 
 | Table | Une ligne par |
 |---|---|
@@ -635,6 +638,8 @@ Quatre tables, contre dix-sept dans la source.
 | `dahu_serial_numbers_log` | événement, en ajout seul |
 | `dahu_serial_numbers_stations` | poste d'atelier |
 | `dahu_serial_numbers_tokens` | jeton délivré à un poste |
+| `dahu_serial_numbers_consignments` | envoi (colis sortant ou retour entrant) |
+| `dahu_serial_numbers_consignment_serials` | unité présente dans un envoi (jointure) |
 
 La table des serials garde `service_ticket` et `replaced_by` : la matrice de
 transition est livrée entière, `in_repair` et `replaced` sont des statuts
@@ -687,3 +692,119 @@ Le banc tourne sur WordPress + SQLite + WooCommerce. Ce qu'il ne couvre pas :
     sur le banc. Sur un vrai site français ce sera « mars 2024 » et le format
     choisi dans les réglages. À confirmer d'un coup d'œil, puisque c'est la
     seule chose que le banc ne peut pas montrer juste.
+
+---
+
+## 10. Le registre d'envois (1.1.0)
+
+Contexte (déploiement d'origine, annad.fr) : la question « quelles unités étaient dans
+le colis portant ce numéro de suivi ? » n'avait aucune réponse en base. Le
+transporteur et le suivi étaient des métas de commande — un de chaque par
+commande — et le lien entre un numéro et ses unités se reconstituait à partir de
+`order_id`, d'un statut et d'une ligne de texte libre de l'historique.
+
+### 10.1 Pourquoi un objet de premier rang plutôt que des métas de commande
+
+Des métas portent une valeur par commande ; un envoi est un ensemble d'unités
+avec sa référence, son sens (sortant `C-`, entrant `R-`), son statut
+(`open`, `closed`, `cancelled`), son transporteur et son suivi. Les métas ne
+disent ni « deux colis pour une commande » ni « ce retour est le voyage inverse
+de ce départ ». L'envoi est donc une ligne, avec une référence qu'on peut citer
+dans un ticket de support. Les trois métas de commande restent écrites, en
+miroir du dernier colis sortant, pour le thème, l'e-mail et l'export qui les
+lisent depuis deux ans — pas pour l'usage de l'extension.
+
+### 10.2 Pourquoi une table de jointure plutôt qu'une colonne
+
+Une colonne `consignment_id` sur la table des serials ne dirait que le dernier
+envoi de l'unité. Or le but est la lecture du voyage complet d'une unité : sortie,
+retour, nouvelle sortie. La jointure `consignment_serials` garde une ligne par
+passage, et la même unité y apparaît dans autant d'envois que de trajets. Une
+unité n'y figure qu'une fois par envoi, appliqué par clef.
+
+### 10.3 Un livre de comptes, pas un acteur
+
+`Dahu_Serial_Numbers_Consignments` ne déplace aucune unité. Il enregistre une
+intention ; c'est `Dahu_Serial_Numbers_Shipment::ship()` qui fait transiter les
+unités puis écrit ce qu'il a fait. C'est ce qui donne le même sens à un envoi
+qu'il ait été fermé par l'écran d'atelier, par une intégration transporteur ou
+saisi après coup. Contrepartie assumée : l'API permet d'écrire un enregistrement
+qui ne correspond pas aux statuts — même marché que la table d'historique, un
+registre de ce que quelqu'un a dit valant mieux qu'un registre qui refuse tout
+ce qui surprend. Il n'y a pas non plus d'écriture REST : une intégration tourne
+dans le même processus, et une route donnerait à un jeton d'établi le pouvoir
+d'écrire des mouvements arbitraires, retours compris.
+
+### 10.4 Ce que `ship()` fait désormais, et l'ordre compte
+
+Ouvre l'envoi, y place les unités (`add()`), **puis** appelle le filtre
+`dahu_serial_numbers_before_shipment`, pour que l'intégration puisse lire la liste
+des unités qu'elle étiquette. Seul `$added['added']` est expédié, pas ce qui avait
+été demandé. Cause de l'inversion de signature : le filtre recevait une commande
+et un nom de transporteur sans moyen de savoir quelles unités il étiquetait. Le
+nouveau paramètre est en **deuxième** position, donc rupture (`10, 5`) ; les
+autres filtres et l'action `shipped` ne gagnent que des paramètres en fin de
+liste. `dahu_serial_numbers_shipment_status` change de défaut : `completed`
+seulement s'il ne reste rien à envoyer, sinon chaîne vide — une expédition
+partielle qui terminerait la commande dirait au client que son second colis est
+arrivé. Le contrôle de complétude ne s'applique pas à une expédition partielle :
+une commande en deux colis a des unités sans numéro quand le premier part, et le
+refuser obligerait à mentir sur l'autre moitié.
+
+### 10.5 Les pièges découverts à l'épreuve
+
+1. **Le miroir de métas mélangeait deux colis.** Les trois métas s'écrivaient
+   chacune quand elle avait une valeur : un second envoi sans suivi écrasait la
+   référence et laissait le transporteur et le suivi du premier à côté. Un thème
+   affichait le suivi d'un autre carton. Désormais les trois sont écrites
+   ensemble, à partir de l'envoi tel qu'il a été fermé — vides plutôt que périmées
+   quand il n'y a pas de suivi.
+2. **`add()` ravalait un INSERT en échec.** Le retour ne disait rien, et `ship()`
+   marquait expédiées toutes les unités demandées : une collision de clef ou un
+   deadlock produisait exactement le mensonge que le registre existe pour
+   empêcher, une unité partie et présente dans aucun colis. `add()` rend
+   maintenant `added`, `skipped` et `failed`, et `ship()` n'expédie que `added` ;
+   si rien n'a pu être écrit, l'envoi est annulé et rien n'a bougé.
+3. **Un `close()` en échec laissait un colis ouvert pour toujours.** Ignoré, il
+   laissait un colis parti mais marqué ouvert, ce qui rendait chaque unité
+   inconsignable à vie — y compris pour le retour entrant. Silencieux, permanent,
+   et réparable seulement en SQL. Désormais le colis n'est pas refusé (les unités
+   sont réellement parties) mais une note de commande nomme l'envoi, et l'écran
+   « Consignments » permet de l'annuler.
+4. **`cancel()` n'était pas idempotent.** Une requête rejouée — la façon normale
+   d'arriver deux fois — avançait `closed_at` et ajoutait sa raison une seconde
+   fois à la note. Un envoi déjà annulé ne fait plus rien et rend `true`.
+5. **La fenêtre où la référence restait NULL.** La référence est un second ordre
+   SQL après l'insertion, car elle dérive de l'identifiant ; entre les deux,
+   l'envoi existe sans référence, invisible à la clef unique (MySQL admet
+   plusieurs NULL). Si l'ordre de référence échoue, l'ouverture est refusée plutôt
+   que de laisser un envoi sans référence, inutile à tous.
+
+### 10.6 Deux limites connues, écrites franchement
+
+- **Un envoi annulé garde ses unités.** Les supprimer laisserait une référence,
+  une raison et aucune idée de ce que le colis devait contenir. Prix à payer :
+  tout lecteur doit filtrer sur `status = closed` avant de compter des départs ;
+  les écrans et les charges REST portent le statut pour cela.
+- **« Déjà dans un autre envoi ouvert » n'est pas opposable sous concurrence.**
+  Lecture puis insertion, sans verrou. Mesuré sur le banc : deux postes au même
+  instant peuvent tous deux enregistrer l'unité. C'est la matrice de statuts qui
+  rattrape (`shipped` vers `shipped` refusé), le second mouvement échoue et
+  l'unité sort de son envoi ; la fenêtre coûte une ligne de jointure retirée un
+  instant plus tard. Correction propre : une table d'unicité des unités
+  actuellement dans un envoi ouvert, avec clef unique sur le serial. Additive,
+  donc compatible ; différée parce qu'une boutique avec deux postes sur la même
+  commande dans la même seconde est assez rare pour être mesurée avant d'être
+  outillée.
+
+### 10.7 Contrat public
+
+Les deux tables sont lues par d'autres extensions : modifications **additives
+seulement** (une colonne nullable oui ; renommer, rétrécir ou retirer non).
+`Dahu_Serial_Numbers_Consignments::API_VERSION` (aujourd'hui `1`) n'est relevée
+que par un changement pouvant casser un lecteur. Elle est lisible sans charger la
+classe par l'option `dahu_serial_numbers_consignments_api` et renvoyée par
+`GET /consignments` dans `api_version`. Cette liste exige au moins un paramètre
+parmi `order_id`, `tracking`, `reference`, `serial` : le jeton est celui d'un
+poste, une tablette partagée sur un établi, pas une personne. Le chemin REST
+passe donc de neuf à onze routes.

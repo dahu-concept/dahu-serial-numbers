@@ -268,15 +268,25 @@
 			} );
 	}
 
-	function ship( carrier, tracking ) {
+	function ship( carrier, tracking, parcel ) {
+		var body = {
+			carrier: carrier,
+			tracking: tracking
+		};
+
+		// Only what was typed. A field left empty is a measurement nobody
+		// took, and sending it as 0 would record a parcel that weighs nothing.
+		Object.keys( parcel || {} ).forEach( function ( key ) {
+			if ( '' !== parcel[ key ] ) {
+				body[ key ] = parcel[ key ];
+			}
+		} );
+
 		state.busy = true;
 		state.message = { tone: 'info', text: t.shipping };
 		render();
 
-		request( 'POST', '/orders/' + state.order.id + '/shipment', {
-			carrier: carrier,
-			tracking: tracking
-		} )
+		request( 'POST', '/orders/' + state.order.id + '/shipment', body )
 			.then( function () {
 				state.busy = false;
 				state.message = { tone: 'success', text: t.shipped };
@@ -630,13 +640,56 @@
 		submit.type = 'submit';
 		submit.disabled = state.busy;
 
+		/*
+		 * The parcel itself, all optional. The units of the labels come from
+		 * the shop and are already in the strings; nothing here names one.
+		 * `decimal` brings up the numeric keypad on a tablet without the
+		 * spinner arrows that `number` alone draws over a thumb-sized field.
+		 */
+		function measure( label ) {
+			var input = element( 'input', 'dahu-packing__field' );
+			input.type = 'number';
+			input.min = '0';
+			input.step = 'any';
+			input.inputMode = 'decimal';
+			input.autocomplete = 'off';
+			input.setAttribute( 'aria-label', label );
+			return input;
+		}
+
+		var parcelBox = element( 'fieldset', 'dahu-packing__parcel' );
+		parcelBox.appendChild( element( 'legend', 'dahu-packing__label', t.parcel ) );
+
+		var weightLabel = element( 'label', 'dahu-packing__sublabel', t.weight );
+		var weight = measure( t.weight );
+		weightLabel.appendChild( weight );
+
+		var dimensionsLabel = element( 'div', 'dahu-packing__sublabel', t.dimensions );
+		var sides = element( 'div', 'dahu-packing__sides' );
+		var length = measure( t.dimensions );
+		var width = measure( t.dimensions );
+		var height = measure( t.dimensions );
+		sides.appendChild( length );
+		sides.appendChild( width );
+		sides.appendChild( height );
+		dimensionsLabel.appendChild( sides );
+
+		parcelBox.appendChild( weightLabel );
+		parcelBox.appendChild( dimensionsLabel );
+
 		form.appendChild( carrierLabel );
 		form.appendChild( trackingLabel );
+		form.appendChild( parcelBox );
 		form.appendChild( submit );
 
 		form.addEventListener( 'submit', function ( event ) {
 			event.preventDefault();
-			ship( carrier.value, tracking.value );
+			ship( carrier.value, tracking.value, {
+				weight: weight.value,
+				length: length.value,
+				width: width.value,
+				height: height.value
+			} );
 		} );
 
 		return form;

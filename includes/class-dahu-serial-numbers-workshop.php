@@ -265,6 +265,17 @@ class Dahu_Serial_Numbers_Workshop {
 				'ship'            => __( 'Mark as shipped', 'dahu-serial-numbers' ),
 				'carrier'         => __( 'Carrier', 'dahu-serial-numbers' ),
 				'tracking'        => __( 'Tracking number', 'dahu-serial-numbers' ),
+				'parcel'          => __( 'The parcel', 'dahu-serial-numbers' ),
+				'weight'          => sprintf(
+					/* translators: %s: the shop's weight unit, e.g. kg. */
+					__( 'Weight (%s)', 'dahu-serial-numbers' ),
+					Dahu_Serial_Numbers_Consignments::weight_unit()
+				),
+				'dimensions'      => sprintf(
+					/* translators: %s: the shop's dimension unit, e.g. cm. */
+					__( 'Length × width × height (%s)', 'dahu-serial-numbers' ),
+					Dahu_Serial_Numbers_Consignments::dimension_unit()
+				),
 				'shipping'        => __( 'Marking as shipped…', 'dahu-serial-numbers' ),
 				'shipped'         => __( 'Order marked as shipped.', 'dahu-serial-numbers' ),
 				'working'         => __( 'Working…', 'dahu-serial-numbers' ),
