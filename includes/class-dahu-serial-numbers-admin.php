@@ -79,6 +79,15 @@ class Dahu_Serial_Numbers_Admin {
 
 		add_submenu_page(
 			self::SLUG,
+			__( 'Stock', 'dahu-serial-numbers' ),
+			__( 'Stock', 'dahu-serial-numbers' ),
+			self::CAPABILITY,
+			self::SLUG . '-stock',
+			array( 'Dahu_Serial_Numbers_Admin_Stock', 'render' )
+		);
+
+		add_submenu_page(
+			self::SLUG,
 			__( 'Workshop posts', 'dahu-serial-numbers' ),
 			__( 'Workshop posts', 'dahu-serial-numbers' ),
 			// Higher than the rest, deliberately: a workshop post is a
@@ -127,10 +136,23 @@ class Dahu_Serial_Numbers_Admin {
 			return;
 		}
 
+		// The family sheet first, and its own second: the plugin's own rules
+		// are written to sit on top of the shared components, so the order is
+		// a dependency and not a hope. One handle across the family -- the
+		// file is byte-identical everywhere, so whichever plugin loads it
+		// first serves all of them, and a shop with six of these installed
+		// downloads one copy.
+		wp_enqueue_style(
+			'dahu-ui',
+			DAHU_SERIAL_NUMBERS_URL . 'assets/css/dahu-ui.css',
+			array(),
+			DAHU_SERIAL_NUMBERS_VERSION
+		);
+
 		wp_enqueue_style(
 			'dahu-serial-numbers-admin',
 			DAHU_SERIAL_NUMBERS_URL . 'assets/css/admin.css',
-			array(),
+			array( 'dahu-ui' ),
 			DAHU_SERIAL_NUMBERS_VERSION
 		);
 	}
@@ -150,9 +172,11 @@ class Dahu_Serial_Numbers_Admin {
 	 */
 	public static function open( $title, $intro ) {
 
-		echo '<div class="wrap dahu-serial-numbers">';
-		printf( '<h1>%s</h1>', esc_html( $title ) );
-		printf( '<p class="dahu-serial-numbers__intro">%s</p>', esc_html( $intro ) );
+		echo '<div class="wrap dahu-ui dahu-serial-numbers">';
+		echo '<div class="dahu-ui-head">';
+		printf( '<h1 class="dahu-ui-head__title">%s</h1>', esc_html( $title ) );
+		printf( '<p class="dahu-ui-head__sub">%s</p>', esc_html( $intro ) );
+		echo '</div>';
 		echo '<hr class="wp-header-end">';
 	}
 

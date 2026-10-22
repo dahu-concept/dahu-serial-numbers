@@ -63,6 +63,16 @@ class Dahu_Serial_Numbers_Settings {
 			// activation has opened a door the shop did not ask for.
 			'workshop_enabled'         => false,
 
+			// Off. This one writes to WooCommerce's own stock column, which
+			// is the number customers buy against. A plugin installed to
+			// read histories must not start changing what the shop can sell
+			// because it was activated.
+			'stock_push_enabled'       => false,
+
+			// Off. The dry run works either way, which is how somebody
+			// decides whether to turn this on: they read what it would do.
+			'product_fix_enabled'      => false,
+
 			// Off, and uninstall.php says at length why.
 			'delete_data_on_uninstall' => false,
 		);
@@ -128,6 +138,8 @@ class Dahu_Serial_Numbers_Settings {
 		return array(
 			'queue_statuses'           => $statuses,
 			'workshop_enabled'         => ! empty( $input['workshop_enabled'] ),
+			'stock_push_enabled'       => ! empty( $input['stock_push_enabled'] ),
+			'product_fix_enabled'      => ! empty( $input['product_fix_enabled'] ),
 			'delete_data_on_uninstall' => ! empty( $input['delete_data_on_uninstall'] ),
 		);
 	}

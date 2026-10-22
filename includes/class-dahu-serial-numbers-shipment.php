@@ -153,6 +153,54 @@ class Dahu_Serial_Numbers_Shipment {
 			$to_ship = $assigned;
 		}
 
+		// No line ships more units than it ordered.
+		//
+		// This is the mirror of the completeness rule above, and it was
+		// missing. `missing_for_order()` has always counted per order line and
+		// treated assigned and shipped alike; nothing counted the other way,
+		// so every assigned unit of an order shipped regardless of how many
+		// the line was for. Measured by an adversarial review: a
+		// quantity-one line whose replacement had already gone out, with the
+		// original unit then assigned back to it, ended up with TWO units
+		// recorded as shipped against one ordered — and the second was still
+		// on the bench while its history said it was with the customer.
+		//
+		// Refused, not trimmed, for the reason the completeness rule gives:
+		// the plugin does not choose which of two units went in the box. A
+		// line with more units pointed at it than it can hold is something
+		// somebody has to look at.
+		$over = self::overshipped_products( $order, $to_ship );
+
+		if ( $over ) {
+
+			$first = reset( $over );
+
+			return new WP_Error(
+				'dahu_serial_numbers_line_overshipped',
+				sprintf(
+					/* translators: 1: product name, 2: number of units already shipped, 3: number this parcel would add, 4: ordered quantity. */
+					_n(
+						'“%1$s” already has %2$d unit recorded as shipped on this order, and this parcel would add %3$d more, against %4$d ordered. Nothing has been shipped. Record what became of the unit that is already out before sending another.',
+						'“%1$s” already has %2$d units recorded as shipped on this order, and this parcel would add %3$d more, against %4$d ordered. Nothing has been shipped. Record what became of the units that are already out before sending another.',
+						$first['shipped'],
+						'dahu-serial-numbers'
+					),
+					$first['product_name'],
+					$first['shipped'],
+					$first['going'],
+					$first['ordered']
+				),
+				array(
+					'status'   => 409,
+					'products' => $over,
+					// Kept under the old key as well: the first version of
+					// this guard counted per order line and published that
+					// name in its error data.
+					'lines'    => $over,
+				)
+			);
+		}
+
 		// The box is measured before the label is asked for, not after: a
 		// carrier integration listening on the filter below needs the weight
 		// to get a price and a label at all.
@@ -371,9 +419,10 @@ class Dahu_Serial_Numbers_Shipment {
 		$closed = Dahu_Serial_Numbers_Consignments::close(
 			$consignment_id,
 			array(
-				'carrier'  => $carrier,
-				'tracking' => $tracking,
-				'note'     => self::consignment_note( $stuck, $unregistered, $label_error ),
+				'carrier'     => $carrier,
+				'tracking'    => $tracking,
+				'note'        => self::consignment_note( $stuck, $unregistered, $label_error ),
+				'label_error' => $label_error,
 			)
 		);
 
@@ -433,7 +482,7 @@ class Dahu_Serial_Numbers_Shipment {
 		// A note on the order, because that is where support looks — and
 		// because an order note is the one record of this that survives the
 		// plugin being removed.
-		$order->add_order_note( self::note( $shipped, $stuck, $mirror_carrier, $mirror_tracking, $label_error, $reference, $unregistered ) );
+		$order->add_order_note( self::note( $shipped, $stuck, $mirror_carrier, $mirror_tracking, $label_error, $reference, $unregistered, $consignment_id ) );
 		$order->save();
 
 		/**
@@ -581,6 +630,105 @@ class Dahu_Serial_Numbers_Shipment {
 	 * @param string   $label_error  The carrier's message, when it failed.
 	 * @return string
 	 */
+	/**
+	 * Products that would end up with more units shipped than ordered.
+	 *
+	 * Counted per PRODUCT across the whole order, not per order line, and
+	 * that is the correction rather than a simplification. The first version
+	 * of this guard counted per line and skipped any unit whose
+	 * `order_item_id` was zero or no longer resolved — which an adversarial
+	 * review measured as the commonest case rather than the edge case:
+	 * `Manager::resolve_order_item()` returns zero BY DESIGN as soon as an
+	 * order has two lines of the same product, `attach_order()` defaults the
+	 * line to zero, and an order line deleted and re-added from the order
+	 * screen gets a new id while the units keep pointing at the old one. The
+	 * guard was therefore switched off on the paths most likely to need it.
+	 *
+	 * Counting per product needs no line at all: what is ordered is the sum
+	 * of the quantities of every line of that product, and what is out is the
+	 * number of units of that product already recorded as shipped on this
+	 * order. A unit whose own `product_id` is not recorded cannot be
+	 * attributed to anything and is skipped — the one hole left, and it is
+	 * named here rather than left to be found.
+	 *
+	 * @param WC_Order $order   The order.
+	 * @param string[] $serials The serials about to ship.
+	 * @return array<int,array<string,mixed>> product id => {product_name, ordered, shipped, going}
+	 */
+	private static function overshipped_products( WC_Order $order, array $serials ) {
+
+		$ordered = array();
+		$names   = array();
+
+		foreach ( $order->get_items() as $item ) {
+
+			// The same resolution `missing_for_order()` uses: a variation is
+			// the product that was sold, not its parent.
+			$product_id = $item->get_variation_id() ? (int) $item->get_variation_id() : (int) $item->get_product_id();
+
+			if ( ! $product_id ) {
+				continue;
+			}
+
+			$ordered[ $product_id ] = isset( $ordered[ $product_id ] ) ? $ordered[ $product_id ] + (int) $item->get_quantity() : (int) $item->get_quantity();
+
+			if ( ! isset( $names[ $product_id ] ) ) {
+				$names[ $product_id ] = (string) $item->get_name();
+			}
+		}
+
+		$shipped = array();
+		$going   = array();
+
+		foreach ( Dahu_Serial_Numbers_Manager::get_by_order( $order->get_id() ) as $row ) {
+
+			$product_id = (int) $row['product_id'];
+
+			if ( ! $product_id ) {
+				continue;
+			}
+
+			if ( Dahu_Serial_Numbers_Statuses::SHIPPED === $row['status'] ) {
+				$shipped[ $product_id ] = isset( $shipped[ $product_id ] ) ? $shipped[ $product_id ] + 1 : 1;
+			}
+
+			if ( in_array( (string) $row['serial'], $serials, true ) ) {
+				$going[ $product_id ] = isset( $going[ $product_id ] ) ? $going[ $product_id ] + 1 : 1;
+			}
+		}
+
+		$over = array();
+
+		foreach ( $going as $product_id => $count ) {
+
+			// A unit of a product the order does not contain is somebody
+			// else's problem to explain, not this guard's to refuse: it has
+			// no ordered quantity to be measured against.
+			if ( ! isset( $ordered[ $product_id ] ) ) {
+				continue;
+			}
+
+			$out = isset( $shipped[ $product_id ] ) ? (int) $shipped[ $product_id ] : 0;
+
+			// No clamping. The first version used `max( 0, quantity - shipped )`,
+			// which turned a line whose quantity had been reduced after
+			// shipping into a flat refusal with a message that contradicted
+			// itself — "ordered 1 and 2 already shipped". The three numbers
+			// are reported as they are, and the shop can see which one is
+			// the surprising one.
+			if ( $out + $count > (int) $ordered[ $product_id ] ) {
+				$over[ $product_id ] = array(
+					'product_name' => isset( $names[ $product_id ] ) ? $names[ $product_id ] : (string) $product_id,
+					'ordered'      => (int) $ordered[ $product_id ],
+					'shipped'      => $out,
+					'going'        => (int) $count,
+				);
+			}
+		}
+
+		return $over;
+	}
+
 	private static function consignment_note( array $stuck, array $unregistered, $label_error ) {
 
 		$lines = array();
@@ -622,9 +770,10 @@ class Dahu_Serial_Numbers_Shipment {
 	 * @param string   $label_error The carrier's message, when it failed.
 	 * @param string   $reference    Consignment reference.
 	 * @param string[] $unregistered Serials the register would not accept.
+	 * @param int      $consignment_id The consignment, for the filter on the failure line.
 	 * @return string
 	 */
-	private static function note( array $shipped, array $stuck, $carrier, $tracking, $label_error = '', $reference = '', array $unregistered = array() ) {
+	private static function note( array $shipped, array $stuck, $carrier, $tracking, $label_error = '', $reference = '', array $unregistered = array(), $consignment_id = 0 ) {
 
 		$lines = array();
 
@@ -680,11 +829,26 @@ class Dahu_Serial_Numbers_Shipment {
 		}
 
 		if ( '' !== $label_error ) {
-			$lines[] = sprintf(
+			$text = sprintf(
 				/* translators: %s: the carrier's error message. */
 				__( 'The carrier could not create the label: %s — the parcel was recorded as shipped anyway, so the units are on file. Add the tracking number by hand once you have it.', 'dahu-serial-numbers' ),
 				$label_error
 			);
+
+			/**
+			 * Filters the order note line written when the carrier failed.
+			 *
+			 * "Could not create the label" is not always true. A call that is
+			 * not idempotent and ran out of time may well have created one,
+			 * and billed it; an integration that knows it timed out can say
+			 * so here instead of asserting a failure it cannot vouch for.
+			 * Nothing listening, nothing changes.
+			 *
+			 * @param string $text           The line, as this plugin words it.
+			 * @param string $label_error    The carrier's message.
+			 * @param int    $consignment_id The consignment the label was for.
+			 */
+			$lines[] = (string) apply_filters( 'dahu_serial_numbers_label_failure_note', $text, $label_error, (int) $consignment_id );
 		}
 
 		// Last, and spelled out, because it is the one line on this note that
@@ -699,6 +863,75 @@ class Dahu_Serial_Numbers_Shipment {
 		}
 
 		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Adds a carrier and a tracking number to a parcel that has already gone.
+	 *
+	 * The ledger write is `Dahu_Serial_Numbers_Consignments::amend_tracking()`,
+	 * which refuses everything but those two fields. This is the entry point
+	 * that also keeps the order meta mirror honest; the mirror follows the
+	 * action that call fires, so either route ends up in the same place.
+	 *
+	 * @param int   $consignment_id Consignment id.
+	 * @param array $args {
+	 *     @type string $carrier  Optional.
+	 *     @type string $tracking Optional.
+	 * }
+	 * @return array|WP_Error The consignment as it now stands.
+	 */
+	public static function amend_tracking( $consignment_id, array $args ) {
+
+		return Dahu_Serial_Numbers_Consignments::amend_tracking( $consignment_id, $args );
+	}
+
+	/**
+	 * Keeps the order meta mirror in step with an amended consignment.
+	 *
+	 * The mirror describes ONE parcel, the most recent outbound one that has
+	 * gone, and the three values are written together or not at all — see the
+	 * long comment in `ship()` for the defect that rule came from: a mirror
+	 * assembled from two parcels shows a tracking number that belongs to
+	 * another box. A correction to an older parcel must therefore leave the
+	 * mirror alone, and a correction to the newest one must rewrite all three
+	 * from the consignment, never the one value that changed.
+	 *
+	 * "Most recent" is the highest id among the order's closed outbound
+	 * consignments. Open ones have not been mirrored yet and cancelled ones
+	 * never were.
+	 *
+	 * @param int   $consignment_id Consignment id.
+	 * @param array $amended        The consignment as it now stands.
+	 * @return void
+	 */
+	public static function sync_mirror( $consignment_id, $amended ) {
+
+		if ( ! is_array( $amended ) || Dahu_Serial_Numbers_Consignments::OUT !== $amended['direction'] || empty( $amended['order_id'] ) ) {
+			return;
+		}
+
+		$latest = 0;
+
+		foreach ( Dahu_Serial_Numbers_Consignments::for_order( (int) $amended['order_id'], Dahu_Serial_Numbers_Consignments::OUT ) as $parcel ) {
+			if ( Dahu_Serial_Numbers_Consignments::CLOSED === $parcel['status'] && (int) $parcel['id'] > $latest ) {
+				$latest = (int) $parcel['id'];
+			}
+		}
+
+		if ( (int) $consignment_id !== $latest ) {
+			return;
+		}
+
+		$order = wc_get_order( (int) $amended['order_id'] );
+
+		if ( ! $order ) {
+			return;
+		}
+
+		$order->update_meta_data( self::META_CONSIGNMENT, (string) $amended['reference'] );
+		$order->update_meta_data( self::META_CARRIER, (string) $amended['carrier'] );
+		$order->update_meta_data( self::META_TRACKING, (string) $amended['tracking'] );
+		$order->save();
 	}
 
 	/**

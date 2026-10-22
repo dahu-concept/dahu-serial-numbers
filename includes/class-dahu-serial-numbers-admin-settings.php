@@ -59,6 +59,8 @@ class Dahu_Serial_Numbers_Admin_Settings {
 		$submitted = array(
 			'queue_statuses'           => isset( $_POST['queue_statuses'] ) ? (array) wp_unslash( $_POST['queue_statuses'] ) : array(),
 			'workshop_enabled'         => ! empty( $_POST['workshop_enabled'] ),
+			'stock_push_enabled'       => ! empty( $_POST['stock_push_enabled'] ),
+			'product_fix_enabled'      => ! empty( $_POST['product_fix_enabled'] ),
 			'delete_data_on_uninstall' => ! empty( $_POST['delete_data_on_uninstall'] ),
 		);
 
@@ -132,6 +134,32 @@ class Dahu_Serial_Numbers_Admin_Settings {
 					<?php esc_html_e( 'The screen is on but no workshop post exists yet, so nobody can sign in to it.', 'dahu-serial-numbers' ); ?>
 				</p>
 			<?php endif; ?>
+
+			<h2><?php esc_html_e( 'WooCommerce stock', 'dahu-serial-numbers' ); ?></h2>
+
+			<label class="dahu-serial-numbers__check">
+				<input type="checkbox" name="stock_push_enabled" value="1" <?php checked( ! empty( $settings['stock_push_enabled'] ) ); ?> />
+				<?php esc_html_e( 'Let the units on the shelf set the WooCommerce stock of serialised products', 'dahu-serial-numbers' ); ?>
+			</label>
+
+			<p class="dahu-serial-numbers__hint">
+				<?php esc_html_e( 'Off until you ask for it. With it on, the stock of a serialised product becomes the number of units in stock on no order, less the pieces orders being prepared have already reserved — written as a whole number, never as an increment. Products whose stock WooCommerce does not manage, and variable parents, are left alone and named on the Stock screen.', 'dahu-serial-numbers' ); ?>
+			</p>
+
+			<p class="dahu-serial-numbers__caution">
+				<?php esc_html_e( 'This changes what customers can buy. The Stock screen shows every product and what would be written before anything is, and the manual resynchronisation works whether this is on or off.', 'dahu-serial-numbers' ); ?>
+			</p>
+
+			<h2><?php esc_html_e( 'Product corrections', 'dahu-serial-numbers' ); ?></h2>
+
+			<label class="dahu-serial-numbers__check">
+				<input type="checkbox" name="product_fix_enabled" value="1" <?php checked( ! empty( $settings['product_fix_enabled'] ) ); ?> />
+				<?php esc_html_e( 'Allow units in stock to be re-filed under another product', 'dahu-serial-numbers' ); ?>
+			</label>
+
+			<p class="dahu-serial-numbers__hint">
+				<?php esc_html_e( 'For the box that went on the shelf under the wrong reference. Only units in stock and on no order can be re-filed, a reason is required, a run is all-or-nothing and can be put back. The dry run works with this off, so you can read what would happen before deciding.', 'dahu-serial-numbers' ); ?>
+			</p>
 
 			<h2><?php esc_html_e( 'Uninstalling', 'dahu-serial-numbers' ); ?></h2>
 

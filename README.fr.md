@@ -29,19 +29,45 @@ ligne a un historique.
 
 ## Le cycle de vie
 
-Onze statuts, et une matrice qui dit quels mouvements sont permis :
+Treize statuts, et une matrice qui dit quels mouvements sont permis. À l'aller :
 
 ```
-reçu ─→ en stock ─→ affecté ─→ expédié ─→ retour attendu ─┬→ revenu conforme ─┬→ en réparation ─→ remplacé
-            ↑          │          │                       │                   ├→ remise en stock ─→ en stock
-            └──────────┴──────────┘                       └→ revenu non conforme
-                                                                              └→ détruit
+reçu ─→ en stock ─→ affecté ─→ expédié ─→ retour attendu
+            ↑          │          │
+            └──────────┴──────────┘
+```
+
+et au retour, où les deux sortes de retour n'ont délibérément pas la même
+forme :
+
+```
+retour attendu ─┬→ revenu conforme ──────┬→ en réparation
+                │                        ├→ remise en stock ─→ en stock
+                │                        └→ détruit
+                │
+                └→ revenu non conforme ──┬→ en réparation
+                                         ├→ remplacé
+                                         └→ détruit
+
+en réparation ─┬→ réparé ─┬→ affecté   (il repart sur la commande d'où il vient)
+               │          ├→ remise en stock ─→ en stock
+               │          ├→ en réparation   (il a raté le contrôle final)
+               │          └→ détruit
+               ├→ remplacé
+               └→ détruit
+```
+
+et un statut qui n'est ni à l'aller ni au retour — une unité que la boutique a
+toujours et a décidé de ne pas compter :
+
+```
+en stock ─→ tenu hors compte ─→ en stock
 ```
 
 Tout changement de statut passe par un seul contrôle. Il n'y a pas de seconde
 porte, et aucun drapeau nulle part ne désactive le contrôle.
 
-Trois des formes méritent une explication :
+Quatre des formes méritent une explication :
 
 - **Affecté → en stock** est une désaffectation explicite, journalisée comme
   n'importe quel autre mouvement. Sans elle, libérer une unité veut dire
@@ -49,9 +75,46 @@ Trois des formes méritent une explication :
 - **Expédié → en stock** existe pour un cas réel : une commande repassée de
   terminée à en traitement. Forcer un détour par *affecté* ferait dire à
   l'historique quelque chose qui n'a pas eu lieu.
-- **Revenu non conforme** ne mène nulle part. C'est un état d'alerte : que
-  faire d'une unité revenue autre que ce qui était attendu est une décision, et
-  l'extension refuse de la deviner.
+- **Revenu non conforme** ne retourne pas sur l'étagère. Il peut partir en
+  réparation, être remplacé ou détruit — trois décisions, toutes
+  enregistrables — mais *remise en stock* n'en fait pas partie : une unité
+  revenue autre que ce qui était décrit passe d'abord entre les mains de
+  quelqu'un.
+
+  Jusqu'à la 1.2.0, ce statut ne menait nulle part du tout, au motif que « que
+  faire d'une telle unité est une décision, pas une transition ». C'était faux,
+  et il vaut mieux le dire que de le corriger en silence : une transition est
+  précisément *comment une décision s'enregistre*. L'état terminal ne faisait
+  pas décider la boutique, il rendait sa décision inenregistrable — et comme
+  une unité dans un envoi ouvert est refusée par tous les autres envois, elle
+  ne pouvait même pas être enregistrée comme repartie. Seul du SQL manuel la
+  libérait.
+
+- **Réparé** est neuf en 1.2.0. Avant lui, la seule sortie d'une réparation
+  était *remplacé*, qui dit que le client a reçu une autre unité ; il n'y avait
+  aucun moyen d'enregistrer l'issue la plus courante de toutes, à savoir que
+  cette unité-ci a été réparée. Elle peut ensuite retourner en stock, revenir
+  sur l'établi si elle a raté le contrôle final, ou être détruite.
+
+  Depuis *réparé*, elle peut repartir sur la commande d'où elle vient,
+  retourner en stock, revenir sur l'établi, ou être détruite.
+
+  Cette première arête a été écrite, mesurée, retirée, puis remise — et la
+  mesure vaut d'être connue si vous expédiez du matériel sérialisé. `ship()`
+  ramassait toutes les unités affectées d'une commande **sans aucun contrôle de
+  quantité**, donc une ligne de quantité un dont le remplacement était déjà
+  parti pouvait expédier une seconde unité, encore sur l'établi, et
+  l'enregistrer comme étant chez le client. La correction était dans
+  l'expédition, pas dans le cycle de vie : **aucune ligne n'expédie plus
+  d'unités qu'elle n'en a commandées**, et le colis entier est refusé plutôt
+  que rogné, parce que l'extension ne choisit pas laquelle de deux unités était
+  dans le carton.
+
+- **Déplacer une unité à la main.** L'écran des numéros de série propose, sur
+  une unité, uniquement les mouvements que la matrice autorise depuis où elle
+  est. Chaque mouvement entre dans l'historique de l'unité, avec qui l'a fait.
+  Il n'existe aucun moyen d'écrire un statut que le cycle de vie n'autorise
+  pas — ni depuis cet écran, ni depuis les routes REST, ni ailleurs.
 
 Une unité remise en stock est une unité libre : la commande, la ligne de
 commande, le ticket SAV et le pointeur de remplacement sont tous effacés. Rien
@@ -285,7 +348,26 @@ arbitraires.
 modifications sont **additives seulement**. La version du contrat est
 `Dahu_Serial_Numbers_Consignments::API_VERSION`, lisible sans charger la classe
 via l'option `dahu_serial_numbers_consignments_api`, et renvoyée par
-`GET /consignments` dans `api_version`. Le schéma de base est en version 3.
+`GET /consignments` dans `api_version`. Le schéma de base est en version 5 ; la
+dernière version a ajouté `label_error`, une colonne nullable qui porte le message
+du transporteur quand une étiquette a été refusée, de sorte que « les colis partis
+sans étiquette » est un `WHERE` (`Consignments::query( array( 'label_error' => true ) )`)
+et non un `LIKE` sur du texte libre. `API_VERSION` reste à `1` : les quatre ajouts
+sont additifs.
+
+### Ajouter un numéro de suivi une fois le colis parti
+
+Quand un transporteur ne répond pas, le colis est clos quand même et la note de
+commande dit d'ajouter le numéro de suivi à la main.
+`Dahu_Serial_Numbers_Shipment::amend_tracking( $consignment_id, array( 'carrier' => '…', 'tracking' => '…' ) )`
+le fait sur un envoi **clos**, et déclenche
+`dahu_serial_numbers_consignment_tracking_amended( $id, $consignment, $previous )`.
+Elle écrit le transporteur et le suivi, rien d'autre : toute autre clé (`status`,
+`serials`, `note`, les mesures…) est refusée par
+`dahu_serial_numbers_amend_only_tracking` et rien n'est écrit. Le miroir de métas
+de la commande décrit un seul colis, le plus récent envoi sortant clos ; il est
+réécrit comme un ensemble quand on corrige celui-là, et laissé tel quel quand on
+corrige un plus ancien.
 
 ### Deux limites connues
 
@@ -300,6 +382,99 @@ via l'option `dahu_serial_numbers_consignments_api`, et renvoyée par
   de son envoi — mais la garantie n'est pas celle de la base. Une table
   d'unicité qui comble l'écart est additive et viendra dans une version
   ultérieure.
+
+## Le stock WooCommerce
+
+Une boutique qui sérialise sait exactement combien d'unités elle détient : elle
+en tient une ligne par unité. WooCommerce, lui, tient un nombre qui dérive — un
+remboursement passé à la main, une commande annulée remise en stock deux fois,
+une unité mise au rebut à l'atelier et nulle part ailleurs. Au bout de quelques
+mois les deux ne sont plus d'accord, et celui qui a tort est celui sur lequel
+les clients achètent.
+
+Interrupteur allumé, le stock d'un produit sérialisé devient :
+
+```
+unités libres en stock  −  pièces déjà réservées par une commande
+```
+
+Une unité **libre** est une unité *en stock* et sur aucune commande. Une pièce
+**réservée** est une pièce que WooCommerce a déjà retirée pour une commande en
+préparation — `_reduced_stock` sur la ligne — et à laquelle personne n'a encore
+mis de numéro. Les deux moitiés sont nécessaires :
+
+- Sans les réservations, les unités qu'un client a déjà payées sont remises en
+  vente : elles sont encore sur l'étagère et encore *en stock* jusqu'à ce que
+  l'atelier les scanne.
+- En comptant une réservation dont les numéros sont déjà affectés, les mêmes
+  pièces sont retirées deux fois : une fois par WooCommerce à la commande, une
+  fois ici. Les unités déjà affectées ou expédiées sur une ligne sont donc
+  retirées de la réservation de cette ligne, et jamais sous zéro.
+
+Les commandes *en traitement* et *en attente* réservent ; les commandes
+terminées non, parce que WooCommerce garde `_reduced_stock` sur leurs lignes
+pour les remboursements et que les compter retiendrait du stock pour toujours.
+`dahu_serial_numbers_stock_reserving_statuses` change cette liste.
+
+La valeur est **posée**, pas incrémentée. Un incrément doit être juste à chaque
+fois pour rester juste ; une valeur absolue est juste dès qu'elle passe.
+
+**Ce qui n'est pas touché**, et nommé sur l'écran « Stock » plutôt que sauté en
+silence : les parents variables, dont les unités appartiennent aux variations ;
+les produits dont WooCommerce ne gère pas le stock ; les produits non marqués
+comme portant des numéros de série. Une unité qui se dit *en stock* en portant
+encore une commande n'est pas comptée non plus, et l'écran dit combien il y en
+a : quelque chose l'a remise en stock sans passer par le cycle de vie, et une
+poussée de stock n'est pas l'endroit où décider de ce que cela voulait dire.
+
+Une **cible négative** — des commandes qui réservent plus de pièces qu'il n'y a
+d'unités sur l'étagère — est écrite zéro, et l'écart est nommé. Écrire un stock
+négatif laisserait WooCommerce continuer à vendre sur une précommande que la
+boutique n'a jamais mise en place.
+
+**Coupée à l'installation**, et l'écran « Stock » se lit dans les deux cas : il
+montre chaque produit, ce que WooCommerce dit aujourd'hui et ce qui serait
+écrit. La resynchronisation manuelle fonctionne interrupteur coupé, derrière une
+case de confirmation, et refuse de tourner sur un récapitulatif qui a bougé
+depuis — on lit un tableau, on va déjeuner, on revient et on clique, et entre
+les deux une commande est arrivée.
+
+Une poussée ne bloque jamais ce qui l'a déclenchée. Un produit qui ne peut pas
+être enregistré est noté comme refus et l'import, le scan d'emballage ou la
+commande d'où il vient continue : un nombre de stock vaut moins que l'opération
+qui l'a produit.
+
+## Quand un carton est rangé sous la mauvaise référence
+
+Deux références diffèrent d'un connecteur, d'un standard de frein, ou de rien
+qu'un œil repère sur une étiquette ; un carton de quarante part sur l'étagère
+sous la mauvaise. À partir de cette minute les deux produits comptent faux, et
+la boutique l'apprend quand un client reçoit l'autre pièce.
+
+Le second onglet de l'écran « Stock » re-range les unités. Ce n'est
+délibérément pas un changement de statut : l'unité n'a pas bougé, il ne lui est
+rien arrivé, et lui donner un événement de cycle de vie mettrait un mensonge au
+seul endroit que cette extension existe pour tenir honnête. Ce qui est
+enregistré est une correction — une ligne d'historique qui nomme les deux
+produits et le motif, qui est obligatoire.
+
+- **Un essai à blanc d'abord**, le même chemin de code que l'exécution, rapporté
+  et non écrit, avec le stock des deux produits avant et après.
+- **Tout ou rien.** Un seul refus refuse toute la liste, et l'écriture tourne
+  dans une transaction : vingt unités déplacées et vingt restées en arrière est
+  un état dont personne ne peut rien conclure ensuite.
+- **Une empreinte**, pour que ce qui est appliqué soit ce qui a été montré.
+- **Annulable**, unité par unité, tant que la passe est la dernière chose qui
+  est arrivée à cette unité. Celles qui ont bougé depuis sont nommées et
+  laissées tranquilles — les ramener en arrière défer­ait une décision plus
+  récente.
+- **Coupée à l'installation.** L'essai à blanc fonctionne interrupteur coupé :
+  c'est ainsi qu'on décide de l'allumer, en lisant ce qu'il ferait.
+
+Sont refusées : une unité qui n'est pas *en stock*, une unité qui porte encore
+une commande (la ligne de commande est l'affirmation la plus forte), une unité
+sans produit du tout (il n'y a rien à corriger), et une destination qui est un
+parent variable ou qui n'est pas marquée comme portant des numéros de série.
 
 ## Quels produits portent un numéro de série
 
@@ -398,6 +573,8 @@ n'est jamais le cas ici.
 | `dahu_serial_numbers_url_parameters` | dans quels paramètres une URL scannée peut le porter |
 | `dahu_serial_numbers_decode` | lire une date de fabrication dans un numéro |
 | `dahu_serial_numbers_queue_statuses` | quelles commandes la file liste |
+| `dahu_serial_numbers_stock_reserving_statuses` | quels statuts de commande retiennent du stock — sans le préfixe `wc-` |
+| `dahu_serial_numbers_stock_reserved_map` | le dernier mot sur les pièces que chaque produit doit aux commandes — `( $map, $order_ids )` |
 | `dahu_serial_numbers_auth_provider` | remplacer le backend d'authentification |
 | `dahu_serial_numbers_token_ttl` | la durée d'une session |
 | `dahu_serial_numbers_auth_max_attempts` | les échecs avant verrouillage |
@@ -406,6 +583,8 @@ n'est jamais le cas ici.
 | `dahu_serial_numbers_block_on_label_failure` | refuser le colis si le transporteur échoue, au lieu de l'enregistrer — 4e paramètre `$consignment_id` |
 | `dahu_serial_numbers_shipment_status` | où va la commande une fois expédiée — 3e paramètre `$consignment_id` ; le défaut est `completed` seulement quand il ne reste rien à envoyer, chaîne vide (statut inchangé) sinon |
 | `dahu_serial_numbers_tracking_url` | construire un lien de suivi — 5e paramètre `$consignment_id` ; `$order` (4e) peut valoir `null` |
+| `dahu_serial_numbers_label_failure_note` | reformuler la ligne de la note de commande écrite quand le transporteur a échoué — `( $text, $label_error, $consignment_id )` ; inchangée si personne n'écoute. Pour un appel non idempotent arrivé au délai, où « n'a pas pu créer l'étiquette » peut être faux |
+| `dahu_serial_numbers_consignment_row_actions` | ajouter des actions à une ligne de l'écran des envois, comme `plugin_action_links` — `( $actions, $row )` ; les fragments sont filtrés (liens et balises simples) |
 
 **Actions**
 
@@ -417,6 +596,7 @@ n'est jamais le cas ici.
 | `dahu_serial_numbers_consignment_opened` | un envoi a été ouvert |
 | `dahu_serial_numbers_consignment_closed` | un envoi a été fermé |
 | `dahu_serial_numbers_consignment_cancelled` | un envoi a été annulé |
+| `dahu_serial_numbers_consignment_tracking_amended` | un envoi clos a reçu son transporteur ou son suivi après coup — `( $id, $consignment, $previous )` |
 | `dahu_serial_numbers_station_credentials_revoked` | un poste a été désactivé, ou son mot de passe changé |
 
 ## Les dates

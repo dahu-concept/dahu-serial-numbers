@@ -3,7 +3,7 @@
  * Plugin Name:       Dahu Serial Numbers
  * Plugin URI:        https://dahu-concept.fr
  * Description:       Per-unit traceability for WooCommerce: a serial number on every item you ship, a lifecycle with a transition matrix that refuses the moves that make no sense, an append-only history, a workshop screen where the number is captured at packing time, and a consignment ledger so a tracking number resolves to the units that travelled under it.
- * Version:           1.1.0
+ * Version:           1.3.0
  * Author:            Hugo Vial-Jaime
  * Author URI:        mailto:contact@dahu-concept.fr
  * License:           MIT
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'DAHU_SERIAL_NUMBERS_VERSION', '1.1.0' );
+define( 'DAHU_SERIAL_NUMBERS_VERSION', '1.3.0' );
 define( 'DAHU_SERIAL_NUMBERS_FILE', __FILE__ );
 define( 'DAHU_SERIAL_NUMBERS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'DAHU_SERIAL_NUMBERS_URL', plugin_dir_url( __FILE__ ) );
@@ -125,7 +125,15 @@ add_action(
 			return;
 		}
 
+		add_action( 'dahu_serial_numbers_consignment_tracking_amended', array( 'Dahu_Serial_Numbers_Shipment', 'sync_mirror' ), 10, 2 );
+
 		Dahu_Serial_Numbers_Settings::init();
+
+		// Before the screens: the stock push listens to the register's own
+		// hooks, and a unit moved by the REST route or by the packing screen
+		// has to count the same as one moved by hand in the admin.
+		Dahu_Serial_Numbers_Stock::init();
+
 		Dahu_Serial_Numbers_Auth::init();
 		Dahu_Serial_Numbers_Rest::init();
 		Dahu_Serial_Numbers_Workshop::init();
@@ -216,4 +224,97 @@ add_filter(
 	},
 	10,
 	2
+);
+
+/*
+ * The welcome screen, shown once just after activation.
+ *
+ * Registered here rather than inside the admin include, because the
+ * activation flag has to be set whatever else is loaded.
+ */
+require_once DAHU_SERIAL_NUMBERS_PATH . 'includes/dahu-welcome.php';
+
+/*
+ * The flag, not a redirect: an activation hook that redirects breaks bulk
+ * activation and WP-CLI, which activate several plugins in one request. The
+ * welcome screen reads the flag on the next page load, where a redirect is
+ * safe, and clears it when several plugins were activated together.
+ */
+register_activation_hook(
+	__FILE__,
+	static function () {
+		Dahu_Welcome::mark_activated( 'dahu-serial-numbers' );
+	}
+);
+
+add_action(
+	'init',
+	static function () {
+		Dahu_Welcome::register(
+			array(
+				'slug'       => 'dahu-serial-numbers',
+				'name'       => __( 'Serial numbers', 'dahu-serial-numbers' ),
+				'tagline'    => __( 'Follows every unit you hold, from goods-in to the customer.', 'dahu-serial-numbers' ),
+				'file'       => DAHU_SERIAL_NUMBERS_FILE,
+				'version'    => DAHU_SERIAL_NUMBERS_VERSION,
+				'textdomain' => 'dahu-serial-numbers',
+				/*
+				 * Les mots de l'accueil viennent d'ici : le fichier partagé est
+				 * recopié dans toute la famille et ne peut donc porter aucun
+				 * domaine de traduction.
+				 */
+				'strings'    => array(
+					'next'   => __( 'Next', 'dahu-serial-numbers' ),
+					'done'   => __( 'Done', 'dahu-serial-numbers' ),
+					'skip'   => __( 'Skip', 'dahu-serial-numbers' ),
+					'of'     => __( 'of', 'dahu-serial-numbers' ),
+					'denied' => __( 'You are not allowed to view this page.', 'dahu-serial-numbers' ),
+				),
+				'points'     => array(
+				array(
+					'title' => __( 'Each unit, by name', 'dahu-serial-numbers' ),
+					'text'  => __( 'A serial has a state, a place and a history you can read.', 'dahu-serial-numbers' ),
+				),
+				array(
+					'title' => __( 'Consignments', 'dahu-serial-numbers' ),
+					'text'  => __( 'What left together, what came back, and when.', 'dahu-serial-numbers' ),
+				),
+				array(
+					'title' => __( 'No silent moves', 'dahu-serial-numbers' ),
+					'text'  => __( 'A unit never changes hands without a line saying so.', 'dahu-serial-numbers' ),
+				),
+				),
+
+				/*
+				 * The one-time tour, on the main screen (the serial list).
+				 *
+				 * Every selector below points at something that screen always renders,
+				 * on a shop that has just installed the plugin and holds no serial yet.
+				 * A step whose target is missing is skipped without a sound, so the
+				 * rows, the pagination and the per-status summary line -- all only
+				 * rendered once data exists -- are deliberately not used. The filter
+				 * form and the table (with its header and its empty-state row) are
+				 * rendered either way.
+				 */
+				'tour_screen' => 'toplevel_page_dahu-serial-numbers',
+				'tour'        => array(
+					array(
+						'selector' => '#dahu-sn-search',
+						'title'    => __( 'Find any unit', 'dahu-serial-numbers' ),
+						'text'     => __( 'Type a serial number to open that unit.', 'dahu-serial-numbers' ),
+					),
+					array(
+						'selector' => '#dahu-sn-status',
+						'title'    => __( 'Narrow by state', 'dahu-serial-numbers' ),
+						'text'     => __( 'Show only the units in one state, such as shipped or in repair.', 'dahu-serial-numbers' ),
+					),
+					array(
+						'selector' => '.dahu-serial-numbers__table',
+						'title'    => __( 'One row per unit', 'dahu-serial-numbers' ),
+						'text'     => __( 'Open a row to read that unit’s full history.', 'dahu-serial-numbers' ),
+					),
+				),
+			)
+		);
+	}
 );

@@ -548,6 +548,8 @@ class Dahu_Serial_Numbers_Consignments {
 	 *     @type string $carrier  Optional. Overwrites if non-empty.
 	 *     @type string $tracking Optional. Overwrites if non-empty.
 	 *     @type string $note     Optional. Appended to whatever is there.
+	 *     @type string $label_error Optional. The carrier's message when a label
+	 *                            was asked for and refused. Overwrites if non-empty.
 	 *     @type float  $weight   Optional. Overwrites if given.
 	 *     @type float  $length   Optional. Overwrites if given.
 	 *     @type float  $width    Optional. Overwrites if given.
@@ -614,6 +616,13 @@ class Dahu_Serial_Numbers_Consignments {
 			$update['note'] = trim( (string) $row['note'] . "\n" . sanitize_textarea_field( (string) $args['note'] ) );
 		}
 
+		// Kept apart from the note on purpose: the note is for a person to
+		// read, this is for a query to find. Empty is never written, so the
+		// column stays NULL for every parcel that got its label.
+		if ( isset( $args['label_error'] ) && '' !== (string) $args['label_error'] ) {
+			$update['label_error'] = sanitize_textarea_field( (string) $args['label_error'] );
+		}
+
 		// The realistic moment for the box: it is weighed once it is sealed,
 		// not when the first unit went in. Only what was given is written, so
 		// closing without a weight does not erase one typed earlier.
@@ -659,6 +668,123 @@ class Dahu_Serial_Numbers_Consignments {
 		do_action( 'dahu_serial_numbers_consignment_closed', $id, $closed );
 
 		return $closed;
+	}
+
+	/**
+	 * Sets the carrier and the tracking number on a consignment that has gone.
+	 *
+	 * This is the catch-up the plugin itself recommends when a carrier did not
+	 * answer: the parcel is closed anyway, and the tracking number is added
+	 * once somebody has it. `close()` refuses a closed consignment, rightly,
+	 * so without this there was nothing to add it with.
+	 *
+	 * It is not a back door into a closed parcel. It writes `carrier` and
+	 * `tracking`, and nothing else: not the units, not the status, not the
+	 * parcel's measurements, not the note. Any other key in `$args` is refused
+	 * and nothing is written, rather than ignored — a caller who passes
+	 * `status` believes it did something.
+	 *
+	 * Non-empty values only, as in `close()`: amending the carrier alone must
+	 * not wipe the tracking number, and the reverse.
+	 *
+	 * The order meta mirror is not touched here, because this class never
+	 * touches an order. It is kept in step by `Dahu_Serial_Numbers_Shipment`,
+	 * listening to the action below.
+	 *
+	 * @param int   $id   Consignment id.
+	 * @param array $args {
+	 *     @type string $carrier  Optional. Carrier name.
+	 *     @type string $tracking Optional. Tracking number.
+	 * }
+	 * @return array|WP_Error The consignment as it now stands.
+	 */
+	public static function amend_tracking( $id, array $args ) {
+
+		global $wpdb;
+
+		$id  = (int) $id;
+		$row = self::row( $id );
+
+		if ( ! $row ) {
+			return new WP_Error(
+				'dahu_serial_numbers_consignment_unknown',
+				__( 'No such consignment.', 'dahu-serial-numbers' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		if ( self::CLOSED !== $row['status'] ) {
+			return new WP_Error(
+				'dahu_serial_numbers_consignment_not_closed_yet',
+				sprintf(
+					/* translators: %s: consignment reference. */
+					__( 'Consignment %s is not closed. Add the tracking number when closing it.', 'dahu-serial-numbers' ),
+					(string) $row['reference']
+				),
+				array( 'status' => 409 )
+			);
+		}
+
+		$allowed = array( 'carrier', 'tracking' );
+		$foreign = array_diff( array_keys( $args ), $allowed );
+
+		if ( $foreign ) {
+			return new WP_Error(
+				'dahu_serial_numbers_amend_only_tracking',
+				__( 'Only the carrier and the tracking number can be changed on a closed consignment.', 'dahu-serial-numbers' ),
+				array(
+					'status' => 400,
+					'fields' => array_values( array_map( 'strval', $foreign ) ),
+				)
+			);
+		}
+
+		$update = array();
+
+		foreach ( $allowed as $field ) {
+			if ( isset( $args[ $field ] ) && '' !== trim( (string) $args[ $field ] ) ) {
+				$update[ $field ] = sanitize_text_field( (string) $args[ $field ] );
+			}
+		}
+
+		if ( ! $update ) {
+			return new WP_Error(
+				'dahu_serial_numbers_amend_nothing',
+				__( 'Give a carrier, a tracking number, or both.', 'dahu-serial-numbers' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$previous = array(
+			'carrier'  => (string) $row['carrier'],
+			'tracking' => (string) $row['tracking'],
+		);
+
+		$written = $wpdb->update( Dahu_Serial_Numbers_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+
+		if ( false === $written ) {
+			return new WP_Error(
+				'dahu_serial_numbers_tracking_not_written',
+				__( 'The tracking number could not be recorded.', 'dahu-serial-numbers' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$amended = self::get( $id );
+
+		/**
+		 * Fires once the carrier or tracking number of a closed consignment
+		 * has been set after the fact.
+		 *
+		 * This plugin listens to it to keep the order meta mirror in step.
+		 *
+		 * @param int   $id       Consignment id.
+		 * @param array $amended  The consignment as it now stands, with its serials.
+		 * @param array $previous The carrier and tracking number it had before.
+		 */
+		do_action( 'dahu_serial_numbers_consignment_tracking_amended', $id, $amended, $previous );
+
+		return $amended;
 	}
 
 	/**
@@ -1212,6 +1338,8 @@ class Dahu_Serial_Numbers_Consignments {
 	 *     @type string $tracking  Optional. Prefix.
 	 *     @type string $reference Optional. Prefix.
 	 *     @type string $serial    Optional. Exact.
+	 *     @type bool   $label_error Optional. True keeps only the parcels whose
+	 *                              label was refused by the carrier.
 	 *     @type int    $paged     Optional.
 	 *     @type int    $per_page  Optional.
 	 * }
@@ -1254,6 +1382,13 @@ class Dahu_Serial_Numbers_Consignments {
 		if ( ! empty( $args['reference'] ) ) {
 			$where[]  = 'c.reference LIKE %s';
 			$params[] = $wpdb->esc_like( (string) $args['reference'] ) . '%';
+		}
+
+		// Only the parcels that carry a carrier error. Both conditions,
+		// because an empty string is not an error and the column is NULL for
+		// every parcel that got its label.
+		if ( ! empty( $args['label_error'] ) ) {
+			$where[] = "( c.label_error IS NOT NULL AND c.label_error <> '' )";
 		}
 
 		if ( ! empty( $args['serial'] ) ) {
@@ -1316,6 +1451,13 @@ class Dahu_Serial_Numbers_Consignments {
 		if ( ! empty( $args['reference'] ) ) {
 			$where[]  = 'c.reference LIKE %s';
 			$params[] = $wpdb->esc_like( (string) $args['reference'] ) . '%';
+		}
+
+		// Only the parcels that carry a carrier error. Both conditions,
+		// because an empty string is not an error and the column is NULL for
+		// every parcel that got its label.
+		if ( ! empty( $args['label_error'] ) ) {
+			$where[] = "( c.label_error IS NOT NULL AND c.label_error <> '' )";
 		}
 
 		if ( ! empty( $args['serial'] ) ) {

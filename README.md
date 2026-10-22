@@ -25,28 +25,95 @@ history.
 
 ## The lifecycle
 
-Eleven statuses, and a matrix that says which moves are legal:
+Thirteen statuses, and a matrix that says which moves are legal. Out to the
+customer:
 
 ```
-received ─→ in stock ─→ assigned ─→ shipped ─→ return expected ─┬→ returned, as described ─┬→ in repair ─→ replaced
-                 ↑           │          │                       │                          ├→ going back to stock ─→ in stock
-                 └───────────┴──────────┘                       └→ returned, not as described
-                                                                                           └→ destroyed
+received ─→ in stock ─→ assigned ─→ shipped ─→ return expected
+                 ↑           │          │
+                 └───────────┴──────────┘
+```
+
+and back again, where the two kinds of return are deliberately not the same
+shape:
+
+```
+return expected ─┬→ returned, as described ──────┬→ in repair
+                 │                               ├→ going back to stock ─→ in stock
+                 │                               └→ destroyed
+                 │
+                 └→ returned, not as described ──┬→ in repair
+                                                 ├→ replaced
+                                                 └→ destroyed
+
+in repair ─┬→ repaired ─┬→ assigned   (back out on the order it came from)
+           │            ├→ going back to stock ─→ in stock
+           │            ├→ in repair   (it failed the final check)
+           │            └→ destroyed
+           ├→ replaced
+           └→ destroyed
+```
+
+and one status that is neither out nor back — a unit the shop still has and
+has decided not to count:
+
+```
+in stock ─→ held, not counted as stock ─→ in stock
 ```
 
 Every status change goes through one check. There is no second door, and no
 flag anywhere that turns the check off.
 
-Three of the shapes are worth explaining:
+Four of the shapes are worth explaining:
 
 - **Assigned → in stock** is an explicit un-assignment, logged like any other
   move. Without it, freeing a unit means editing a row by hand.
 - **Shipped → in stock** exists for one real case: an order moved back from
   completed to processing. Forcing a detour through *assigned* would make the
   history say something that did not happen.
-- **Returned, not as described** has no outlet. It is an alert state: what to
-  do with a unit that came back as something other than what was expected is a
-  decision, and the plugin refuses to guess it.
+- **In stock → held, not counted as stock** takes a unit out of the count
+  without claiming anything happened to it: a shelf count that came up short, a
+  part kept back for the workshop's own repairs, a unit in quarantine pending a
+  decision. The only way out is back to stock, which is the point — a unit
+  parked there is a unit somebody still has. No REST route can reach it:
+  parking stock is an office decision, not a packing one.
+- **Returned, not as described** does not go back on the shelf. It may be
+  repaired, replaced or destroyed — three decisions, all recordable — but
+  *going back to stock* is not among them. A unit that came back as something
+  other than what was described passes through somebody's hands first.
+
+  Until 1.2.0 this status had no outlet at all, on the grounds that what to do
+  with such a unit is "a decision, not a transition". That was wrong, and it is
+  worth saying why rather than quietly changing it: a transition is precisely
+  how a decision gets recorded. The terminal status did not make the shop
+  decide, it made the shop's decision unwritable — and because a unit in an
+  open consignment is refused by every other consignment, the unit could not
+  even be recorded as going back out. Manual SQL was the only way out.
+
+- **Repaired** is new in 1.2.0. Before it, the only way out of a repair was
+  *replaced*, which says the customer got a different unit; there was no way to
+  record the commonest outcome of all, which is that this unit was mended. It
+  may then go back to stock, back to the bench if it failed the final check, or
+  be destroyed.
+
+  From *repaired* it may go back on the order it came from, back into stock,
+  back to the bench, or be destroyed.
+
+  That first edge was written, measured, taken out, and put back — and the
+  measurement is worth knowing about if you ship serialised goods. `ship()`
+  used to collect every assigned unit of an order with **no quantity check at
+  all**, so a quantity-one line whose replacement had already gone out could
+  ship a second unit, still on the bench, and record it as being with the
+  customer. The fix was in shipping, not in the lifecycle: **no line ships
+  more units than it ordered**, and the whole parcel is refused rather than
+  trimmed, because the plugin does not choose which of two units went in the
+  box.
+
+- **Moving a unit by hand.** The serial numbers screen offers, on one unit,
+  only the moves the matrix allows from where that unit is. Every move is
+  recorded in the unit's history with who made it. There is no way to write a
+  status the lifecycle does not allow — not from this screen, not from the
+  REST routes, not anywhere.
 
 A unit put back in stock is a free unit, so the order, the order line, the
 service ticket and the replacement pointer are all cleared. Nothing is lost —
@@ -269,7 +336,24 @@ a route would let a bench token write arbitrary movement records.
 **additive only**. The version of the contract is
 `Dahu_Serial_Numbers_Consignments::API_VERSION`, readable without loading the
 class from the option `dahu_serial_numbers_consignments_api`, and returned by
-`GET /consignments` as `api_version`. The database schema is at version 3.
+`GET /consignments` as `api_version`. The database schema is at version 5; the version
+added `label_error`, a nullable column holding the carrier's message when a label
+was refused, so that "parcels that left without a label" is a `WHERE` clause
+(`Consignments::query( array( 'label_error' => true ) )`) rather than a `LIKE`
+over free text. `API_VERSION` stays at `1`: the four additions below are
+additive.
+
+### Adding a tracking number after the parcel has gone
+
+When a carrier does not answer, the parcel is closed anyway and the order note
+says to add the tracking number by hand. `Dahu_Serial_Numbers_Shipment::amend_tracking( $consignment_id, array( 'carrier' => '…', 'tracking' => '…' ) )`
+does that on a **closed** consignment, and fires
+`dahu_serial_numbers_consignment_tracking_amended( $id, $consignment, $previous )`.
+It writes the carrier and the tracking number and nothing else: any other key
+(`status`, `serials`, `note`, the measurements…) is refused with
+`dahu_serial_numbers_amend_only_tracking` and nothing is written. The order meta
+mirror describes one parcel, the most recent closed outbound one; it is rewritten
+as a set when that parcel is amended, and left alone when an older one is.
 
 ### Two known limits
 
@@ -283,6 +367,95 @@ class from the option `dahu_serial_numbers_consignments_api`, and returned by
   movement fails and that unit comes back out of its consignment — but the
   guarantee is not the database's. A uniqueness table that closes the gap is
   additive and will come in a later release.
+
+## WooCommerce stock
+
+A shop that serialises knows exactly how many units it holds: it holds one row
+per unit. WooCommerce, meanwhile, holds a number that drifts — a refund
+processed by hand, a cancelled order restocked twice, a unit written off in the
+workshop and nowhere else. After a few months the two disagree, and the number
+customers buy against is the one that is wrong.
+
+With this switched on, the stock of a serialised product becomes:
+
+```
+free units in stock  −  pieces already reserved by an order
+```
+
+A **free** unit is one whose status is *in stock* and which is on no order. A
+**reserved** piece is one WooCommerce has already deducted for an order being
+prepared — `_reduced_stock` on the order line — but which nobody has put a
+serial against yet. Both halves are needed:
+
+- Drop the reservations and the units a customer has already paid for are
+  offered for sale a second time, because they are still on the shelf and still
+  *in stock* until the workshop scans them.
+- Count a reservation whose serials have already been assigned, and the same
+  units are deducted twice: once by WooCommerce when the order came in, once
+  here. So the units already assigned or shipped against a line are subtracted
+  from that line's reservation, and never below zero.
+
+Orders being *processing* or *on hold* reserve; completed ones do not, because
+WooCommerce keeps `_reduced_stock` on their lines for refunds and counting it
+would hold stock back forever. `dahu_serial_numbers_stock_reserving_statuses`
+changes that list.
+
+The number is **set**, not incremented. An increment has to be right every
+single time to stay right; a set is right as soon as it runs.
+
+**What is left alone**, and named on the Stock screen rather than silently
+skipped: variable parents, whose units belong to their variations; products
+whose stock WooCommerce does not manage; products not marked as carrying serial
+numbers. A unit that says *in stock* while still carrying an order is not
+counted either, and the screen says how many there are: something put it back
+without going through the lifecycle, and a stock pusher is the wrong place to
+decide what that meant.
+
+A **negative target** — orders reserving more pieces than there are units on
+the shelf — is written as zero, and the shortfall is named. Writing a negative
+stock would let WooCommerce carry on selling against a backorder the shop never
+set up.
+
+**Off at installation**, and the Stock screen is readable either way: it shows
+every product, what WooCommerce says now and what would be written. The manual
+resynchronisation works with the switch off, behind a confirmation box, and
+refuses to run against a summary that has since moved — somebody reads a table,
+goes to lunch, comes back and clicks, and in between an order arrived.
+
+A push never blocks what triggered it. A product that cannot be saved is
+recorded as a refusal and the import, the packing scan or the order it came
+from carries on: a stock number is worth less than the operation that produced
+it.
+
+## When a box went in under the wrong product
+
+Two references differ by a connector, or by a brake standard, or by nothing an
+eye catches on a label; a box of forty goes onto the shelf under the wrong one.
+From that minute both products count wrong, and the shop finds out when a
+customer receives the other part.
+
+The Stock screen's second tab re-files units. It is deliberately not a status
+change: the unit has not moved, nothing happened to it, and giving it a
+lifecycle event would put a lie in the one place this plugin exists to keep
+honest. What is recorded is a correction — a history line naming both products
+and the reason, which is required.
+
+- **A dry run first**, the same code path as the real thing, reported and not
+  written, with both products' counts before and after.
+- **All or nothing.** One refusal anywhere refuses the whole list, and the
+  write runs in a transaction: twenty units moved and twenty left behind is a
+  state nobody can reason about afterwards.
+- **A fingerprint**, so that what is applied is what was shown.
+- **Undoable**, unit by unit, as long as the run is still the last thing that
+  happened to that unit. Those that have moved on are named and left alone —
+  undoing them would undo a later decision.
+- **Off at installation.** The dry run works with the switch off, which is how
+  somebody decides whether to turn it on: they read what it would do.
+
+It refuses a unit that is not *in stock*, one that still carries an order (the
+order line is the stronger statement), one filed under no product at all
+(nothing to correct), and a destination that is a variable parent or is not
+marked as carrying serial numbers.
 
 ## Which products carry serial numbers
 
@@ -380,6 +553,8 @@ somewhere the database is not reachable, which is never the case here.
 | `dahu_serial_numbers_url_parameters` | which query parameters a scanned URL may carry it in |
 | `dahu_serial_numbers_decode` | read a manufacturing date out of a serial |
 | `dahu_serial_numbers_queue_statuses` | which orders the packing queue lists |
+| `dahu_serial_numbers_stock_reserving_statuses` | which order statuses hold stock back — without the `wc-` prefix |
+| `dahu_serial_numbers_stock_reserved_map` | the last word on how many pieces each product owes to orders — `( $map, $order_ids )` |
 | `dahu_serial_numbers_auth_provider` | replace the authentication backend |
 | `dahu_serial_numbers_token_ttl` | how long a session lasts |
 | `dahu_serial_numbers_auth_max_attempts` | failures before a login locks |
@@ -388,6 +563,8 @@ somewhere the database is not reachable, which is never the case here.
 | `dahu_serial_numbers_block_on_label_failure` | refuse the parcel when the carrier fails, instead of recording it — 4th parameter `$consignment_id` |
 | `dahu_serial_numbers_shipment_status` | where an order goes once shipped — 3rd parameter `$consignment_id`; the default is `completed` only when nothing is left to send, an empty string (status unchanged) otherwise |
 | `dahu_serial_numbers_tracking_url` | build a link to follow a parcel — 5th parameter `$consignment_id`; `$order` (4th) can be `null` |
+| `dahu_serial_numbers_label_failure_note` | reword the order note line written when the carrier failed — `( $text, $label_error, $consignment_id )`; unchanged when nobody listens. For a timed-out, non-idempotent call, where "could not create the label" may be untrue |
+| `dahu_serial_numbers_consignment_row_actions` | add actions to a line of the Consignments screen, like `plugin_action_links` — `( $actions, $row )`; fragments are filtered to links and basic markup |
 
 **Actions**
 
@@ -395,10 +572,12 @@ somewhere the database is not reachable, which is never the case here.
 |---|---|
 | `dahu_serial_numbers_created` | a unit was filed |
 | `dahu_serial_numbers_transitioned` | a unit moved |
+| `dahu_serial_numbers_product_changed` | a unit was re-filed under another product, with no move — `( $serial, $from, $to, $context )` |
 | `dahu_serial_numbers_shipped` | a parcel was closed — 5th parameter `$consignment_id` |
 | `dahu_serial_numbers_consignment_opened` | a consignment was opened |
 | `dahu_serial_numbers_consignment_closed` | a consignment was closed |
 | `dahu_serial_numbers_consignment_cancelled` | a consignment was cancelled |
+| `dahu_serial_numbers_consignment_tracking_amended` | a closed consignment got its carrier or tracking number after the fact — `( $id, $consignment, $previous )` |
 | `dahu_serial_numbers_station_credentials_revoked` | a post was switched off, or its password changed |
 
 ## Times

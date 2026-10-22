@@ -36,6 +36,8 @@ class Dahu_Serial_Numbers_Admin_Serials {
 			__( 'Dahu Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been.', 'dahu-serial-numbers' )
 		);
 
+		self::render_move_notice();
+
 		if ( ! Dahu_Serial_Numbers_Admin::warn_if_no_tables() ) {
 			if ( '' !== $one ) {
 				self::render_one( $one );
@@ -67,45 +69,34 @@ class Dahu_Serial_Numbers_Admin_Serials {
 	}
 
 	/**
-	 * One line above the table, saying what the table holds.
+	 * A row of tiles above the table, one per status that holds units.
 	 *
-	 * A summary line rather than a definition table: it is one calculated
-	 * figure per status, summarising what is underneath, and a bordered box
-	 * around that would be a box around a sentence.
+	 * Each tile is a real count with the status label it already has, so
+	 * the row adds no wording of its own.
 	 *
 	 * @return void
 	 */
 	private static function render_summary() {
 
 		$counts = Dahu_Serial_Numbers_Manager::counts_by_status();
-		$total  = array_sum( $counts );
 
-		if ( 0 === $total ) {
+		if ( 0 === array_sum( $counts ) ) {
 			return;
 		}
 
-		$parts = array();
+		echo '<div class="dahu-ui-tiles">';
 
 		foreach ( $counts as $status => $count ) {
 			if ( $count > 0 ) {
-				$parts[] = sprintf(
-					'<span class="dahu-serial-numbers__tally"><strong class="dahu-serial-numbers__num">%s</strong> %s</span>',
-					esc_html( number_format_i18n( $count ) ),
-					esc_html( Dahu_Serial_Numbers_Statuses::label( $status ) )
+				printf(
+					'<div class="dahu-ui-card"><div class="dahu-ui-tile__label">%s</div><div class="dahu-ui-tile__value">%s</div></div>',
+					esc_html( Dahu_Serial_Numbers_Statuses::label( $status ) ),
+					esc_html( number_format_i18n( $count ) )
 				);
 			}
 		}
 
-		printf(
-			'<p class="dahu-serial-numbers__summary">%s %s</p>',
-			sprintf(
-				/* translators: %s: number of units. */
-				esc_html( _n( '%s unit on file:', '%s units on file:', $total, 'dahu-serial-numbers' ) ),
-				esc_html( number_format_i18n( $total ) )
-			),
-			// Each part is built from escaped pieces just above.
-			implode( ' ', $parts ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		);
+		echo '</div>';
 	}
 
 	/**
@@ -118,6 +109,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		$filters = self::filters();
 
 		?>
+		<div class="dahu-ui-card">
 		<form method="get" class="dahu-serial-numbers__filters">
 			<input type="hidden" name="page" value="<?php echo esc_attr( Dahu_Serial_Numbers_Admin::SLUG ); ?>" />
 
@@ -151,6 +143,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 
 			<?php submit_button( __( 'Filter', 'dahu-serial-numbers' ), 'secondary', '', false ); ?>
 		</form>
+		</div>
 		<?php
 	}
 
@@ -173,6 +166,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		);
 
 		?>
+		<div class="dahu-ui-card">
 		<table class="widefat striped dahu-serial-numbers__table">
 			<thead>
 				<tr>
@@ -221,6 +215,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		</table>
 
 		<?php self::render_pagination( $result['total'], $filters ); ?>
+		</div>
 		<?php
 	}
 
@@ -350,7 +345,300 @@ class Dahu_Serial_Numbers_Admin_Serials {
 
 		echo '</tbody></table>';
 
+		self::render_move( $row );
 		self::render_history( $row['serial'] );
+	}
+
+	/**
+	 * What the move handler decided, for the screen to say.
+	 *
+	 * The handler runs on `admin_init`, before a byte of the page exists,
+	 * because a successful move redirects and a redirect needs headers. A
+	 * refusal does not redirect — there is nothing dangerous to replay in a
+	 * move the register refuses — so its message waits here for the render,
+	 * in the same request.
+	 *
+	 * @var string
+	 */
+	private static $move_error = '';
+
+	/**
+	 * A final move waiting to be confirmed: the wanted status and the note.
+	 *
+	 * @var array<string,string>
+	 */
+	private static $move_pending = array();
+
+	/**
+	 * Moves one unit to another status, when that is what was asked for.
+	 *
+	 * POST, nonce, capability, and the register's own matrix — in that order,
+	 * and all four, because this writes.
+	 *
+	 * This screen was read-only until now, and that was a real gap rather
+	 * than a design choice: the only code anywhere that could move a unit was
+	 * the workshop's two REST routes and `Shipment`, so a shop whose unit had
+	 * ended up somewhere awkward could not get it out without installing
+	 * something else or writing SQL. An adversarial review found a published
+	 * upgrade note promising this control before it existed. Here it is.
+	 *
+	 * The nonce is tied to the serial, not just to the action: a token handed
+	 * out for one unit must not move another.
+	 *
+	 * Hooked on `admin_init` rather than called from the render, so that a
+	 * move that went through can answer with a redirect. A move left in the
+	 * POST body is a move the browser will offer to repeat on reload, and
+	 * repeating this one writes a second history line saying the unit moved
+	 * again when it did not.
+	 *
+	 * @return void
+	 */
+	public static function handle_move() {
+
+		if ( empty( $_POST['dahu_serial_move_to'] ) || empty( $_POST['dahu_serial'] ) ) {
+			return;
+		}
+
+		$serial = Dahu_Serial_Numbers_Format::normalise( wp_unslash( $_POST['dahu_serial'] ) );
+
+		if ( '' === $serial ) {
+			return;
+		}
+
+		check_admin_referer( 'dahu-serial-numbers-move-' . $serial );
+
+		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
+			wp_die( esc_html__( 'You do not have permission to move a unit.', 'dahu-serial-numbers' ) );
+		}
+
+		$to   = sanitize_key( wp_unslash( $_POST['dahu_serial_move_to'] ) );
+		$note = isset( $_POST['dahu_serial_move_note'] ) ? sanitize_textarea_field( wp_unslash( $_POST['dahu_serial_move_note'] ) ) : '';
+		$row  = Dahu_Serial_Numbers_Manager::get( $serial );
+
+		if ( ! $row ) {
+			return;
+		}
+
+		// The target is checked against the matrix here as well as inside
+		// transition(). Not belt-and-braces: this screen only ever offers the
+		// legal targets, so a target that is not one did not come from this
+		// screen, and saying so is more use than the register's generic
+		// refusal.
+		//
+		// next() answers key => label. Checking the key is the whole point:
+		// the first version of this screen compared the posted key against
+		// the labels, and so refused every move anybody ever asked for while
+		// telling the operator the move had not come from this screen.
+		if ( ! array_key_exists( $to, Dahu_Serial_Numbers_Statuses::next( (string) $row['status'] ) ) ) {
+			self::$move_error = sprintf(
+				/* translators: 1: current status label, 2: wanted status label. */
+				__( 'A unit cannot go from “%1$s” to “%2$s”. The list on this screen only offers the moves that are allowed, so this one did not come from here.', 'dahu-serial-numbers' ),
+				Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] ),
+				Dahu_Serial_Numbers_Statuses::label( $to )
+			);
+
+			return;
+		}
+
+		// A status nothing leaves is asked for twice. Not because the write
+		// is dangerous — the history keeps every line, and the unit is still
+		// there — but because the next screen will have no way out to offer,
+		// and finding that out by arriving there is finding out too late.
+		if ( ! Dahu_Serial_Numbers_Statuses::next( $to ) && empty( $_POST['dahu_serial_move_confirm'] ) ) {
+			self::$move_pending = array(
+				'to'   => $to,
+				'note' => $note,
+			);
+
+			return;
+		}
+
+		$moved = Dahu_Serial_Numbers_Manager::transition(
+			$serial,
+			$to,
+			array(
+				'event' => 'admin_move',
+				'note'  => '' !== $note ? $note : __( 'Moved by hand from the serial numbers screen.', 'dahu-serial-numbers' ),
+			)
+		);
+
+		if ( is_wp_error( $moved ) ) {
+			self::$move_error = $moved->get_error_message();
+
+			return;
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'       => Dahu_Serial_Numbers_Admin::SLUG,
+					'serial'     => rawurlencode( $serial ),
+					'dahu-moved' => $to,
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+
+		exit;
+	}
+
+	/**
+	 * Says what the last move did, whether it went through or not.
+	 *
+	 * @return void
+	 */
+	private static function render_move_notice() {
+
+		if ( '' !== self::$move_error ) {
+			Dahu_Serial_Numbers_Admin::notice( 'error', self::$move_error );
+
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a label to print, written by the redirect above.
+		$moved = isset( $_GET['dahu-moved'] ) ? sanitize_key( wp_unslash( $_GET['dahu-moved'] ) ) : '';
+
+		if ( '' === $moved || ! array_key_exists( $moved, Dahu_Serial_Numbers_Statuses::labels() ) ) {
+			return;
+		}
+
+		Dahu_Serial_Numbers_Admin::notice(
+			'success',
+			sprintf(
+				/* translators: %s: new status label. */
+				__( 'The unit is now “%s”, and the move is in its history.', 'dahu-serial-numbers' ),
+				Dahu_Serial_Numbers_Statuses::label( $moved )
+			)
+		);
+	}
+
+	/**
+	 * The one action this screen offers on a unit: move it.
+	 *
+	 * Only the targets the matrix allows, so the screen never offers
+	 * something the register will refuse — a screen that offers a move and is
+	 * then refused teaches somebody that the screen lies.
+	 *
+	 * One framed button, because this is the action of the page. A terminal
+	 * unit gets a sentence instead, which is the honest answer.
+	 *
+	 * @param array $row The unit.
+	 * @return void
+	 */
+	private static function render_move( array $row ) {
+
+		$next = Dahu_Serial_Numbers_Statuses::next( (string) $row['status'] );
+
+		printf( '<h3>%s</h3>', esc_html__( 'Where it can go next', 'dahu-serial-numbers' ) );
+
+		if ( ! $next ) {
+			printf(
+				'<p>%s</p>',
+				esc_html(
+					sprintf(
+						/* translators: %s: status label. */
+						__( 'Nothing leaves “%s”. That is deliberate: a unit that was replaced or destroyed reappearing elsewhere is either a mistake or a story this history should be able to tell.', 'dahu-serial-numbers' ),
+						Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] )
+					)
+				)
+			);
+
+			return;
+		}
+
+		if ( self::$move_pending ) {
+			self::render_move_confirm( $row );
+
+			return;
+		}
+
+		echo '<form method="post" class="dahu-serial-numbers__move">';
+		wp_nonce_field( 'dahu-serial-numbers-move-' . $row['serial'] );
+		printf( '<input type="hidden" name="dahu_serial" value="%s">', esc_attr( $row['serial'] ) );
+
+		printf(
+			'<label class="screen-reader-text" for="dahu-serial-move-to">%s</label>',
+			esc_html__( 'New status', 'dahu-serial-numbers' )
+		);
+
+		echo '<select id="dahu-serial-move-to" name="dahu_serial_move_to">';
+
+		foreach ( $next as $target => $label ) {
+			printf(
+				'<option value="%s">%s</option>',
+				esc_attr( $target ),
+				esc_html( $label )
+			);
+		}
+
+		echo '</select>';
+
+		printf(
+			'<input type="text" name="dahu_serial_move_note" class="regular-text" placeholder="%s">',
+			esc_attr__( 'Why, for the history (optional)', 'dahu-serial-numbers' )
+		);
+
+		submit_button( __( 'Move this unit', 'dahu-serial-numbers' ), 'secondary', '', false );
+
+		printf(
+			'<p class="dahu-serial-numbers__hint">%s</p>',
+			esc_html__( 'Every move is recorded in the history below, with who made it and when. Nothing here skips the lifecycle: only the moves the register allows from where this unit is are offered.', 'dahu-serial-numbers' )
+		);
+
+		echo '</form>';
+	}
+
+	/**
+	 * Asks again before a status nothing leaves.
+	 *
+	 * The wanted status and the note travel in hidden fields rather than in
+	 * the session, so that abandoning this page abandons the move: there is
+	 * nothing left behind to go through later by itself.
+	 *
+	 * @param array $row The unit.
+	 * @return void
+	 */
+	private static function render_move_confirm( array $row ) {
+
+		$to   = isset( self::$move_pending['to'] ) ? (string) self::$move_pending['to'] : '';
+		$note = isset( self::$move_pending['note'] ) ? (string) self::$move_pending['note'] : '';
+
+		echo '<form method="post" class="dahu-serial-numbers__move">';
+		wp_nonce_field( 'dahu-serial-numbers-move-' . $row['serial'] );
+		printf( '<input type="hidden" name="dahu_serial" value="%s">', esc_attr( $row['serial'] ) );
+		printf( '<input type="hidden" name="dahu_serial_move_to" value="%s">', esc_attr( $to ) );
+		printf( '<input type="hidden" name="dahu_serial_move_note" value="%s">', esc_attr( $note ) );
+		echo '<input type="hidden" name="dahu_serial_move_confirm" value="1">';
+
+		printf(
+			'<p>%s</p>',
+			esc_html(
+				sprintf(
+					/* translators: %s: wanted status label. */
+					__( 'Nothing leaves “%s”. The unit stays in the register with everything it has already done, and this screen will have no move left to offer it.', 'dahu-serial-numbers' ),
+					Dahu_Serial_Numbers_Statuses::label( $to )
+				)
+			)
+		);
+
+		submit_button(
+			sprintf(
+				/* translators: %s: wanted status label. */
+				__( 'Yes, move it to “%s”', 'dahu-serial-numbers' ),
+				Dahu_Serial_Numbers_Statuses::label( $to )
+			),
+			'primary',
+			'',
+			false
+		);
+
+		printf(
+			' <a href="%s">%s</a>',
+			esc_url( self::link( (string) $row['serial'] ) ),
+			esc_html__( 'Leave it where it is', 'dahu-serial-numbers' )
+		);
+
+		echo '</form>';
 	}
 
 	/**

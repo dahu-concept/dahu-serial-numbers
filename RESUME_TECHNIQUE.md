@@ -3,7 +3,7 @@
 Document interne. L'extension publique est en anglais ; ce fichier est le seul
 du dépôt où les origines Annad sont nommées.
 
-Version 1.0.0, portée de `dahu-serials` le 8 octobre 2026. Version 1.1.0 : registre d'envois (schéma en version 3), détaillé au §10.
+Version 1.0.0, portée de `dahu-serials` le 8 octobre 2026. Version 1.1.0 : registre d'envois (schéma en version 3), détaillé au §10. Version 1.2.0 : le cycle de vie s'ouvre — `returned_faulty` cesse d'être un cul-de-sac et un statut `repaired` apparaît, en additif, détaillé au §11.
 
 ---
 
@@ -451,6 +451,125 @@ Les onze autres extensions repassent le contrôle inchangées.
 
 ---
 
+## 8. Le stock WooCommerce et la correction de produit (1.3.0)
+
+Portage de deux familles de fonctionnalités de l'extension privée vers le
+public, réécrites et non recopiées. Le reste du relevé du jour — alignement sur
+WooCommerce par rang d'ancienneté, échange de stock, stock des produits non
+sérialisés, cohortes, import maison — n'est pas entré ; le document de chantier
+de la session dit pour chacun pourquoi.
+
+### 8.1 Ce qui est écrit dans le stock, et pourquoi les deux moitiés
+
+`unités libres en stock − pièces réservées`. Une unité libre est `in_stock` et
+sur aucune commande ; une pièce réservée est le `_reduced_stock` d'une ligne de
+commande en préparation, **moins** les unités déjà `assigned` ou `shipped` sur
+cette ligne, plancher à zéro.
+
+Le piège est le double décompte. WooCommerce retire le stock à la commande.
+Tant que l'atelier n'a pas scanné les numéros, les unités physiques sont encore
+`in_stock` et libres chez nous : les compter sans retirer la réservation remet
+en vente des unités déjà payées. Mais dès que les numéros sont affectés, ils
+quittent le compte des libres — retirer encore la réservation retirerait les
+mêmes pièces deux fois. D'où la soustraction, et d'où le plancher : une ligne
+sur-affectée (quatre numéros sur une ligne de trois, ce que `transition()` ne
+refuse pas) donnerait une réservation négative, donc du stock inventé.
+
+L'écriture passe par `wc_update_product_stock( $p, $v, 'set' )`. Valeur
+absolue, jamais un incrément : un incrément doit être juste à chaque fois pour
+rester juste.
+
+### 8.2 Les lectures de commandes passent par WooCommerce, pas par du SQL
+
+L'extension privée lit `woocommerce_order_items` et `woocommerce_order_itemmeta`
+en SQL direct, avec une détection HPOS. Ici, `wc_get_orders()` et les accesseurs
+`WC_Order_Item_Product`. C'est plus lent sur une très grosse boutique et c'est
+le bon choix pour une extension installée chez un inconnu : HPOS, le stockage en
+posts, et le prochain changement de schéma de WooCommerce sont son affaire et
+pas la nôtre. Les numéros déjà posés sur les lignes, eux, sont lus en une seule
+requête sur notre propre table, clef `commande:ligne:produit` — un `N+1` par
+ligne de commande était la première version, et la boutique de démonstration
+l'a rendu visible.
+
+Un cas reste imparfait et est écrit dans le code : une unité rattachée à une
+commande **sans** ligne (`order_item_id` vide) est comptée contre la première
+ligne de cette commande qui vend ce produit. Avec deux lignes du même produit,
+le choix est arbitraire. L'autre option était de ne pas la compter du tout, ce
+qui remet en vente une unité déjà vendue ; celle-ci est la moins mauvaise.
+
+### 8.3 Le statut « tenu hors compte »
+
+`adjusted_out`, treizième statut, deux arêtes : `in_stock → adjusted_out` et le
+retour. Il sort une unité du compte sans prétendre qu'elle a été vendue,
+réparée ou détruite — un comptage d'étagère qui tombe court, une pièce gardée
+pour les réparations de l'atelier, une unité en quarantaine. Avant lui, les
+seules façons de sortir une unité du compte étaient de la dire détruite, ce qui
+est une affirmation sur le monde physique, ou de laisser le nombre faux.
+
+Il est atteignable depuis l'écran de déplacement, qui n'offre que les
+mouvements légaux, et **aucune route REST ne l'accepte comme cible** : parquer
+du stock est une décision de bureau, pas de poste d'atelier. C'est prouvé par
+une assertion qui lit les routes enregistrées, pas par une relecture.
+
+Le statut est le seul morceau de l'alignement qui soit entré. L'alignement
+lui-même — classer les unités en stock par ancienneté et sortir les
+surnuméraires — repose chez Annad sur la période de fabrication encodée dans le
+numéro de série, qui est un schéma de fournisseur et non une propriété des
+numéros de série en général. `Format::decode()` existe ici et remplit
+`manufactured_year`/`manufactured_month`, donc le portage est possible ; il
+demande un critère de rang configurable et sa propre session.
+
+### 8.4 `change_product()` n'est pas une transition
+
+Trois refus sont des invariants et vivent donc dans le registre et non dans
+l'écran : une unité qui n'est pas `in_stock`, une unité qui porte encore une
+commande, une unité sans produit du tout. La ligne d'historique ne porte
+**aucun statut** — un lecteur qui cherche les mouvements ne doit pas en trouver
+un ici — et c'est une assertion nommée.
+
+L'`UPDATE` porte le produit d'origine et le statut dans son `WHERE`. Deux
+écrans qui corrigent la même unité à la même seconde rendraient autrement deux
+succès, dont un sur une écriture qui n'a pas eu lieu. Le second ne trouve plus
+de ligne et le dit.
+
+### 8.5 Tout ou rien, et ce que l'annulation refuse de faire
+
+La passe tourne dans une transaction SQL. Le banc le prouve pour de vrai : un
+écouteur branché sur le premier changement détruit le troisième numéro, l'appel
+suivant échoue, et les deux premières unités doivent être revenues à leur
+produit. Vérifié aussi que la transaction fonctionne sur le banc SQLite avant
+d'écrire une ligne qui en dépend.
+
+L'annulation ne force rien. Une unité n'est ramenée que si la passe est encore
+la dernière ligne de son journal, si elle est toujours `in_stock`, sans
+commande, et sous le produit de la passe. Sinon elle est nommée et laissée :
+défaire une décision postérieure est la seule chose qu'une annulation ne doit
+jamais faire. Elle n'est pas transactionnelle, exprès — trois unités sautées
+sur quarante ne doivent pas empêcher les trente-sept de rentrer.
+
+L'annulation fonctionne interrupteur coupé. Le contraire enfermerait une
+boutique qui coupe l'interrupteur après une passe douteuse.
+
+### 8.6 Ce qui est coupé à l'installation, et ce qui l'est pour de bon
+
+`stock_push_enabled` et `product_fix_enabled`, tous deux faux par défaut, et les
+deux assertions qui le disent sont les premières du banc. La poussée écrit dans
+la colonne de stock de WooCommerce, c'est-à-dire sur ce que les clients peuvent
+acheter : une extension installée pour lire des historiques n'a pas à changer
+cela parce qu'on l'a activée.
+
+L'essai à blanc, lui, tourne dans les deux cas. C'est ce qui permet de décider
+d'allumer : on lit ce qui se passerait.
+
+### 8.7 Le banc
+
+`_bench/t-serial-numbers-stock.php`, 112 assertions, idempotent (deux passages
+donnent le même résultat, vérifié). Les commandes passent par
+`wc_maybe_reduce_stock_levels()` : `_reduced_stock` est la méta de WooCommerce
+et non une méta que le banc aurait écrite pour la relire ensuite. Les
+injections sont dans `_bench/prove-serial-numbers.py`, préfixées `1.3.0:`, et
+chacune fait tomber une assertion **nommée**.
+
 ## 7. Points d'architecture à connaître
 
 ### 7.1 Une unité remise en stock est une unité libre
@@ -808,3 +927,228 @@ classe par l'option `dahu_serial_numbers_consignments_api` et renvoyée par
 parmi `order_id`, `tracking`, `reference`, `serial` : le jeton est celui d'un
 poste, une tablette partagée sur un établi, pas une personne. Le chemin REST
 passe donc de neuf à onze routes.
+
+### 10.8 Quatre ajouts demandés par un consommateur du registre
+
+Tous additifs ; `API_VERSION` reste `1`, et le banc l'asserte. Schéma 4 → 5.
+
+1. **`label_error`** : colonne `text NULL` sur `consignments`, écrite par
+   `ship()` via l'argument `label_error` de `close()` quand le filtre
+   d'étiquette a échoué ; `query()` et `count()` prennent `label_error => true`
+   (`IS NOT NULL AND <> ''`). La note libre garde son texte : l'une se lit,
+   l'autre se requête. Limite connue : si `close()` lui-même échoue
+   (`still_open`), le message n'est pas écrit dans la colonne, il reste dans la
+   note de commande et l'historique des unités.
+2. **`dahu_serial_numbers_consignment_row_actions`** `( $actions, $row )` sur
+   l'écran des envois, sur le modèle de `plugin_action_links`. La sortie n'est
+   pas crue : non-chaînes ignorées, `wp_kses` limité à `a`, `span`, `strong`,
+   `em`, clé passée par `sanitize_html_class`.
+3. **`Consignments::amend_tracking( $id, array )`**, aussi exposée par
+   `Shipment::amend_tracking()`, et l'action
+   `dahu_serial_numbers_consignment_tracking_amended( $id, $row, $previous )`.
+   Envoi clos seulement ; transporteur et suivi seulement, toute autre clé est
+   refusée (`amend_only_tracking`) et rien n'est écrit, plutôt qu'ignoré.
+   Valeurs non vides seulement, comme `close()`. Le miroir de métas est tenu
+   par `Shipment::sync_mirror()`, branché sur l'action : si l'envoi est le plus
+   récent envoi sortant **clos** de la commande (id le plus élevé), les trois
+   métas sont réécrites ensemble depuis la ligne ; sinon, ou pour un retour,
+   aucune. C'est la règle de `ship()` : le miroir décrit un colis, et une
+   correction qui en mélangerait deux recréerait le défaut déjà corrigé.
+4. **`dahu_serial_numbers_label_failure_note`** `( $text, $label_error,
+   $consignment_id )` sur la ligne d'échec de `Shipment::note()`. Défaut inchangé.
+   Ne couvre pas la ligne jumelle de `consignment_note()` ni le message de
+   `block_on_label_failure` : voir ci-dessous.
+
+**Laissé en place, à décider.** La note libre de l'envoi (`consignment_note()`)
+porte la même affirmation, « The carrier could not create the label », et le
+filtre du point 4 ne la touche pas : après un délai dépassé, la note de commande
+peut dire « indéterminé » pendant que la note de l'envoi continue de dire « n'a
+pas pu ». Même chose pour le message de refus quand `block_on_label_failure`
+est vrai.
+
+## 11. Le cycle de vie s'ouvre (1.2.0)
+
+### 11.1 Le défaut, et pourquoi il était écrit comme une décision
+
+`RETURNED_FAULTY` n'avait **aucune sortie**, et le commentaire de
+`class-dahu-serial-numbers-statuses.php` le justifiait : « C'est un état
+d'alerte : que faire d'une unité revenue autre que ce qui était attendu est une
+décision, pas une transition, et l'extension refuse de la deviner. »
+
+Le raisonnement confond deux choses, et c'est pour cela qu'il est renversé
+plutôt qu'effacé. **Une transition est précisément comment une décision
+s'enregistre.** L'état terminal ne faisait pas décider la boutique : il rendait
+sa décision inenregistrable. Et le prix dépassait de loin la gêne, parce qu'une
+unité dans un envoi ouvert est refusée par tous les autres envois — donc une
+unité en `returned_faulty` ne pouvait même pas être enregistrée comme
+repartie. Inconsignable à vie, et seul du SQL manuel la libérait.
+
+`RETURNED_OK` était déjà le contre-exemple dans le même fichier : trois
+sorties, trois décisions, et rien de devin. Le seul état qui avait vraiment
+besoin de porter une décision était le seul à ne pas pouvoir.
+
+### 11.2 Ce qui a changé, et ce qui n'a pas changé
+
+Un statut et **neuf** arêtes, rien de retiré. La matrice passe de **14 à 23**
+arêtes.
+
+Ce décompte a été faux trois fois : ce document a d'abord dit « quatre », une
+revue adverse a mesuré sept, l'assertion qui compte les arêtes a trouvé huit
+quand `repaired` a gagné ses sorties destructives, puis neuf quand
+`repaired → assigned` est revenue. Quatre décomptes pour un seul changement,
+dont trois écrits de bonne foi. C'est l'argument pour qu'un nombre vive dans
+une assertion et non dans une phrase, et l'assertion existe.
+
+| Depuis | Vers, avant | Vers, maintenant |
+|---|---|---|
+| `returned_faulty` | *(rien)* | `in_repair`, `replaced`, `destroyed` |
+| `in_repair` | `replaced` | `repaired`, `replaced`, `destroyed` |
+| `repaired` | *(n'existait pas)* | `assigned`, `restocking`, `in_repair`, `destroyed` |
+
+Chacune avec sa raison, puisque c'est ce que ce fichier est censé porter :
+
+- `returned_faulty → in_repair` : le cas qui motive tout le reste.
+- `returned_faulty → replaced` : le client reçoit une autre unité, celle-ci
+  sort de la circulation.
+- `returned_faulty → destroyed` : elle ne vaut pas la réparation.
+- `in_repair → repaired` : l'issue la plus courante, et la seule qui manquait.
+- `in_repair → destroyed` : une réparation impossible n'est pas un
+  remplacement, et avant ceci la seule façon de l'enregistrer était d'affirmer
+  que le client avait reçu une autre unité.
+- `repaired → assigned` : elle repart sur la commande d'où elle vient. C'est
+  l'arête qui a coûté le plus à poser — voir 11.2 bis.
+- `repaired → restocking` : elle repart dans le stock.
+- `repaired → in_repair` et `repaired → destroyed` : « réparée, et en fait
+  non ». Une revue adverse a mesuré que `repaired` n'avait **aucune** sortie
+  destructive, donc que déclarer une réparation était irréversible dans le
+  seul sens qui compte.
+
+### 11.2 bis L'arête écrite, retirée, puis remise — et le défaut qu'elle a révélé
+
+`repaired → assigned` est entrée, sortie, et rentrée. C'est la trouvaille la
+plus utile du lot, et elle ne portait pas sur le cycle de vie.
+
+Elle paraissait évidente : l'unité repart sur la commande d'où elle vient. Une
+revue adverse a mesuré ce qu'elle coûtait. **`ship()` ramassait toutes les
+unités `assigned` d'une commande sans aucun contrôle de quantité.** Sur une
+ligne de quantité 1 dont un remplacement était déjà parti, la commande se
+retrouvait avec deux unités affectées, et l'expédition suivante écrivait
+l'unité réparée comme `shipped` alors qu'elle était encore sur l'établi.
+L'historique affirmait qu'elle était chez le client.
+
+Premier réflexe, et il était faux : retirer l'arête. Le prix en était lourd —
+le détour par `restocking → in_stock` vide `order_id`, `order_item_id` et
+`service_ticket`, donc le lien entre une unité et sa réparation disparaissait,
+dans une extension dont c'est tout le propos.
+
+**Le défaut était dans l'expédition, pas dans le cycle de vie**, et il
+préexistait au changement : une boutique qui affecte aujourd'hui deux unités à
+une ligne de quantité 1 les expédie déjà toutes les deux. La correction est
+donc allée là.
+
+`Shipment::overshipped_lines()` compte par ligne de commande, exactement comme
+`missing_for_order()` le fait dans l'autre sens : la place d'une ligne est sa
+quantité moins ce qui est déjà enregistré comme parti. **Le colis entier est
+refusé, pas rogné**, pour la raison que la règle de complétude donne depuis
+toujours : l'extension ne choisit pas laquelle de deux unités était dans le
+carton. L'erreur nomme la ligne, sa quantité, ce qui est déjà parti et ce qui
+allait partir en trop.
+
+Deux cas sont distingués, et c'est le banc qui a corrigé ma première version du
+test :
+
+- **la même unité qui revient et repart sur sa ligne RÉUSSIT.** Une unité
+  contre une commandée, donc rien à refuser. Ma première version du test
+  attendait un refus ici, et le banc a montré que le refus aurait été faux :
+  l'unité d'origine a quitté `shipped` en partant en réparation, donc la ligne
+  a retrouvé sa place.
+- **un remplacement déjà parti plus l'originale réparée est REFUSÉ.** Deux
+  unités contre une commandée, dont une sur l'établi. C'est le scénario mesuré
+  par la revue, reproduit tel quel dans la suite.
+
+Les unités affectées à la commande mais à **aucune ligne** (`order_item_id` à
+zéro) sont ignorées par le compte : il n'y a pas de quantité à leur opposer, et
+les refuser casserait toute boutique qui affecte ainsi. Faiblesse assumée,
+écrite ici plutôt que découverte.
+
+### 11.2 ter L'écran des unités sait enfin déplacer une unité
+
+Il était en lecture seule, et une revue adverse l'a trouvé en vérifiant une
+note de mise à jour qui promettait le contraire : les seuls appels à
+`transition()` venaient des deux routes REST de l'atelier et de `Shipment`.
+Une boutique qui n'installe que le gratuit ne pouvait pas libérer une unité
+coincée sans écrire du SQL.
+
+L'écran d'une unité offre désormais **uniquement les cibles que la matrice
+autorise** depuis où elle est : un écran qui propose un mouvement que le
+registre refuse ensuite apprend au lecteur que l'écran ment. Un statut terminal
+reçoit une phrase, pas un formulaire vide.
+
+Gardé par capacité **et** par nonce lié au numéro de série — pas seulement à
+l'action : un jeton distribué pour une unité ne doit pas en déplacer une autre.
+La cible est revérifiée contre la matrice côté serveur, et le refus dit
+explicitement que ce mouvement n'a pas pu venir de cet écran. Chaque
+déplacement entre dans l'historique, avec son auteur et une raison libre.
+
+Forme : une seule ligne de contrôles et **un** bouton encadré, qui est l'action
+de la page — conforme à `UI-ADMIN-DAHU.md`, qui interdit un bouton par ligne de
+tableau. Aucun `style=` en PHP.
+
+**`returned_faulty` ne mène PAS à `restocking`**, et c'est le seul choix du lot
+qui a sa propre assertion. Une unité revenue autre que ce qui était décrit ne
+retourne pas sur l'étagère sans passer par les mains de quelqu'un ; l'y
+autoriser serait exactement la supposition que ce fichier refuse de faire.
+
+**`repaired`** existe parce que `in_repair → replaced` était la seule issue
+d'une réparation, et que « remplacé » dit que le client a reçu une *autre*
+unité. L'issue la plus courante de toutes — celle-ci a été réparée et est
+repartie — n'était pas exprimable.
+
+**Rien n'a été retiré**, y compris `returned_ok → in_repair`, qui se lit
+bizarrement mais qui est la seconde inspection de quelqu'un et n'est pas à nous
+de supprimer. La règle additive est vérifiée arête par arête : une assertion
+parcourt les quatorze arêtes de la 1.1.0 et échoue en les nommant si l'une a
+disparu.
+
+**Conséquence sur `terminal()`** : il rend désormais deux statuts
+(`destroyed`, `replaced`) au lieu de trois. C'est une correction, pas une
+régression — `returned_faulty` n'aurait jamais dû y être.
+
+### 11.3 Ce qui n'a PAS bougé, et pourquoi c'est important
+
+- **Le schéma de base reste en version 5.** Le statut est une colonne
+  `varchar`, pas une énumération.
+- **`API_VERSION` du registre d'envois reste à `1`.** Ce contrat porte sur la
+  forme d'une ligne d'envoi et sur la signature des méthodes du registre ; un
+  statut d'unité n'est ni l'un ni l'autre, et une constante ajoutée est
+  additive pour tout code qui lit les anciennes.
+- **Aucune signature de hook ne change.**
+
+Donc une mise à jour ne demande rien. C'est écrit dans l'`Upgrade Notice`, avec
+la seule chose qu'un intégrateur doit savoir : il y a douze statuts et
+`returned_faulty` n'est plus terminal.
+
+### 11.4 Mesures
+
+| | |
+|---|---|
+| `t-serial-numbers-auth` | 140 → **159** assertions |
+| `t-serial-numbers-core` | 539 → **562** |
+| `prove-serial-numbers.py` | 172 → **186** injections |
+| `t-serial-numbers-rest` | 194, inchangée |
+| Harnais statique | 470 / 56 / 91 |
+
+Les sept injections neuves couvrent : le cul-de-sac remis en place, l'arête
+`restocking` interdite ajoutée, `repaired` retiré de `in_repair`, `repaired`
+rendu terminal, le statut non déclaré, le statut sans libellé, et une arête de
+la 1.1.0 retirée en douce.
+
+### 11.5 Ce que le payant en fait
+
+`dahu-sav` suivait déjà une unité jusqu'à `returned_faulty` et **écrivait le
+refus sur le dossier** quand elle ne pouvait pas aller plus loin — il n'a
+jamais élargi cette matrice depuis le payant, bien que le filtre le permette,
+parce qu'éteindre le produit payant aurait alors bloqué toutes les unités en
+pleine réparation. La correction est donc arrivée du bon côté, et le payant en
+bénéficie sans avoir pris le gratuit en otage. Une boutique restée en 1.1.0
+continue de recevoir le refus écrit, nommément, plutôt qu'un blocage muet.

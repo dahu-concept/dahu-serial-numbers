@@ -10,7 +10,7 @@
  *
  * ## The keys are English, and that is not cosmetic
  *
- * These eleven strings are written into a database column and read back by
+ * These twelve strings are written into a database column and read back by
  * whatever the shop builds on top: a report, an export, a filter in somebody
  * else's plugin. They are a contract, so they are never translated — the
  * labels are. The version this was extracted from had French keys (`recu`,
@@ -36,8 +36,25 @@ class Dahu_Serial_Numbers_Statuses {
 	const RETURNED_FAULTY = 'returned_faulty';
 	const IN_REPAIR       = 'in_repair';
 	const REPLACED        = 'replaced';
+	const REPAIRED        = 'repaired';
 	const RESTOCKING      = 'restocking';
 	const DESTROYED       = 'destroyed';
+
+	/**
+	 * Held, but not counted as stock.
+	 *
+	 * The honest name for a unit the shop has decided not to offer for sale,
+	 * for a reason that is not a lifecycle event: a shelf count that came up
+	 * short and left this row with nothing behind it, a part kept back for
+	 * the workshop's own repairs, a unit quarantined pending a decision.
+	 * Before this status existed the only ways to take such a unit out of the
+	 * count were to call it destroyed — which is a claim about the physical world —
+	 * or to leave it in stock and let the number be wrong.
+	 *
+	 * It is not terminal. The one way out is back to stock, which is the
+	 * point: a unit parked here is a unit somebody still has.
+	 */
+	const ADJUSTED_OUT = 'adjusted_out';
 
 	/**
 	 * Every known status key.
@@ -56,7 +73,9 @@ class Dahu_Serial_Numbers_Statuses {
 			self::RETURNED_FAULTY,
 			self::IN_REPAIR,
 			self::REPLACED,
+			self::REPAIRED,
 			self::RESTOCKING,
+			self::ADJUSTED_OUT,
 			self::DESTROYED,
 		);
 	}
@@ -83,7 +102,9 @@ class Dahu_Serial_Numbers_Statuses {
 			self::RETURNED_FAULTY => __( 'Returned, not as described', 'dahu-serial-numbers' ),
 			self::IN_REPAIR       => __( 'In repair', 'dahu-serial-numbers' ),
 			self::REPLACED        => __( 'Replaced', 'dahu-serial-numbers' ),
+			self::REPAIRED        => __( 'Repaired', 'dahu-serial-numbers' ),
 			self::RESTOCKING      => __( 'Going back to stock', 'dahu-serial-numbers' ),
+			self::ADJUSTED_OUT    => __( 'Held, not counted as stock', 'dahu-serial-numbers' ),
 			self::DESTROYED       => __( 'Destroyed', 'dahu-serial-numbers' ),
 		);
 	}
@@ -133,9 +154,66 @@ class Dahu_Serial_Numbers_Statuses {
 	 * - `SHIPPED -> IN_STOCK` exists for one real case: an order moved back
 	 *   from completed to processing. Forcing a detour through `ASSIGNED`
 	 *   would make the history say something that did not happen.
-	 * - `RETURNED_FAULTY` has no outlet. It is an alert state: what to do
-	 *   with a unit that came back as something other than what was expected
-	 *   is a decision, not a transition, and the plugin refuses to guess it.
+	 * - `RETURNED_FAULTY` DID have no outlet, on the stated grounds that what
+	 *   to do with a unit that came back as something other than expected is
+	 *   "a decision, not a transition", and that the plugin should refuse to
+	 *   guess it. That reasoning is overturned here, and saying why matters
+	 *   more than the three lines of code it changed.
+	 *
+	 *   A transition is precisely how a decision gets recorded. Making the
+	 *   status terminal did not make the shop decide — it made the shop's
+	 *   decision unwritable. The unit stayed in `returned_faulty` for good,
+	 *   and because a unit in an open consignment is refused by every other
+	 *   consignment, it could not even be recorded as going back out. Manual
+	 *   SQL was the only way out.
+	 *
+	 *   `RETURNED_OK` was already the counter-example: three outlets, three
+	 *   decisions, and nothing guessed. The state that most needs a decision
+	 *   recorded was the only one unable to carry it.
+	 *
+	 *   So `RETURNED_FAULTY` now offers repair, replacement, or destruction —
+	 *   and NOT `RESTOCKING`. A unit that came back as something other than
+	 *   what was described does not go back on the shelf without passing
+	 *   through somebody's hands first; that one really would be a guess.
+	 *
+	 * - `REPAIRED` is new, and it exists because `IN_REPAIR -> REPLACED` was
+	 *   the only way out of a repair. "Replaced" means the customer got a
+	 *   different unit; there was no way to say the commonest outcome of all,
+	 *   which is that this unit was mended.
+	 *
+	 *   It leads to `RESTOCKING`, back to `IN_REPAIR`, or to `DESTROYED`. The
+	 *   last two are there because "repaired, and then it failed the final
+	 *   check" is the commonest thing to happen after a repair, and an
+	 *   adversarial review found it unrecordable: `REPAIRED` had no
+	 *   destructive outlet at all, so declaring a repair was irreversible in
+	 *   the one direction that matters.
+	 *
+	 *   `REPAIRED -> ASSIGNED` is the edge that matters, and it went in, came
+	 *   out, and went back in. It looked obvious — the unit goes back out on
+	 *   the order it came from — and an adversarial review measured what it
+	 *   cost: `ship()` collected every `assigned` unit of an order with no
+	 *   quantity check at all, so a quantity-one line that had already had a
+	 *   replacement shipped ended up with TWO units recorded as shipped
+	 *   against one ordered, and the second was still on the bench while its
+	 *   history said it was with the customer.
+	 *
+	 *   The honest fix was not to remove the edge but to make `ship()` count,
+	 *   which it now does: no line ships more units than it ordered, and the
+	 *   whole parcel is refused rather than trimmed. The edge is therefore
+	 *   back, and it is back because the defect it exposed was in shipping
+	 *   and not in the lifecycle. Going through `RESTOCKING -> IN_STOCK`
+	 *   instead would have worked, at the price of clearing the order, the
+	 *   order line and the service ticket — losing the link between a unit
+	 *   and its repair, in a plugin whose whole purpose is that link.
+	 *
+	 * - `IN_REPAIR -> DESTROYED` is also new: a repair that cannot be done is
+	 *   not a replacement, and before this the only way to record it was to
+	 *   claim the customer got another unit.
+	 *
+	 * - Nothing was removed from this matrix, only added. A shop upgrading
+	 *   cannot find a move it relied on has gone — including
+	 *   `RETURNED_OK -> IN_REPAIR`, which reads oddly but is somebody's
+	 *   second inspection and is not ours to take away.
 	 *
 	 * @return array<string,string[]>
 	 */
@@ -143,14 +221,20 @@ class Dahu_Serial_Numbers_Statuses {
 
 		$transitions = array(
 			self::RECEIVED        => array( self::IN_STOCK ),
-			self::IN_STOCK        => array( self::ASSIGNED ),
+			self::IN_STOCK        => array( self::ASSIGNED, self::ADJUSTED_OUT ),
 			self::ASSIGNED        => array( self::SHIPPED, self::IN_STOCK ),
 			self::SHIPPED         => array( self::RETURN_EXPECTED, self::ASSIGNED, self::IN_STOCK ),
 			self::RETURN_EXPECTED => array( self::RETURNED_OK, self::RETURNED_FAULTY ),
 			self::RETURNED_OK     => array( self::IN_REPAIR, self::RESTOCKING, self::DESTROYED ),
-			self::RETURNED_FAULTY => array(),
-			self::IN_REPAIR       => array( self::REPLACED ),
+			self::RETURNED_FAULTY => array( self::IN_REPAIR, self::REPLACED, self::DESTROYED ),
+			self::IN_REPAIR       => array( self::REPAIRED, self::REPLACED, self::DESTROYED ),
+			self::REPAIRED        => array( self::ASSIGNED, self::RESTOCKING, self::IN_REPAIR, self::DESTROYED ),
 			self::RESTOCKING      => array( self::IN_STOCK ),
+			// Back to stock, and nowhere else. A unit parked out of the count
+			// has not been sold, repaired or destroyed, so the only honest
+			// move is the one that undoes the parking; anything else would
+			// let a unit reach `shipped` without ever having been assigned.
+			self::ADJUSTED_OUT    => array( self::IN_STOCK ),
 			self::REPLACED        => array(),
 			self::DESTROYED       => array(),
 		);

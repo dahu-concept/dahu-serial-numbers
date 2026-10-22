@@ -576,6 +576,15 @@ class Dahu_Serial_Numbers_Manager {
 			$cleared = array( 'order_id', 'order_item_id', 'service_ticket', 'replaced_by' );
 		} elseif ( Dahu_Serial_Numbers_Statuses::SHIPPED === $from && Dahu_Serial_Numbers_Statuses::ASSIGNED === $to ) {
 			$cleared = array( 'replaced_by' );
+		} elseif ( Dahu_Serial_Numbers_Statuses::REPAIRED === $to ) {
+			// A unit that was mended was not replaced, so a replacement
+			// pointer left on it is now a false statement rather than a
+			// stale one. Same reasoning as the clause above, applied to an
+			// edge that did not exist until 1.2.0 — an adversarial review
+			// found it stated here and not applied there. The order and the
+			// service ticket stay: the repair belongs to that case and that
+			// order, and losing the link is what makes a repair untraceable.
+			$cleared = array( 'replaced_by' );
 		}
 
 		/**
@@ -732,6 +741,218 @@ class Dahu_Serial_Numbers_Manager {
 		 * @param array  $context Caller context.
 		 */
 		do_action( 'dahu_serial_numbers_transitioned', $serial, $to, $from, $context );
+
+		return true;
+	}
+
+	/**
+	 * Files a unit under another product, without touching its status.
+	 *
+	 * The mistake this exists for is ordinary and, until now, unfixable
+	 * without SQL: a box of units goes onto the shelf under the wrong
+	 * reference — two parts that differ by a connector, an import column one
+	 * line out — and every count of both products is wrong from that moment
+	 * on. Nothing in the lifecycle can mend it, because being filed under the
+	 * wrong product is not a state a unit passes through.
+	 *
+	 * It is deliberately not a transition. The unit has not moved, nothing
+	 * happened to it, and giving it a status change would put a lie in the
+	 * one place this plugin exists to keep honest. What is recorded is a
+	 * correction: a history line that names both products and the reason.
+	 *
+	 * Three refusals are invariants rather than policy, so they live here and
+	 * not in the screen that calls this:
+	 *
+	 * - A unit that is not `in_stock` is refused. Assigned, shipped, in
+	 *   repair — its product is what an order, a parcel or a case says it is,
+	 *   and changing it here would leave those documents describing a part
+	 *   the shop no longer claims it sent.
+	 * - A unit carrying an order is refused for the same reason, even when
+	 *   its status says stock: the order line is the stronger statement.
+	 * - A unit with no product at all is refused. There is nothing to
+	 *   correct, and filing it would be data entry disguised as a fix —
+	 *   `transition()` already carries `product_id` for that.
+	 *
+	 * @param string $serial         Serial.
+	 * @param int    $to_product_id  Product or variation it should be under.
+	 * @param array  $context        Optional. `reason`, `event`, `run_id`,
+	 *                               and anything else the caller wants on the
+	 *                               history line.
+	 * @return true|WP_Error
+	 */
+	public static function change_product( $serial, $to_product_id, array $context = array() ) {
+
+		global $wpdb;
+
+		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$row    = self::get( $serial );
+
+		if ( ! $row ) {
+			return new WP_Error(
+				'dahu_serial_numbers_not_found',
+				sprintf(
+					/* translators: %s: serial number. */
+					__( 'Unknown serial number: %s', 'dahu-serial-numbers' ),
+					$serial
+				)
+			);
+		}
+
+		$requested = (int) $to_product_id;
+		$to        = $requested > 0 ? Dahu_Serial_Numbers_Products::resolve( $requested ) : 0;
+
+		if ( $to <= 0 ) {
+			return new WP_Error(
+				'dahu_serial_numbers_invalid_product',
+				__( 'A destination product is required.', 'dahu-serial-numbers' )
+			);
+		}
+
+		$from = (int) $row['product_id'];
+
+		if ( $from <= 0 ) {
+			return new WP_Error(
+				'dahu_serial_numbers_no_product',
+				sprintf(
+					/* translators: %s: serial number. */
+					__( 'Serial number %s is filed under no product, so there is nothing to correct.', 'dahu-serial-numbers' ),
+					$serial
+				)
+			);
+		}
+
+		if ( $from === $to ) {
+			return new WP_Error(
+				'dahu_serial_numbers_same_product',
+				sprintf(
+					/* translators: %s: serial number. */
+					__( 'Serial number %s is already filed under that product.', 'dahu-serial-numbers' ),
+					$serial
+				)
+			);
+		}
+
+		if ( Dahu_Serial_Numbers_Statuses::IN_STOCK !== (string) $row['status'] ) {
+			return new WP_Error(
+				'dahu_serial_numbers_not_in_stock',
+				sprintf(
+					/* translators: 1: serial number, 2: status label. */
+					__( 'Serial number %1$s is “%2$s”, so its product is what an order or a case says it is. Only a unit in stock can be re-filed.', 'dahu-serial-numbers' ),
+					$serial,
+					Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] )
+				)
+			);
+		}
+
+		if ( ! empty( $row['order_id'] ) || ! empty( $row['order_item_id'] ) ) {
+			return new WP_Error(
+				'dahu_serial_numbers_attached',
+				sprintf(
+					/* translators: 1: serial number, 2: order number. */
+					__( 'Serial number %1$s still carries order #%2$d. Detach it before re-filing it.', 'dahu-serial-numbers' ),
+					$serial,
+					(int) $row['order_id']
+				)
+			);
+		}
+
+		$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+			Dahu_Serial_Numbers_Install::serials_table(),
+			array(
+				'product_id' => $to,
+				'updated_at' => gmdate( 'Y-m-d H:i:s' ),
+			),
+			array(
+				'serial'     => $serial,
+				// Part of the WHERE on purpose: two screens correcting the
+				// same unit at the same second would otherwise both report
+				// success while one of them wrote over the other. The second
+				// one finds no row and says so.
+				'product_id' => $from,
+				'status'     => Dahu_Serial_Numbers_Statuses::IN_STOCK,
+			)
+		);
+
+		if ( ! $updated ) {
+			return new WP_Error(
+				'dahu_serial_numbers_update_failed',
+				sprintf(
+					/* translators: %s: serial number. */
+					__( 'Serial number %s could not be re-filed — it changed while this was being prepared.', 'dahu-serial-numbers' ),
+					$serial
+				)
+			);
+		}
+
+		$log_context = $context;
+		unset( $log_context['event'] );
+
+		$log_context['from_product_id'] = $from;
+		$log_context['to_product_id']   = $to;
+
+		if ( $requested !== $to ) {
+			$log_context['requested_product_id'] = $requested;
+		}
+
+		$logged = Dahu_Serial_Numbers_Log::record(
+			$serial,
+			isset( $context['event'] ) ? (string) $context['event'] : 'product_change',
+			array(
+				// No status, on purpose: nothing happened to the unit. A
+				// reader scanning for moves must not find one here.
+				'order_id' => null,
+				'context'  => $log_context,
+			)
+		);
+
+		// A correction with no history line is the one outcome this plugin
+		// must never produce: the column would say one thing and nothing
+		// anywhere would say why, the batch that made it could never be put
+		// back — an undo reads the last line to know whether it may — and the
+		// history, which is the whole product, would lie by omission. So the
+		// column goes back and the caller is told. Inside a batch the
+		// transaction covers this anyway; a lone call has no transaction, and
+		// this is what it has instead. Found by an adversarial review.
+		if ( is_wp_error( $logged ) ) {
+			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+				Dahu_Serial_Numbers_Install::serials_table(),
+				array( 'product_id' => $from ),
+				array(
+					'serial'     => $serial,
+					'product_id' => $to,
+				)
+			);
+
+			return new WP_Error(
+				'dahu_serial_numbers_log_failed',
+				sprintf(
+					/* translators: %s: serial number. */
+					__( 'Serial number %s was left where it was: its history line could not be written, and a correction with no history is worse than none.', 'dahu-serial-numbers' ),
+					$serial
+				)
+			);
+		}
+
+		/**
+		 * Fires once a unit has been re-filed under another product.
+		 *
+		 * Both counts moved, which is why the stock push listens to this
+		 * rather than to the transition hook — there was no transition.
+		 *
+		 * Not fired when the caller passes `defer_action`: a batch runs in a
+		 * transaction, and a listener told about a change inside it may act
+		 * on data that is about to be rolled back — or commit the
+		 * transaction from under the batch. The batch fires them itself once
+		 * the write is committed.
+		 *
+		 * @param string $serial  Normalised serial.
+		 * @param int    $from    Product it was under.
+		 * @param int    $to      Product it is under now.
+		 * @param array  $context Caller context.
+		 */
+		if ( empty( $context['defer_action'] ) ) {
+			do_action( 'dahu_serial_numbers_product_changed', $serial, $from, $to, $context );
+		}
 
 		return true;
 	}

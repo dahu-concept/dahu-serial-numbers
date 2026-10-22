@@ -4,7 +4,7 @@ Tags: woocommerce, serial numbers, traceability, warranty, inventory
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.3.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -27,15 +27,37 @@ has a history.
 
 = The lifecycle =
 
-Eleven statuses — received, in stock, assigned to an order, shipped, return
+Thirteen statuses — received, in stock, assigned to an order, shipped, return
 expected, returned as described, returned not as described, in repair,
-replaced, going back to stock, destroyed — and a matrix that says which moves
-are legal. Every status change goes through one check, and there is no flag
-anywhere that turns it off.
+repaired, replaced, going back to stock, held not counted as stock, destroyed —
+and a matrix that says which moves are legal. Every status change goes through one check, and there is
+no flag anywhere that turns it off.
+
+A unit that came back not as described may be repaired, replaced or destroyed.
+It may not go straight back on the shelf: that one really would be a guess.
 
 A unit put back in stock is a free unit: the order, the order line, the service
 ticket and the replacement pointer are all cleared. Nothing is lost — what was
 cleared is written into the history line.
+
+= WooCommerce stock =
+
+Off until you switch it on. With it on, the stock of a serialised product
+becomes the number of units in stock on no order, less the pieces orders being
+prepared have already reserved — written as a whole number, never as an
+increment. Variable parents, products whose stock WooCommerce does not manage
+and products not marked as serialised are left alone and named on the Stock
+screen. A target below zero is written as zero and the shortfall is named. The
+Stock screen shows every product and what would be written before anything is,
+and its manual resynchronisation works whether the automatic push is on or off.
+
+= When a box went in under the wrong product =
+
+Units in stock can be re-filed under another product: a dry run first, a reason
+required, all of the list or none of it, in a transaction, and undoable as long
+as nothing else has happened to the units since. Off until you switch it on,
+and the dry run works either way. A unit on an order, or not in stock, is
+refused: its product is what that order or that case says it is.
 
 = The packing screen =
 
@@ -138,6 +160,23 @@ records which bench did what.
 
 == Changelog ==
 
+= 1.3.0 =
+* New: WooCommerce stock can be set from the units actually on the shelf — free units in stock, less the pieces orders being prepared have already reserved. Off at installation. Written as a value and never as an increment, never below zero, and never blocking the import, scan or order that triggered it.
+* New: Stock screen, showing every serialised product, what WooCommerce says now and what would be written, with a manual resynchronisation that works whether the automatic push is on or off and refuses a summary that has since moved.
+* New: units in stock can be re-filed under another product, for the box that went on the shelf under the wrong reference. Dry run, reason required, all-or-nothing in a transaction, and undoable while the correction is still the last thing that happened to the unit. Off at installation.
+* New: a thirteenth status, held not counted as stock, for a unit the shop still has and has decided not to count. Its only exit is back to stock, and no REST route can reach it.
+* New: filters dahu_serial_numbers_stock_reserving_statuses and dahu_serial_numbers_stock_reserved_map; action dahu_serial_numbers_product_changed.
+* Unchanged: the database schema, and the consignment contract version, which stays at 1. Neither a status nor these two features changes a table.
+
+= 1.2.0 =
+* New: a repaired status, for the commonest outcome of a repair. Before it, the only way out of in repair was replaced, which says the customer got a different unit.
+* Fixed: returned not as described was a dead end. A unit that came back faulty could not be moved on at all, and because a unit in an open consignment is refused by every other consignment, it could not even be recorded as going back out. It now leads to in repair, replaced or destroyed.
+* New: in repair now also leads to repaired and to destroyed. Repaired leads back to the order the unit came from, to going back to stock, back to in repair when a unit fails its final check, or to destroyed.
+* Fixed: no order line ships more units than it ordered. Shipping collected every assigned unit of an order with no quantity check, so a quantity-one line whose replacement had already gone out could ship a second unit — still on the bench — and record it as being with the customer. The whole parcel is now refused, naming the line, rather than trimmed.
+* New: the serial numbers screen can move one unit to another status, offering only the moves the lifecycle allows from where that unit is, guarded by capability and nonce, and recorded in the unit's history.
+* Nothing was removed from the transition matrix. Every move that was legal in 1.1.0 is still legal, including returned as described to in repair.
+* Unchanged: the database schema, and the consignment contract version, which stays at 1. Adding a status changes neither.
+
 = 1.1.0 =
 * Breaking: the filter dahu_serial_numbers_before_shipment now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ); the consignment id is the new second parameter.
 * New: consignment register recording which serial numbers left, or came back, together, under which reference.
@@ -146,12 +185,21 @@ records which bench did what.
 * New: actions dahu_serial_numbers_consignment_opened, _closed and _cancelled.
 * Changed: dahu_serial_numbers_block_on_label_failure, dahu_serial_numbers_shipment_status, dahu_serial_numbers_tracking_url and dahu_serial_numbers_shipped each gain a trailing $consignment_id parameter; the tracking URL filter's order can be null.
 * Changed: the default order status after a shipment is completed only when nothing is left to send; otherwise the status is left alone.
-* Database schema is now version 3.
+* New: Shipment::amend_tracking() adds a carrier and tracking number to a closed consignment and fires dahu_serial_numbers_consignment_tracking_amended; it changes nothing else, and keeps the order meta mirror consistent.
+* New: a label_error column on consignments, and a label_error argument to query() to list the parcels that left without a label.
+* New: filters dahu_serial_numbers_consignment_row_actions (actions on a Consignments screen line) and dahu_serial_numbers_label_failure_note (the order note line written when the carrier failed).
+* Database schema is now version 5.
 
 = 1.0.0 =
 * First release.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Nothing to do on update: no schema change, no hook signature change, and both new features are off until you switch them on in Settings. ONE THING TO READ BEFORE SWITCHING ON the stock push: it writes WooCommerce's stock column, which is what customers buy against, and it writes it as a whole number. Open the Stock screen first — it shows what would be written for every product, writes nothing, and names the products it will not touch. If your own code reads the status list or the terminal statuses, note that there are now thirteen statuses.
+
+= 1.2.0 =
+Additive to the lifecycle, and nothing to do on update: no schema change and no hook signature change. Units sitting in "returned not as described" from an earlier version were stuck there — that was the defect this release fixes — and they can now be moved on from the serial numbers screen, which gained a status control for exactly that. ONE BEHAVIOUR CHANGED, and it is a refusal: a shipment that would send more units than an order line ordered is now refused rather than carried out. If you have deliberately assigned more units to a line than it ordered, that shipment will stop and name the line; un-assign what is not going. If your own code reads the status list or the terminal statuses, note that there are now twelve statuses and that "returned not as described" is no longer terminal.
 
 = 1.1.0 =
 If you have a listener on dahu_serial_numbers_before_shipment, update it before anything else: it now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ) and must be registered with 5 accepted arguments, because the old signature hands your code an integer where it expects the order. The other changed hooks only gain trailing parameters. Two database tables for the consignment register are created on update.

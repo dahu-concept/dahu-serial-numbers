@@ -76,7 +76,7 @@ class Dahu_Serial_Numbers_Install {
 	/**
 	 * Schema version. Bumped whenever a CREATE TABLE below changes.
 	 */
-	const SCHEMA_VERSION = '4';
+	const SCHEMA_VERSION = '5';
 
 	/**
 	 * Option holding the installed schema version.
@@ -292,6 +292,12 @@ class Dahu_Serial_Numbers_Install {
 		// never contacts anything with either. `source` records which plugin
 		// created the row, which is what keeps the history readable after a
 		// carrier integration is removed.
+		//
+		// `label_error` is the carrier's message when a label was asked for
+		// and refused, NULL otherwise. It is a column rather than a line in
+		// `note` so that "which parcels left without a label" is a WHERE
+		// clause and not a LIKE over free text. Added in schema 5; additive,
+		// nullable, and nothing that read the table before it existed notices.
 		$sql_consignments = "CREATE TABLE {$consignments} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			reference varchar(64) NULL DEFAULT NULL,
@@ -309,6 +315,7 @@ class Dahu_Serial_Numbers_Install {
 			height decimal(12,4) NULL DEFAULT NULL,
 			dimension_unit varchar(8) NULL DEFAULT NULL,
 			note text NULL,
+			label_error text NULL,
 			created_at datetime NULL DEFAULT NULL,
 			closed_at datetime NULL DEFAULT NULL,
 			PRIMARY KEY  (id),

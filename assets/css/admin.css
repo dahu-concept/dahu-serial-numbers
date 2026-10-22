@@ -116,21 +116,6 @@
 }
 
 /*
- * The summary line sits above the table it summarises, and nowhere else.
- */
-.dahu-serial-numbers__summary {
-	color: var( --dahu-admin-text );
-	margin: var( --dahu-admin-gap-lg ) 0 var( --dahu-admin-gap );
-	max-width: var( --dahu-admin-measure-wide );
-}
-
-.dahu-serial-numbers__tally {
-	display: inline-block;
-	margin-right: var( --dahu-admin-gap-lg );
-	white-space: nowrap;
-}
-
-/*
  * Every figure that lines up with another, and every date: without
  * tabular-nums a digit changes width between rows and a column of dates
  * stops being a column.
@@ -264,4 +249,56 @@
 .dahu-serial-numbers__subrow td {
 	color: var( --dahu-admin-text-muted );
 	font-size: .9em;
+}
+
+/* Actions added to a consignment line by other plugins. */
+.dahu-serial-numbers__actions {
+	margin-top: 4px;
+}
+
+.dahu-serial-numbers__actions span + span {
+	margin-left: 4px;
+}
+
+/*
+ * The one action the unit screen offers. A row of controls rather than a
+ * stack, because it is one decision: where does this unit go next.
+ */
+.dahu-serial-numbers__move {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --dahu-admin-gap );
+	max-width: var( --dahu-admin-measure );
+}
+
+/* The hint sits under the row, not beside it. */
+.dahu-serial-numbers__move .dahu-serial-numbers__hint {
+	flex-basis: 100%;
+	margin: 0;
+}
+
+/*
+ * The two halves of the Stock screen. WordPress's own tab class does the
+ * drawing; this only gives the row the same breathing space as the rest of
+ * the screen, so the first panel does not sit flush against the tabs.
+ */
+.dahu-serial-numbers__tabs {
+	margin-bottom: var( --dahu-admin-gap );
+}
+
+/*
+ * A product id, a SKU, a date beside the thing it belongs to: present, and
+ * quieter than what it qualifies.
+ */
+.dahu-serial-numbers__muted {
+	color: var( --dahu-admin-text-muted );
+	font-size: 12px;
+}
+
+/* Refusals, as a list. Indented, because each line is a reason and not a step. */
+.dahu-serial-numbers__list {
+	list-style: disc;
+	margin: 0 0 var( --dahu-admin-gap ) 20px;
+	max-width: var( --dahu-admin-measure );
 }

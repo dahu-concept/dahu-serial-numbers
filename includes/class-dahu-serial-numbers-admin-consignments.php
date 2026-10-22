@@ -228,7 +228,7 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 
 		echo '</select>';
 
-		printf( '<button type="submit" class="button">%s</button>', esc_html__( 'Search', 'dahu-serial-numbers' ) );
+		printf( '<button type="submit" class="dahu-ui-btn">%s</button>', esc_html__( 'Search', 'dahu-serial-numbers' ) );
 		echo '</form>';
 	}
 
@@ -325,18 +325,22 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 
 			// The way out of the dead end described at the top of this file,
 			// and only for a parcel that has not gone.
+			echo '<td>';
+
 			if ( Dahu_Serial_Numbers_Consignments::OPEN === $status ) {
-				echo '<td><form method="post">';
+				echo '<form method="post">';
 				wp_nonce_field( 'dahu-serial-numbers-cancel-consignment' );
 				printf(
 					'<button type="submit" name="dahu_consignment_cancel" value="%d" class="button button-small">%s</button>',
 					(int) $id,
 					esc_html__( 'Cancel', 'dahu-serial-numbers' )
 				);
-				echo '</form></td>';
-			} else {
-				echo '<td></td>';
+				echo '</form>';
 			}
+
+			echo self::extra_actions( $row ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in extra_actions().
+
+			echo '</td>';
 
 			echo '</tr>';
 
@@ -351,6 +355,66 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 		}
 
 		echo '</tbody></table>';
+	}
+
+	/**
+	 * The actions other plugins add to a line.
+	 *
+	 * Modelled on WordPress's `plugin_action_links`: the filter receives an
+	 * array of ready-made HTML fragments keyed by a slug, and the row, and
+	 * returns the array. A label download link for a parcel belongs here, next
+	 * to the parcel, and not in a second screen.
+	 *
+	 * What comes back is not trusted. Anything that is not a string is dropped,
+	 * and every fragment goes through `wp_kses()` with links, spans and emphasis
+	 * only: a filter that returns a `<script>`, or an `onclick`, gets neither.
+	 *
+	 * @param array $row The consignment, as the list holds it.
+	 * @return string HTML, already escaped.
+	 */
+	private static function extra_actions( array $row ) {
+
+		/**
+		 * Filters the actions shown on a consignment line.
+		 *
+		 * @param string[] $actions HTML fragments keyed by slug. Empty by default.
+		 * @param array    $row     The consignment: id, reference, status, order_id,
+		 *                          carrier, tracking, label_error, and the rest of the row.
+		 */
+		$actions = apply_filters( 'dahu_serial_numbers_consignment_row_actions', array(), $row );
+
+		if ( ! is_array( $actions ) || ! $actions ) {
+			return '';
+		}
+
+		$allowed = array(
+			'a'      => array(
+				'href'   => true,
+				'class'  => true,
+				'target' => true,
+				'rel'    => true,
+				'title'  => true,
+			),
+			'span'   => array( 'class' => true ),
+			'strong' => array(),
+			'em'     => array(),
+		);
+
+		$out = array();
+
+		foreach ( $actions as $key => $html ) {
+			if ( ! is_string( $html ) || '' === $html ) {
+				continue;
+			}
+
+			$out[] = sprintf(
+				'<span class="%s">%s</span>',
+				esc_attr( sanitize_html_class( (string) $key ) ),
+				wp_kses( $html, $allowed )
+			);
+		}
+
+		return $out ? '<div class="dahu-serial-numbers__actions">' . implode( ' | ', $out ) . '</div>' : '';
 	}
 
 	/**
