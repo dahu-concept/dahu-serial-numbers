@@ -507,7 +507,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 
 		printf(
 			'<p class="dahu-serial-numbers__hint">%s</p>',
-			esc_html__( 'For a box that went on the shelf under the wrong reference. Only units in stock and on no order can be re-filed: once a unit is on an order, in a parcel or in repair, its product is what that document says it is.', 'dahu-serial-numbers' )
+			esc_html__( 'For a box that went on the shelf under the wrong reference. Units in stock and on no order can be re-filed freely. A unit that has left stock can only be squared with its own order line, when the record and the line disagree about which product went out: the line is the authority, it is never changed, and no stock count moves.', 'dahu-serial-numbers' )
 		);
 
 		if ( ! Dahu_Serial_Numbers_Product_Fix::enabled() ) {
@@ -647,6 +647,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 			printf( '<th>%s</th>', esc_html__( 'Filed under', 'dahu-serial-numbers' ) );
 			printf( '<th>%s</th>', esc_html__( 'State', 'dahu-serial-numbers' ) );
 			printf( '<th>%s</th>', esc_html__( 'Would become', 'dahu-serial-numbers' ) );
+			printf( '<th>%s</th>', esc_html__( 'Note', 'dahu-serial-numbers' ) );
 			echo '</tr></thead><tbody>';
 
 			foreach ( $plan['rows'] as $row ) {
@@ -660,6 +661,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 						? esc_html( $plan['to_name'] )
 						: '<em>' . esc_html( Dahu_Serial_Numbers_Product_Fix::refusal_label( $row['refusal'] ) ) . '</em>'
 				);
+				printf( '<td>%s</td>', empty( $row['note'] ) ? '—' : esc_html( $row['note'] ) );
 				echo '</tr>';
 			}
 

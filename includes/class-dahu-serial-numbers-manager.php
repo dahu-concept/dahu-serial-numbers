@@ -887,19 +887,32 @@ class Dahu_Serial_Numbers_Manager {
 			);
 		}
 
-		if ( Dahu_Serial_Numbers_Statuses::IN_STOCK !== (string) $row['status'] ) {
+		// A unit that left stock is normally none of this screen's business:
+		// its product is what an order, a parcel or a repair case says it is.
+		// The single exception is the one case where the record disagrees
+		// with a document that is itself the authority -- the unit is filed
+		// under one product while the order line it went out on names
+		// another. Correcting the unit TOWARDS that line makes the two
+		// agree; the line is never touched. The caller asks for it by naming
+		// the line, and everything about it is checked again here, because
+		// this is the method that writes.
+		$converge = isset( $context['converge_order_item_id'] ) ? (int) $context['converge_order_item_id'] : 0;
+		$status    = (string) $row['status'];
+		$in_stock  = Dahu_Serial_Numbers_Statuses::IN_STOCK === $status;
+
+		if ( ! $in_stock && $converge <= 0 ) {
 			return new WP_Error(
 				'dahu_serial_numbers_not_in_stock',
 				sprintf(
 					/* translators: 1: serial number, 2: status label. */
 					__( 'Serial number %1$s is “%2$s”, so its product is what an order or a case says it is. Only a unit in stock can be re-filed.', 'dahu-serial-numbers' ),
 					$serial,
-					Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] )
+					Dahu_Serial_Numbers_Statuses::label( $status )
 				)
 			);
 		}
 
-		if ( ! empty( $row['order_id'] ) || ! empty( $row['order_item_id'] ) ) {
+		if ( $in_stock && ( ! empty( $row['order_id'] ) || ! empty( $row['order_item_id'] ) ) ) {
 			return new WP_Error(
 				'dahu_serial_numbers_attached',
 				sprintf(
@@ -911,21 +924,64 @@ class Dahu_Serial_Numbers_Manager {
 			);
 		}
 
+		if ( ! $in_stock ) {
+			if ( (int) $row['order_item_id'] !== $converge ) {
+				return new WP_Error(
+					'dahu_serial_numbers_converge_line',
+					sprintf(
+						/* translators: %s: serial number. */
+						__( 'Serial number %s does not belong to the order line this correction names.', 'dahu-serial-numbers' ),
+						$serial
+					)
+				);
+			}
+
+			$allowed = self::order_line_products( $row );
+
+			// Putting such a correction back is the one write that goes the
+			// other way, away from the line. It is allowed only because the
+			// caller has already checked that this unit has received nothing
+			// else since -- the destination is the product the correction
+			// took it from, which only the run knows.
+			$revert = ! empty( $context['converge_revert'] );
+
+			if ( ! $revert && ( ! $allowed || ! in_array( $to, $allowed, true ) ) ) {
+				return new WP_Error(
+					'dahu_serial_numbers_converge_elsewhere',
+					sprintf(
+						/* translators: %s: serial number. */
+						__( 'Serial number %s has left stock: the only product it can be re-filed under is the one its own order line names.', 'dahu-serial-numbers' ),
+						$serial
+					)
+				);
+			}
+		}
+
 		$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 			Dahu_Serial_Numbers_Install::serials_table(),
 			array(
 				'product_id' => $to,
 				'updated_at' => gmdate( 'Y-m-d H:i:s' ),
 			),
-			array(
-				'serial'     => $serial,
-				// Part of the WHERE on purpose: two screens correcting the
-				// same unit at the same second would otherwise both report
-				// success while one of them wrote over the other. The second
-				// one finds no row and says so.
-				'product_id' => $from,
-				'status'     => Dahu_Serial_Numbers_Statuses::IN_STOCK,
-			)
+			$in_stock
+				? array(
+					'serial'     => $serial,
+					// Part of the WHERE on purpose: two screens correcting
+					// the same unit at the same second would otherwise both
+					// report success while one of them wrote over the other.
+					// The second one finds no row and says so.
+					'product_id' => $from,
+					'status'     => Dahu_Serial_Numbers_Statuses::IN_STOCK,
+				)
+				// Converging on an order line: the status read a moment ago
+				// and the line itself are pinned instead, so a unit that
+				// moved on in the meantime is missed rather than overwritten.
+				: array(
+					'serial'        => $serial,
+					'product_id'    => $from,
+					'status'        => $status,
+					'order_item_id' => $converge,
+				)
 		);
 
 		if ( ! $updated ) {
@@ -944,6 +1000,15 @@ class Dahu_Serial_Numbers_Manager {
 
 		$log_context['from_product_id'] = $from;
 		$log_context['to_product_id']   = $to;
+
+		// Written down because a reader a year later has to be able to tell a
+		// correction made on an order line's authority from an ordinary one.
+		if ( ! $in_stock ) {
+			$log_context['converged']       = true;
+			$log_context['status_at_fix']   = $status;
+			$log_context['order_id']        = (int) $row['order_id'];
+			$log_context['order_item_id']   = $converge;
+		}
 
 		if ( $requested !== $to ) {
 			$log_context['requested_product_id'] = $requested;
@@ -974,6 +1039,48 @@ class Dahu_Serial_Numbers_Manager {
 		do_action( 'dahu_serial_numbers_product_changed', $serial, $from, $to, $context );
 
 		return true;
+	}
+
+	/**
+	 * The products the order line of a unit names.
+	 *
+	 * A line names two: the variation that was sold and the variable product
+	 * it belongs to. Both are accepted as the same piece, because a shop
+	 * files units under whichever of the two it treats as the reference.
+	 *
+	 * @param array $row Serial row.
+	 * @return int[] Product ids, resolved; empty when there is no line.
+	 */
+	public static function order_line_products( array $row ) {
+
+		$item_id = isset( $row['order_item_id'] ) ? (int) $row['order_item_id'] : 0;
+
+		if ( $item_id <= 0 || ! function_exists( 'wc_get_order' ) ) {
+			return array();
+		}
+
+		$order = ! empty( $row['order_id'] ) ? wc_get_order( (int) $row['order_id'] ) : null;
+
+		if ( ! $order || ! is_callable( array( $order, 'get_item' ) ) ) {
+			return array();
+		}
+
+		$item = $order->get_item( $item_id );
+
+		if ( ! $item || ! is_callable( array( $item, 'get_product_id' ) ) ) {
+			return array();
+		}
+
+		$out = array();
+
+		foreach ( array( (int) $item->get_variation_id(), (int) $item->get_product_id() ) as $id ) {
+			if ( $id > 0 ) {
+				$out[] = $id;
+				$out[] = Dahu_Serial_Numbers_Products::resolve( $id );
+			}
+		}
+
+		return array_values( array_unique( array_filter( $out ) ) );
 	}
 
 	/**

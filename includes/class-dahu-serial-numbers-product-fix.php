@@ -151,7 +151,8 @@ class Dahu_Serial_Numbers_Product_Fix {
 			'no_reason'                  => __( 'A reason is required: it is what the history line will say.', 'dahu-serial-numbers' ),
 			'no_serial'                  => __( 'No serial number was given.', 'dahu-serial-numbers' ),
 			'unknown'                    => __( 'Unknown serial number.', 'dahu-serial-numbers' ),
-			'not_in_stock'               => __( 'Not in stock: its product is what an order or a case says it is.', 'dahu-serial-numbers' ),
+			'not_in_stock'               => __( 'Not in stock, and on no order line this could be squared against: its product is what an order or a case says it is.', 'dahu-serial-numbers' ),
+			'not_in_stock_elsewhere'     => __( 'Not in stock: the only product it can be re-filed under is the one its own order line names.', 'dahu-serial-numbers' ),
 			'attached'                   => __( 'Still carries an order.', 'dahu-serial-numbers' ),
 			'no_product'                 => __( 'Filed under no product, so there is nothing to correct.', 'dahu-serial-numbers' ),
 			'same_product'               => __( 'Already filed under that product.', 'dahu-serial-numbers' ),
@@ -210,13 +211,34 @@ class Dahu_Serial_Numbers_Product_Fix {
 			$refusal = '';
 			$from    = 0;
 
+			$converge = 0;
+
 			if ( ! $row ) {
 				$refusal = 'unknown';
 			} else {
 				$from = (int) $row['product_id'];
 
 				if ( Dahu_Serial_Numbers_Statuses::IN_STOCK !== (string) $row['status'] ) {
-					$refusal = 'not_in_stock';
+					// A unit that left stock, filed under one product while
+					// the order line it went out on names another. That is
+					// not a judgement call: the line is the authority, and
+					// squaring the unit with it is the one correction a unit
+					// out of stock may receive here. The line is never
+					// touched, and no stock count moves -- the unit was not
+					// counted in either product's free stock to begin with.
+					$allowed = Dahu_Serial_Numbers_Manager::order_line_products( $row );
+
+					if ( ! $allowed ) {
+						$refusal = 'not_in_stock';
+					} elseif ( ! in_array( $to, $allowed, true ) ) {
+						$refusal = 'not_in_stock_elsewhere';
+					} elseif ( $from <= 0 ) {
+						$refusal = 'no_product';
+					} elseif ( $from === $to ) {
+						$refusal = 'same_product';
+					} else {
+						$converge = (int) $row['order_item_id'];
+					}
 				} elseif ( ! empty( $row['order_id'] ) || ! empty( $row['order_item_id'] ) ) {
 					$refusal = 'attached';
 				} elseif ( $from <= 0 ) {
@@ -238,6 +260,13 @@ class Dahu_Serial_Numbers_Product_Fix {
 				'from_name' => self::product_name( $from ),
 				'status'    => $row ? (string) $row['status'] : '',
 				'refusal'   => $refusal,
+				'converge'  => $converge,
+				'note'      => $converge > 0 ? sprintf(
+					/* translators: 1: order number, 2: order line id. */
+					__( 'Squared with order #%1$d, line %2$d. The order line is not changed, and no stock count moves.', 'dahu-serial-numbers' ),
+					(int) $row['order_id'],
+					$converge
+				) : '',
 			);
 		}
 
@@ -266,7 +295,10 @@ class Dahu_Serial_Numbers_Product_Fix {
 		$touched = array();
 
 		foreach ( $rows as $row ) {
-			if ( '' !== $row['refusal'] || $row['from'] <= 0 ) {
+			// A converged unit is out of stock: it is in neither product's
+			// free count, so moving it moves no count. Counting it here would
+			// show the shop an arrival that never happens.
+			if ( '' !== $row['refusal'] || $row['from'] <= 0 || ! empty( $row['converge'] ) ) {
 				continue;
 			}
 
@@ -337,7 +369,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 		$parts = array( 'to:' . (int) $plan['to'] );
 
 		foreach ( $plan['rows'] as $row ) {
-			$parts[] = implode( '|', array( $row['serial'], (int) $row['from'], (string) $row['status'], (string) $row['refusal'] ) );
+			$parts[] = implode( '|', array( $row['serial'], (int) $row['from'], (string) $row['status'], (string) $row['refusal'], (int) ( isset( $row['converge'] ) ? $row['converge'] : 0 ) ) );
 		}
 
 		return md5( implode( "\n", $parts ) );
@@ -407,7 +439,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 					// commit half of this batch from under it. They are all
 					// fired below, once the write is real.
 					'defer_action' => true,
-				)
+				) + ( empty( $row['converge'] ) ? array() : array( 'converge_order_item_id' => (int) $row['converge'] ) )
 			);
 
 			if ( is_wp_error( $done ) ) {
@@ -425,8 +457,9 @@ class Dahu_Serial_Numbers_Product_Fix {
 			}
 
 			$moved[] = array(
-				'serial' => $row['serial'],
-				'from'   => (int) $row['from'],
+				'serial'   => $row['serial'],
+				'from'     => (int) $row['from'],
+				'converge' => (int) ( empty( $row['converge'] ) ? 0 : $row['converge'] ),
 			);
 		}
 
@@ -520,10 +553,21 @@ class Dahu_Serial_Numbers_Product_Fix {
 				continue;
 			}
 
+			$converge = isset( $entry['converge'] ) ? (int) $entry['converge'] : 0;
+
+			// A converged unit is out of stock and still carries its line:
+			// asking it to be in stock and detached, as an ordinary unit must
+			// be, would retire its undo for ever. What is asked of it instead
+			// is that nothing else has happened -- same product, same line,
+			// and this run still the last word on it.
+			$undisturbed = $converge > 0
+				? (int) $row['order_item_id'] === $converge
+				: ( Dahu_Serial_Numbers_Statuses::IN_STOCK === (string) $row['status']
+					&& empty( $row['order_id'] )
+					&& empty( $row['order_item_id'] ) );
+
 			if ( (int) $row['product_id'] !== (int) $run['to']
-				|| Dahu_Serial_Numbers_Statuses::IN_STOCK !== (string) $row['status']
-				|| ! empty( $row['order_id'] )
-				|| ! empty( $row['order_item_id'] )
+				|| ! $undisturbed
 				|| ! self::run_is_last( $serial, $run_id ) ) {
 
 				$skipped[] = array(
@@ -563,7 +607,10 @@ class Dahu_Serial_Numbers_Product_Fix {
 					),
 					'run_id' => $run_id,
 					'author' => function_exists( 'get_current_user_id' ) ? (int) get_current_user_id() : 0,
-				)
+				) + ( $converge > 0 ? array(
+					'converge_order_item_id' => $converge,
+					'converge_revert'        => true,
+				) : array() )
 			);
 
 			if ( is_wp_error( $done ) ) {
