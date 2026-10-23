@@ -406,7 +406,11 @@ single time to stay right; a set is right as soon as it runs.
 **What is left alone**, and named on the Stock screen rather than silently
 skipped: variable parents, whose units belong to their variations; products
 whose stock WooCommerce does not manage; products not marked as carrying serial
-numbers. A unit that says *in stock* while still carrying an order is not
+numbers; and products that are not on sale — in the bin, a draft, scheduled or
+pending, or a variation whose parent is in one of those states. Nothing writes
+a stock number on a product nobody can buy. Units go on moving while a product
+is out of sale, so the stock is brought up to date the moment it goes back on
+sale, rather than being left at the number it held before. A unit that says *in stock* while still carrying an order is not
 counted either, and the screen says how many there are: something put it back
 without going through the lifecycle, and a stock pusher is the wrong place to
 decide what that meant.

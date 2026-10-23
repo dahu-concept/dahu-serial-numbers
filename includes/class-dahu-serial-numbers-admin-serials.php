@@ -183,13 +183,16 @@ class Dahu_Serial_Numbers_Admin_Serials {
 			<?php if ( ! $result['rows'] ) : ?>
 				<tr>
 					<td colspan="7">
-						<?php
-						if ( '' !== $filters['search'] || '' !== $filters['status'] || '' !== $filters['batch'] ) {
-							esc_html_e( 'Nothing matches those filters.', 'dahu-serial-numbers' );
-						} else {
-							esc_html_e( 'No serial number on file yet.', 'dahu-serial-numbers' );
-						}
-						?>
+						<?php if ( '' !== $filters['search'] || '' !== $filters['status'] || '' !== $filters['batch'] ) : ?>
+							<p class="dahu-ui-hint"><?php esc_html_e( 'Nothing matches those filters.', 'dahu-serial-numbers' ); ?></p>
+						<?php else : ?>
+							<p class="dahu-ui-hint"><?php esc_html_e( 'No serial number on file yet. One appears the first time a workshop post scans a unit.', 'dahu-serial-numbers' ); ?></p>
+							<p>
+								<a class="dahu-ui-btn" href="<?php echo esc_url( admin_url( 'admin.php?page=dahu-serial-numbers-stations' ) ); ?>">
+									<?php esc_html_e( 'Set up a workshop post', 'dahu-serial-numbers' ); ?>
+								</a>
+							</p>
+						<?php endif; ?>
 					</td>
 				</tr>
 			<?php else : ?>

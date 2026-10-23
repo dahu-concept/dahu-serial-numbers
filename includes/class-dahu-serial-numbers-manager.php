@@ -537,6 +537,8 @@ class Dahu_Serial_Numbers_Manager {
 			)
 		);
 
+		self::note_variable_parent( $serial, (int) $row['product_id'], $requested );
+
 		/**
 		 * Fires once a serial has been filed.
 		 *
@@ -546,6 +548,59 @@ class Dahu_Serial_Numbers_Manager {
 		do_action( 'dahu_serial_numbers_created', $serial, $row );
 
 		return $id;
+	}
+
+	/**
+	 * Notes a unit filed against a variable parent, and nothing more.
+	 *
+	 * The unit is kept. A simple product turned variable leaves order lines
+	 * and workshop habits pointing at an id that is now a container, and a
+	 * refusal here would throw away a scan somebody has in their hand with
+	 * nothing to do about it. So the row goes in and the oddity is written
+	 * down: the Stock screen already names these units as unwritable, and
+	 * this is the line that says which filing created one, so they can be
+	 * re-filed on the Correct a product screen.
+	 *
+	 * Never throws, on purpose: filing the unit matters more than noting it.
+	 * Throwable and not Exception, deliberately: a call to a method on null
+	 * inside a logging layer, or a product class a third-party plugin has
+	 * replaced, raises an Error, which `catch ( Exception )` lets straight
+	 * through. The unit would then already be in the table while create()
+	 * never returned its id — a row written and a fatal error on screen.
+	 * `Dahu_Serial_Numbers_Stock::push()` already catches Throwable for the
+	 * same reason.
+	 *
+	 * @param string $serial     Normalised serial.
+	 * @param int    $product_id Product the unit was filed under.
+	 * @param int    $requested  Product the caller asked for, before resolving.
+	 * @return void
+	 */
+	private static function note_variable_parent( $serial, $product_id, $requested ) {
+
+		if ( $product_id <= 0 || ! function_exists( 'wc_get_product' ) ) {
+			return;
+		}
+
+		try {
+			$product = wc_get_product( $product_id );
+
+			if ( ! $product || ! $product->is_type( 'variable' ) ) {
+				return;
+			}
+
+			Dahu_Serial_Numbers_Log::record(
+				$serial,
+				'created_on_variable_parent',
+				array(
+					'context' => array(
+						'product_id'           => $product_id,
+						'requested_product_id' => $requested !== $product_id ? $requested : null,
+					),
+				)
+			);
+		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
+			return;
+		}
 	}
 
 	/**
@@ -894,7 +949,7 @@ class Dahu_Serial_Numbers_Manager {
 			$log_context['requested_product_id'] = $requested;
 		}
 
-		$logged = Dahu_Serial_Numbers_Log::record(
+		Dahu_Serial_Numbers_Log::record(
 			$serial,
 			isset( $context['event'] ) ? (string) $context['event'] : 'product_change',
 			array(
@@ -905,54 +960,18 @@ class Dahu_Serial_Numbers_Manager {
 			)
 		);
 
-		// A correction with no history line is the one outcome this plugin
-		// must never produce: the column would say one thing and nothing
-		// anywhere would say why, the batch that made it could never be put
-		// back — an undo reads the last line to know whether it may — and the
-		// history, which is the whole product, would lie by omission. So the
-		// column goes back and the caller is told. Inside a batch the
-		// transaction covers this anyway; a lone call has no transaction, and
-		// this is what it has instead. Found by an adversarial review.
-		if ( is_wp_error( $logged ) ) {
-			$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-				Dahu_Serial_Numbers_Install::serials_table(),
-				array( 'product_id' => $from ),
-				array(
-					'serial'     => $serial,
-					'product_id' => $to,
-				)
-			);
-
-			return new WP_Error(
-				'dahu_serial_numbers_log_failed',
-				sprintf(
-					/* translators: %s: serial number. */
-					__( 'Serial number %s was left where it was: its history line could not be written, and a correction with no history is worse than none.', 'dahu-serial-numbers' ),
-					$serial
-				)
-			);
-		}
-
 		/**
 		 * Fires once a unit has been re-filed under another product.
 		 *
 		 * Both counts moved, which is why the stock push listens to this
 		 * rather than to the transition hook — there was no transition.
 		 *
-		 * Not fired when the caller passes `defer_action`: a batch runs in a
-		 * transaction, and a listener told about a change inside it may act
-		 * on data that is about to be rolled back — or commit the
-		 * transaction from under the batch. The batch fires them itself once
-		 * the write is committed.
-		 *
 		 * @param string $serial  Normalised serial.
 		 * @param int    $from    Product it was under.
 		 * @param int    $to      Product it is under now.
 		 * @param array  $context Caller context.
 		 */
-		if ( empty( $context['defer_action'] ) ) {
-			do_action( 'dahu_serial_numbers_product_changed', $serial, $from, $to, $context );
-		}
+		do_action( 'dahu_serial_numbers_product_changed', $serial, $from, $to, $context );
 
 		return true;
 	}

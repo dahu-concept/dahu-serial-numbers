@@ -4,11 +4,11 @@ Tags: woocommerce, serial numbers, traceability, warranty, inventory
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.5.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
-Per-unit traceability for WooCommerce: a serial number on every unit you ship, a lifecycle with real rules, a full history, and a packing screen for the bench.
+Per-unit traceability for WooCommerce: a serial number on every unit you ship, a lifecycle with real rules, a full history and a packing screen.
 
 == Description ==
 
@@ -45,9 +45,10 @@ cleared is written into the history line.
 Off until you switch it on. With it on, the stock of a serialised product
 becomes the number of units in stock on no order, less the pieces orders being
 prepared have already reserved — written as a whole number, never as an
-increment. Variable parents, products whose stock WooCommerce does not manage
-and products not marked as serialised are left alone and named on the Stock
-screen. A target below zero is written as zero and the shortfall is named. The
+increment. Variable parents, products whose stock WooCommerce does not manage,
+products not marked as serialised and products that are not on sale — in the
+bin, a draft, scheduled or pending — are left alone and named on the Stock
+screen; a product going back on sale is brought up to date straight away. A target below zero is written as zero and the shortfall is named. The
 Stock screen shows every product and what would be written before anything is,
 and its manual resynchronisation works whether the automatic push is on or off.
 
@@ -159,6 +160,15 @@ records which bench did what.
 4. The packing screen on a bench tablet.
 
 == Changelog ==
+
+= 1.5.1 =
+* The screen a shop sees before it has any data now says what will appear there, and offers the link to the action that fills it.
+
+= 1.5.0 =
+* The activation screen now opens on the plugin's own mark rather than its initials, and the banner carries the same drawing as a watermark.
+
+= 1.4.0 =
+* The sidebar menu now carries the plugin's own tag icon instead of a generic one, drawn to stay legible at the 20 pixels WordPress gives it, and following the admin colour scheme like every other menu.
 
 = 1.3.0 =
 * New: WooCommerce stock can be set from the units actually on the shelf — free units in stock, less the pieces orders being prepared have already reserved. Off at installation. Written as a value and never as an increment, never below zero, and never blocking the import, scan or order that triggered it.

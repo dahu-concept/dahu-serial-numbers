@@ -3,7 +3,7 @@
  * Plugin Name:       Dahu Serial Numbers
  * Plugin URI:        https://dahu-concept.fr
  * Description:       Per-unit traceability for WooCommerce: a serial number on every item you ship, a lifecycle with a transition matrix that refuses the moves that make no sense, an append-only history, a workshop screen where the number is captured at packing time, and a consignment ledger so a tracking number resolves to the units that travelled under it.
- * Version:           1.3.0
+ * Version:           1.5.1
  * Author:            Hugo Vial-Jaime
  * Author URI:        mailto:contact@dahu-concept.fr
  * License:           MIT
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'DAHU_SERIAL_NUMBERS_VERSION', '1.3.0' );
+define( 'DAHU_SERIAL_NUMBERS_VERSION', '1.5.1' );
 define( 'DAHU_SERIAL_NUMBERS_FILE', __FILE__ );
 define( 'DAHU_SERIAL_NUMBERS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'DAHU_SERIAL_NUMBERS_URL', plugin_dir_url( __FILE__ ) );
@@ -258,10 +258,18 @@ add_action(
 				'file'       => DAHU_SERIAL_NUMBERS_FILE,
 				'version'    => DAHU_SERIAL_NUMBERS_VERSION,
 				'textdomain' => 'dahu-serial-numbers',
+				'mark'       => array(
+					'view'  => '0 0 112 112',
+					'paths' => array(
+						'M34 10 L104 10 Q110 10 110 16 L110 88 Q110 94 104 94 L34 94 L6 52 Z',
+						'M54 34 L54 70 M70 30 L70 70 M86 38 L86 70',
+						'M27.0 52.0 a9.0 9.0 0 1 0 18.0 0 a9.0 9.0 0 1 0 -18.0 0',
+					),
+				),
 				/*
-				 * Les mots de l'accueil viennent d'ici : le fichier partagé est
-				 * recopié dans toute la famille et ne peut donc porter aucun
-				 * domaine de traduction.
+				 * The welcome screen's words come from here: the shared file is
+				 * copied byte for byte across the whole family, so it can carry
+				 * no text domain of its own.
 				 */
 				'strings'    => array(
 					'next'   => __( 'Next', 'dahu-serial-numbers' ),

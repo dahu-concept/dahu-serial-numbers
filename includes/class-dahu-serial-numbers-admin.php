@@ -39,6 +39,37 @@ class Dahu_Serial_Numbers_Admin {
 	}
 
 	/**
+	 * The menu icon: the family's own tag glyph, as a data URI.
+	 *
+	 * A data URI rather than a URL, because WordPress recolours a menu icon to
+	 * follow the admin colour scheme and its hover and current states, and it
+	 * can only do that to an image it inlines. The glyph is drawn in `black`
+	 * for the same reason: the colour here is never the colour on screen.
+	 *
+	 * It shares its OUTLINE with `.wordpress-org/icon.svg`, which
+	 * `_assets/make-wporg-assets.py` draws, so the sidebar and the plugin
+	 * directory show the same tag. The inside is deliberately not identical:
+	 * measured at 20 px, the icon's three bars and its small hole turned to
+	 * mush, so the menu carries two thicker bars and a wider hole. The shared
+	 * outline is what `_harness/prove-menu-icon.php` compares, character for
+	 * character -- the two drawings are never seen side by side, so nothing
+	 * else would catch them drifting apart.
+	 *
+	 * @return string A `data:image/svg+xml;base64,...` URI.
+	 */
+	private static function menu_icon() {
+
+		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112">'
+			. '<g fill="none" stroke="black" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">'
+			. '<path d="M34 10 L104 10 Q110 10 110 16 L110 88 Q110 94 104 94 L34 94 L6 52 Z"/>'
+			. '<path d="M62 34 L62 70 M84 34 L84 70"/>'
+			. '<circle cx="36" cy="52" r="10"/>'
+			. '</g></svg>';
+
+		return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+	}
+
+	/**
 	 * Declares the menu and its screens.
 	 *
 	 * @return void
@@ -55,7 +86,7 @@ class Dahu_Serial_Numbers_Admin {
 			self::CAPABILITY,
 			self::SLUG,
 			array( 'Dahu_Serial_Numbers_Admin_Serials', 'render' ),
-			'dashicons-list-view',
+			self::menu_icon(),
 			56
 		);
 

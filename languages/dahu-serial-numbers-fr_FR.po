@@ -6,7 +6,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"PO-Revision-Date: 2026-10-21 15:30+0000\n"
+"PO-Revision-Date: 2026-10-23 11:18+0000\n"
 "X-Generator: dahu i18n-build\n"
 
 #: includes/class-dahu-serial-numbers-workshop.php:262
@@ -17,16 +17,16 @@ msgstr "%1$d sur %2$d"
 #: includes/class-dahu-serial-numbers-admin-stock.php:296
 msgid "%1$d unit re-filed under %2$s."
 msgid_plural "%1$d units re-filed under %2$s."
-msgstr[0] "%1$d unité re-rangée sous %2$s."
-msgstr[1] "%1$d unités re-rangées sous %2$s."
+msgstr[0] "%1$d unité reclassée sous %2$s."
+msgstr[1] "%1$d unités reclassées sous %2$s."
 
 #. translators: 1: number of units, 2: list of serial numbers. */
 #: includes/class-dahu-serial-numbers-admin-stock.php:256
 msgid "%1$d unit was left alone because something else has happened to it since, or because the product it would go back to can no longer hold units: %2$s"
-msgstr "%1$d unité a été laissée en l’état, parce qu’il s’est passé autre chose depuis, ou parce que le produit sous lequel elle retournerait ne peut plus porter d’unités : %2$s"
+msgstr "%1$d unité(s) laissée(s) telle(s) quelle(s) parce qu’il s’est passé autre chose dessus depuis, ou parce que le produit où elle(s) reviendrait(aient) ne peut plus porter d’unités : %2$s"
 
 #. translators: 1: month name, 2: year. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:805
+#: includes/class-dahu-serial-numbers-admin-serials.php:808
 msgid "%1$s %2$d"
 msgstr "%1$s %2$d"
 
@@ -38,10 +38,10 @@ msgstr "%1$s est déjà dans l’envoi ouvert %2$s."
 #. translators: 1: date, 2: number of units put back, 3: number skipped. */
 #: includes/class-dahu-serial-numbers-admin-stock.php:762
 msgid "%1$s — back: %2$d, left alone: %3$d"
-msgstr "%1$s — remises en place : %2$d, laissées en l’état : %3$d"
+msgstr "%1$s — annulées : %2$d, laissées telles quelles : %3$d"
 
 #. translators: 1: status before, 2: status after. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:680
+#: includes/class-dahu-serial-numbers-admin-serials.php:683
 msgid "%1$s → %2$s"
 msgstr "%1$s → %2$s"
 
@@ -66,15 +66,15 @@ msgstr "%d à scanner"
 #: includes/class-dahu-serial-numbers-admin-stock.php:237
 msgid "%d unit put back."
 msgid_plural "%d units put back."
-msgstr[0] "%d unité remise en place."
-msgstr[1] "%d unités remises en place."
+msgstr[0] "%d unité annulée."
+msgstr[1] "%d unités annulées."
 
 #. translators: %d: number of units. */
 #: includes/class-dahu-serial-numbers-admin-stock.php:386
 msgid "%d unit says in stock while still carrying an order, so it is not counted."
 msgid_plural "%d units say in stock while still carrying an order, so they are not counted."
-msgstr[0] "%d unité se dit en stock tout en portant encore une commande : elle n’est donc pas comptée."
-msgstr[1] "%d unités se disent en stock tout en portant encore une commande : elles ne sont donc pas comptées."
+msgstr[0] "%d unité se dit en stock tout en portant encore une commande, elle n’est donc pas comptée."
+msgstr[1] "%d unités se disent en stock tout en portant encore une commande, elles ne sont donc pas comptées."
 
 #. translators: %s: number of units. */
 #: includes/class-dahu-serial-numbers-order-metabox.php:106 includes/class-dahu-serial-numbers-shipment.php:138
@@ -91,9 +91,9 @@ msgstr "Un envoi fermé ne peut pas être annulé : le colis est parti."
 msgid "A consignment is either outbound or inbound."
 msgstr "Un envoi est soit sortant, soit entrant."
 
-#: includes/class-dahu-serial-numbers-manager.php:807
+#: includes/class-dahu-serial-numbers-manager.php:862
 msgid "A destination product is required."
-msgstr "Il faut indiquer un produit de destination."
+msgstr "Un produit de destination est obligatoire."
 
 #: includes/class-dahu-serial-numbers-stations.php:64
 msgid "A login is required."
@@ -109,22 +109,22 @@ msgstr "Un motif est obligatoire : c’est ce que dira la ligne d’historique."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:735
 msgid "A run can be put back as long as nothing else has happened to the units since. Those that have moved on are named and left alone — undoing them would undo a later decision."
-msgstr "Une passe peut être annulée tant qu’il ne s’est rien passé d’autre sur les unités depuis. Celles qui ont bougé sont nommées et laissées en l’état : les défaire reviendrait à défaire une décision plus récente."
+msgstr "Un lot peut être annulé tant qu’il ne s’est rien passé d’autre sur les unités depuis. Celles qui ont bougé sont nommées et laissées telles quelles — les annuler annulerait une décision plus récente."
 
-#: dahu-serial-numbers.php:276
+#: dahu-serial-numbers.php:284
 msgid "A serial has a state, a place and a history you can read."
 msgstr "Un numéro de série a un état, un lieu et un historique lisibles."
 
-#: includes/class-dahu-serial-numbers-manager.php:1039
+#: includes/class-dahu-serial-numbers-manager.php:1058
 msgid "A serial number and an order are both required."
 msgstr "Un numéro de série et une commande sont tous deux obligatoires."
 
 #. translators: 1: current status label, 2: wanted status label. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:435
+#: includes/class-dahu-serial-numbers-admin-serials.php:438
 msgid "A unit cannot go from “%1$s” to “%2$s”. The list on this screen only offers the moves that are allowed, so this one did not come from here."
-msgstr "Une unité ne peut pas passer de « %1$s » à « %2$s ». La liste de cet écran ne propose que les changements permis : celui-ci ne vient donc pas d’ici."
+msgstr "Une unité ne peut pas passer de « %1$s » à « %2$s ». Cet écran ne propose que les transitions autorisées : celle-ci ne vient donc pas d’ici."
 
-#: dahu-serial-numbers.php:284
+#: dahu-serial-numbers.php:292
 msgid "A unit never changes hands without a line saying so."
 msgstr "Une unité ne change jamais de mains sans qu’une ligne le dise."
 
@@ -136,22 +136,22 @@ msgstr "Actions"
 msgid "After"
 msgstr "Après"
 
-#: includes/class-dahu-serial-numbers-admin.php:65
+#: includes/class-dahu-serial-numbers-admin.php:96
 msgid "All serial numbers"
 msgstr "Tous les numéros de série"
 
 #: includes/class-dahu-serial-numbers-admin-settings.php:157
 msgid "Allow units in stock to be re-filed under another product"
-msgstr "Autoriser le re-rangement des unités en stock sous un autre produit"
+msgstr "Autoriser le reclassement d’unités en stock sous un autre produit"
 
 #. translators: %d: order number. */
-#: includes/class-dahu-serial-numbers-manager.php:1061
+#: includes/class-dahu-serial-numbers-manager.php:1080
 msgid "Already attached to order #%d — left as it is."
 msgstr "Déjà rattaché à la commande n° %d — laissé en l’état."
 
 #: includes/class-dahu-serial-numbers-product-fix.php:157
 msgid "Already filed under that product."
-msgstr "Déjà rangée sous ce produit."
+msgstr "Déjà classé sous ce produit."
 
 #: includes/class-dahu-serial-numbers-admin-consignments.php:204
 msgid "Any direction"
@@ -177,7 +177,7 @@ msgstr "Avant"
 msgid "Bench 1"
 msgstr "Atelier 1"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:665
+#: includes/class-dahu-serial-numbers-admin-serials.php:668
 msgid "By"
 msgstr "Par"
 
@@ -240,7 +240,7 @@ msgstr "L’envoi %s a été annulé et ne peut pas être fermé."
 msgid "Consignment: %s"
 msgstr "Envoi : %s"
 
-#: dahu-serial-numbers.php:279 includes/class-dahu-serial-numbers-admin-consignments.php:62 includes/class-dahu-serial-numbers-admin.php:73 includes/class-dahu-serial-numbers-admin.php:74
+#: dahu-serial-numbers.php:287 includes/class-dahu-serial-numbers-admin-consignments.php:62 includes/class-dahu-serial-numbers-admin.php:104 includes/class-dahu-serial-numbers-admin.php:105
 msgid "Consignments"
 msgstr "Envois"
 
@@ -251,7 +251,7 @@ msgstr "Correction %s annulée"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:516
 msgid "Corrections are switched off, so this form will show what would happen and write nothing. The Settings screen turns them on."
-msgstr "Les corrections sont désactivées : ce formulaire montrera ce qui se passerait, sans rien écrire. L’écran des réglages permet de les activer."
+msgstr "Les corrections sont désactivées, ce formulaire montrera donc ce qui se passerait sans rien écrire. L’écran Réglages les active."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:731
 msgid "Corrections made"
@@ -287,17 +287,17 @@ msgid "Delete the serial numbers and their history when the plugin is deleted"
 msgstr "Supprimer les numéros de série et leur historique à la suppression de l’extension"
 
 #. translators: %d: order id. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:769
+#: includes/class-dahu-serial-numbers-admin-serials.php:772
 msgid "Deleted order #%d"
 msgstr "Commande supprimée n° %d"
 
 #. translators: %d: product id. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:742
+#: includes/class-dahu-serial-numbers-admin-serials.php:745
 msgid "Deleted product #%d"
 msgstr "Produit supprimé n° %d"
 
 #. translators: %d: user id. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:842
+#: includes/class-dahu-serial-numbers-admin-serials.php:845
 msgid "Deleted user #%d"
 msgstr "Utilisateur supprimé n° %d"
 
@@ -305,7 +305,7 @@ msgstr "Utilisateur supprimé n° %d"
 msgid "Destroyed"
 msgstr "Détruit"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:666
+#: includes/class-dahu-serial-numbers-admin-serials.php:669
 msgid "Details"
 msgstr "Détail"
 
@@ -317,7 +317,7 @@ msgstr "Direction"
 msgid "Dismiss"
 msgstr "Fermer"
 
-#: dahu-serial-numbers.php:268
+#: dahu-serial-numbers.php:276
 msgid "Done"
 msgstr "Terminé"
 
@@ -329,17 +329,17 @@ msgstr "Chaque unité de ce produit porte son propre numéro de série"
 msgid "Each unit of this variation carries its own serial number"
 msgstr "Chaque unité de cette variation porte son propre numéro de série"
 
-#: dahu-serial-numbers.php:275
+#: dahu-serial-numbers.php:283
 msgid "Each unit, by name"
 msgstr "Chaque unité, nommément"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:663
+#: includes/class-dahu-serial-numbers-admin-serials.php:666
 msgid "Event"
 msgstr "Événement"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:585
+#: includes/class-dahu-serial-numbers-admin-serials.php:588
 msgid "Every move is recorded in the history below, with who made it and when. Nothing here skips the lifecycle: only the moves the register allows from where this unit is are offered."
-msgstr "Chaque changement est noté dans l’historique ci-dessous, avec son auteur et sa date. Rien ici ne saute d’étape : seuls sont proposés les changements que le registre permet depuis l’état actuel de l’unité."
+msgstr "Chaque transition est inscrite dans l’historique ci-dessous, avec son auteur et sa date. Rien ici ne contourne le cycle de vie : seules les transitions que le registre autorise depuis l’état actuel de l’unité sont proposées."
 
 #: includes/class-dahu-serial-numbers-admin-consignments.php:63
 msgid "Every set of units that left or came back together. Search by consignment reference, tracking number or serial number."
@@ -355,21 +355,21 @@ msgstr "Postes existants"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:531
 msgid "File them under"
-msgstr "Les ranger sous"
+msgstr "Les classer sous"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:647 includes/class-dahu-serial-numbers-admin-stock.php:741
 msgid "Filed under"
-msgstr "Rangée sous"
+msgstr "Classé sous"
 
 #: includes/class-dahu-serial-numbers-product-fix.php:156
 msgid "Filed under no product, so there is nothing to correct."
-msgstr "Rangée sous aucun produit : il n’y a donc rien à corriger."
+msgstr "Classé sous aucun produit, il n’y a donc rien à corriger."
 
 #: includes/class-dahu-serial-numbers-admin-serials.php:144
 msgid "Filter"
 msgstr "Filtrer"
 
-#: dahu-serial-numbers.php:303
+#: dahu-serial-numbers.php:311
 msgid "Find any unit"
 msgstr "Retrouvez n'importe quelle unité"
 
@@ -379,11 +379,11 @@ msgstr "Suit chaque unité que vous détenez, de la réception au client."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:510
 msgid "For a box that went on the shelf under the wrong reference. Only units in stock and on no order can be re-filed: once a unit is on an order, in a parcel or in repair, its product is what that document says it is."
-msgstr "Pour une boîte mise en rayon sous la mauvaise référence. Seules les unités en stock et sur aucune commande peuvent être re-rangées : dès qu’une unité est sur une commande, dans un colis ou en réparation, son produit est celui que dit ce document."
+msgstr "Pour un carton parti sur l’étagère sous la mauvaise référence. Seules les unités en stock et sur aucune commande peuvent être reclassées : dès qu’une unité est sur une commande, dans un colis ou en réparation, son produit est celui que dit ce document."
 
 #: includes/class-dahu-serial-numbers-admin-settings.php:161
 msgid "For the box that went on the shelf under the wrong reference. Only units in stock and on no order can be re-filed, a reason is required, a run is all-or-nothing and can be put back. The dry run works with this off, so you can read what would happen before deciding."
-msgstr "Pour la boîte mise en rayon sous la mauvaise référence. Seules les unités en stock et sur aucune commande peuvent être re-rangées, un motif est obligatoire, une passe vaut en entier ou pas du tout, et elle peut être annulée. L’essai à blanc fonctionne même désactivé : vous lisez ce qui se passerait avant de décider."
+msgstr "Pour le carton parti sur l’étagère sous la mauvaise référence. Seules les unités en stock et sur aucune commande peuvent être reclassées, un motif est obligatoire, un lot passe en entier ou pas du tout et peut être annulé. La simulation fonctionne sans cocher, vous pouvez donc lire ce qui se passerait avant de décider."
 
 #. translators: %d: minimum number of characters. */
 #: includes/class-dahu-serial-numbers-admin-stations.php:215
@@ -400,9 +400,9 @@ msgstr "Remise en stock"
 
 #: includes/class-dahu-serial-numbers-statuses.php:107
 msgid "Held, not counted as stock"
-msgstr "Tenu, hors du compte du stock"
+msgstr "Retenu, non compté en stock"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:654
+#: includes/class-dahu-serial-numbers-admin-serials.php:657
 msgid "History"
 msgstr "Historique"
 
@@ -412,7 +412,7 @@ msgstr "Hugo Vial-Jaime — Dahu-Concept"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:425
 msgid "I have read the table above and want these numbers written to WooCommerce"
-msgstr "J’ai lu le tableau ci-dessus et je veux que ces chiffres soient écrits dans WooCommerce"
+msgstr "J’ai lu le tableau ci-dessus et je veux que ces nombres soient écrits dans WooCommerce"
 
 #: includes/class-dahu-serial-numbers-statuses.php:103
 msgid "In repair"
@@ -434,11 +434,11 @@ msgstr "Identifiants invalides."
 msgid "Invalid token."
 msgstr "Jeton invalide."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:326
+#: includes/class-dahu-serial-numbers-admin-serials.php:329
 msgid "Last checked"
 msgstr "Dernier pointage"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:179 includes/class-dahu-serial-numbers-admin-serials.php:327
+#: includes/class-dahu-serial-numbers-admin-serials.php:179 includes/class-dahu-serial-numbers-admin-serials.php:330
 msgid "Last movement"
 msgstr "Dernier mouvement"
 
@@ -446,9 +446,9 @@ msgstr "Dernier mouvement"
 msgid "Last sign-in"
 msgstr "Dernière connexion"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:638
+#: includes/class-dahu-serial-numbers-admin-serials.php:641
 msgid "Leave it where it is"
-msgstr "Le laisser où il est"
+msgstr "La laisser où elle est"
 
 #. translators: %s: the shop's dimension unit, e.g. cm. */
 #: includes/class-dahu-serial-numbers-workshop.php:276
@@ -457,7 +457,7 @@ msgstr "Longueur × largeur × hauteur (%s)"
 
 #: includes/class-dahu-serial-numbers-admin-settings.php:142
 msgid "Let the units on the shelf set the WooCommerce stock of serialised products"
-msgstr "Laisser les unités en rayon fixer le stock WooCommerce des produits à numéro de série"
+msgstr "Laisser les unités de l’étagère fixer le stock WooCommerce des produits sérialisés"
 
 #: includes/class-dahu-serial-numbers-order-metabox.php:139
 msgid "Line"
@@ -467,7 +467,7 @@ msgstr "Ligne"
 msgid "Login"
 msgstr "Identifiant"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:178 includes/class-dahu-serial-numbers-admin-serials.php:324
+#: includes/class-dahu-serial-numbers-admin-serials.php:178 includes/class-dahu-serial-numbers-admin-serials.php:327
 msgid "Made"
 msgstr "Fabriqué"
 
@@ -487,20 +487,20 @@ msgstr "Expédition en cours…"
 msgid "Missing token."
 msgstr "Jeton manquant."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:581
+#: includes/class-dahu-serial-numbers-admin-serials.php:584
 msgid "Move this unit"
 msgstr "Déplacer cette unité"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:461
+#: includes/class-dahu-serial-numbers-admin-serials.php:464
 msgid "Moved by hand from the serial numbers screen."
 msgstr "Déplacée à la main depuis l’écran des numéros de série."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:664
+#: includes/class-dahu-serial-numbers-admin-serials.php:667
 msgid "Movement"
 msgstr "Mouvement"
 
 #. translators: 1: current status label, 2: wanted status label. */
-#: includes/class-dahu-serial-numbers-manager.php:647
+#: includes/class-dahu-serial-numbers-manager.php:702
 msgid "Moving from “%1$s” to “%2$s” is not allowed."
 msgstr "Le passage de « %1$s » à « %2$s » n’est pas permis."
 
@@ -508,7 +508,7 @@ msgstr "Le passage de « %1$s » à « %2$s » n’est pas permis."
 msgid "Name"
 msgstr "Nom"
 
-#: dahu-serial-numbers.php:308
+#: dahu-serial-numbers.php:316
 msgid "Narrow by state"
 msgstr "Filtrez par état"
 
@@ -520,11 +520,11 @@ msgstr "Nouveau mot de passe"
 msgid "New post"
 msgstr "Nouveau poste"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:561
+#: includes/class-dahu-serial-numbers-admin-serials.php:564
 msgid "New status"
-msgstr "Nouveau statut"
+msgstr "Nouvel état"
 
-#: dahu-serial-numbers.php:267
+#: dahu-serial-numbers.php:275
 msgid "Next"
 msgstr "Suivant"
 
@@ -536,7 +536,7 @@ msgstr "Aucun envoi ne correspond à cette référence, ce numéro de suivi ou c
 msgid "No consignment yet. One is recorded every time a parcel is closed on the packing screen."
 msgstr "Aucun envoi pour l’instant. Un envoi est enregistré chaque fois qu’un colis est fermé sur l’écran d’emballage."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:670
+#: includes/class-dahu-serial-numbers-admin-serials.php:673
 msgid "No history line, which should not happen: filing a unit writes one."
 msgstr "Aucune ligne d’historique, ce qui ne devrait pas arriver : enregistrer une unité en écrit une."
 
@@ -552,19 +552,19 @@ msgstr "Aucun statut n’a été sélectionné : la file est revenue aux command
 msgid "No serial number needed"
 msgstr "Pas de numéro de série"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:190
-msgid "No serial number on file yet."
-msgstr "Aucun numéro de série enregistré pour l’instant."
+#: includes/class-dahu-serial-numbers-admin-serials.php:189
+msgid "No serial number on file yet. One appears the first time a workshop post scans a unit."
+msgstr "Aucun numéro de série enregistré pour l’instant. Le premier apparaît dès qu’un poste atelier scanne une unité."
 
 #: includes/class-dahu-serial-numbers-product-fix.php:152
 msgid "No serial number was given."
-msgstr "Aucun numéro de série n’a été indiqué."
+msgstr "Aucun numéro de série n’a été donné."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:346
 msgid "No serialised product holds a unit yet, so there is nothing to compare."
-msgstr "Aucun produit à numéro de série ne porte encore d’unité : il n’y a rien à comparer."
+msgstr "Aucun produit sérialisé ne porte encore d’unité, il n’y a donc rien à comparer."
 
-#: dahu-serial-numbers.php:283
+#: dahu-serial-numbers.php:291
 msgid "No silent moves"
 msgstr "Aucun mouvement muet"
 
@@ -576,20 +576,20 @@ msgstr "Cet envoi n’existe pas."
 msgid "No such destination product."
 msgstr "Ce produit de destination n’existe pas."
 
-#: includes/class-dahu-serial-numbers-stock.php:631
+#: includes/class-dahu-serial-numbers-stock.php:801
 msgid "No such product."
 msgstr "Ce produit n’existe pas."
 
 #: includes/class-dahu-serial-numbers-product-fix.php:496
 msgid "No such run — it may have aged out of the list."
-msgstr "Cette passe n’existe pas : elle est peut-être sortie de la liste avec le temps."
+msgstr "Ce lot n’existe pas — il est peut-être sorti de la liste avec le temps."
 
 #: includes/class-dahu-serial-numbers-shipment.php:265
 msgid "No unit could be recorded in this consignment."
 msgstr "Aucune unité n’a pu être enregistrée dans cet envoi."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:306
+#: includes/class-dahu-serial-numbers-admin-serials.php:309
 msgid "No unit on file under %s."
 msgstr "Aucune unité enregistrée sous %s."
 
@@ -615,17 +615,17 @@ msgstr "Non affectée à cette commande, elle ne peut pas partir avec elle : %s"
 msgid "Not in stock: its product is what an order or a case says it is."
 msgstr "Pas en stock : son produit est celui que dit une commande ou un dossier."
 
-#: includes/class-dahu-serial-numbers-stock.php:634
+#: includes/class-dahu-serial-numbers-stock.php:805
 msgid "Not marked as carrying serial numbers."
-msgstr "Pas marqué comme portant des numéros de série."
+msgstr "Non marqué comme portant des numéros de série."
+
+#: includes/class-dahu-serial-numbers-stock.php:802
+msgid "Not on sale: the product, or its parent, is in the bin or unpublished."
+msgstr "Hors vente : le produit, ou son parent, est à la corbeille ou non publié."
 
 #: includes/class-dahu-serial-numbers-shipment.php:270
 msgid "Not one unit could be recorded in the parcel, so nothing was shipped. Nothing has moved; try again."
 msgstr "Aucune unité n’a pu être enregistrée dans le colis, rien n’est donc parti. Rien n’a bougé ; réessayez."
-
-#: includes/class-dahu-serial-numbers-stock.php:630
-msgid "Not written."
-msgstr "Non écrit."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:360
 msgid "Note"
@@ -633,27 +633,27 @@ msgstr "Note"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:632
 msgid "Nothing can be written while anything in this list is refused: a run is all of it or none of it, because half a correction is a state nobody can reason about afterwards."
-msgstr "Rien ne peut être écrit tant qu’un élément de cette liste est refusé : une passe vaut en entier ou pas du tout, car une demi-correction est un état que personne ne peut démêler ensuite."
+msgstr "Rien ne peut être écrit tant qu’une ligne de cette liste est refusée : un lot passe en entier ou pas du tout, parce qu’une correction à moitié faite est un état sur lequel plus personne ne peut raisonner ensuite."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:247
 msgid "Nothing could be put back, so this correction is still on the list and can be tried again later."
-msgstr "Rien n’a pu être remis en place : cette correction reste donc dans la liste et pourra être retentée plus tard."
+msgstr "Rien n’a pu être annulé : cette correction reste dans la liste et pourra être retentée plus tard."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:658
+#: includes/class-dahu-serial-numbers-admin-serials.php:661
 msgid "Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently."
 msgstr "Rien dans cette extension ne supprime jamais une ligne d’ici — ni un changement de statut, ni une désaffectation, ni la suppression de la commande. Un historique troué répond plus mal que pas d’historique, parce qu’il répond avec aplomb."
 
 #. translators: %s: status label. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:540
+#: includes/class-dahu-serial-numbers-admin-serials.php:543
 msgid "Nothing leaves “%s”. That is deliberate: a unit that was replaced or destroyed reappearing elsewhere is either a mistake or a story this history should be able to tell."
 msgstr "Rien ne sort de « %s ». C’est voulu : une unité remplacée ou détruite qui réapparaît ailleurs est soit une erreur, soit une histoire que cet historique doit pouvoir raconter."
 
 #. translators: %s: wanted status label. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:618
+#: includes/class-dahu-serial-numbers-admin-serials.php:621
 msgid "Nothing leaves “%s”. The unit stays in the register with everything it has already done, and this screen will have no move left to offer it."
-msgstr "Rien ne sort de « %s ». L’unité reste dans le registre avec tout ce qu’elle a déjà fait, et cet écran n’aura plus aucun changement à lui proposer."
+msgstr "Rien ne sort de « %s ». L’unité reste au registre avec tout ce qu’elle a déjà fait, et cet écran n’aura plus aucune transition à lui proposer."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:188
+#: includes/class-dahu-serial-numbers-admin-serials.php:187
 msgid "Nothing matches those filters."
 msgstr "Aucun résultat pour ces filtres."
 
@@ -667,7 +667,7 @@ msgstr "Rien à enregistrer : le numéro de série est vide."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:182
 msgid "Nothing to write: every serialised product already shows what its units say."
-msgstr "Rien à écrire : chaque produit à numéro de série affiche déjà ce que disent ses unités."
+msgstr "Rien à écrire : chaque produit sérialisé affiche déjà ce que disent ses unités."
 
 #: includes/class-dahu-serial-numbers-workshop.php:248
 msgid "Nothing waiting to be packed."
@@ -676,11 +676,11 @@ msgstr "Rien à préparer."
 #. translators: 1: serial number, 2: error message. */
 #: includes/class-dahu-serial-numbers-product-fix.php:420
 msgid "Nothing was changed. Serial number %1$s could not be re-filed: %2$s"
-msgstr "Rien n’a été modifié. Le numéro de série %1$s n’a pas pu être re-rangé : %2$s"
+msgstr "Rien n’a été modifié. Le numéro de série %1$s n’a pas pu être reclassé : %2$s"
 
 #: includes/class-dahu-serial-numbers-product-fix.php:383
 msgid "Nothing was changed: the list has at least one unit that cannot be re-filed."
-msgstr "Rien n’a été modifié : la liste contient au moins une unité qui ne peut pas être re-rangée."
+msgstr "Rien n’a été modifié : la liste contient au moins une unité qui ne peut pas être reclassée."
 
 #: includes/class-dahu-serial-numbers-admin-stations.php:314
 msgid "Off"
@@ -692,7 +692,7 @@ msgstr "Désactivé tant que vous ne le demandez pas. L’écran d’atelier est
 
 #: includes/class-dahu-serial-numbers-admin-settings.php:146
 msgid "Off until you ask for it. With it on, the stock of a serialised product becomes the number of units in stock on no order, less the pieces orders being prepared have already reserved — written as a whole number, never as an increment. Products whose stock WooCommerce does not manage, and variable parents, are left alone and named on the Stock screen."
-msgstr "Désactivé tant que vous ne le demandez pas. Activé, le stock d’un produit à numéro de série devient le nombre d’unités en stock sur aucune commande, moins les pièces déjà réservées par les commandes en préparation — écrit comme un nombre entier, jamais comme un ajout. Les produits dont WooCommerce ne gère pas le stock, et les produits variables parents, sont laissés de côté et nommés sur l’écran Stock."
+msgstr "Décoché jusqu’à ce que vous le demandiez. Coché, le stock d’un produit sérialisé devient le nombre d’unités en stock sur aucune commande, moins les pièces que les commandes en préparation ont déjà réservées — écrit comme un nombre entier, jamais comme un incrément. Les produits dont WooCommerce ne gère pas le stock, et les parents variables, sont laissés tels quels et nommés sur l’écran Stock."
 
 #: includes/class-dahu-serial-numbers-admin-settings.php:172
 msgid "Off, and worth leaving off. The serial numbers and their history are the only record of which unit went to which customer, going back as far as you have been serialising — and a warranty claim arrives two years later. Uninstalling is also, most of the time, a step in reinstalling."
@@ -706,7 +706,7 @@ msgstr "Actif"
 msgid "One per line, or separated by spaces, commas or semicolons"
 msgstr "Un par ligne, ou séparés par des espaces, des virgules ou des points-virgules"
 
-#: dahu-serial-numbers.php:313
+#: dahu-serial-numbers.php:321
 msgid "One row per unit"
 msgstr "Une ligne par unité"
 
@@ -718,7 +718,7 @@ msgstr "Seuls le transporteur et le numéro de suivi peuvent être modifiés sur
 msgid "Open"
 msgstr "Ouvert"
 
-#: dahu-serial-numbers.php:314
+#: dahu-serial-numbers.php:322
 msgid "Open a row to read that unit’s full history."
 msgstr "Ouvrez une ligne pour lire l'historique complet de l'unité."
 
@@ -726,7 +726,7 @@ msgstr "Ouvrez une ligne pour lire l'historique complet de l'unité."
 msgid "Opened"
 msgstr "Ouvert le"
 
-#: includes/class-dahu-serial-numbers-admin-consignments.php:259 includes/class-dahu-serial-numbers-admin-serials.php:177 includes/class-dahu-serial-numbers-admin-serials.php:342
+#: includes/class-dahu-serial-numbers-admin-consignments.php:259 includes/class-dahu-serial-numbers-admin-serials.php:177 includes/class-dahu-serial-numbers-admin-serials.php:345
 msgid "Order"
 msgstr "Commande"
 
@@ -750,8 +750,8 @@ msgstr "Les commandes de ce produit demanderont à l’écran d’atelier un num
 #: includes/class-dahu-serial-numbers-admin-stock.php:373
 msgid "Orders reserve %d piece more than there are units on the shelf — written as zero rather than as a negative stock."
 msgid_plural "Orders reserve %d pieces more than there are units on the shelf — written as zero rather than as a negative stock."
-msgstr[0] "Les commandes réservent %d pièce de plus qu’il n’y a d’unités en rayon — écrit à zéro plutôt qu’en stock négatif."
-msgstr[1] "Les commandes réservent %d pièces de plus qu’il n’y a d’unités en rayon — écrit à zéro plutôt qu’en stock négatif."
+msgstr[0] "Les commandes réservent %d pièce de plus qu’il n’y a d’unités sur l’étagère — écrit zéro plutôt qu’un stock négatif."
+msgstr[1] "Les commandes réservent %d pièces de plus qu’il n’y a d’unités sur l’étagère — écrit zéro plutôt qu’un stock négatif."
 
 #: includes/class-dahu-serial-numbers-consignments.php:185
 msgid "Outbound"
@@ -779,11 +779,11 @@ msgid "Password replaced, and the post signed out everywhere it was signed in."
 msgstr "Mot de passe remplacé, et le poste déconnecté partout où il était connecté."
 
 #. translators: %s: workshop post name. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:825
+#: includes/class-dahu-serial-numbers-admin-serials.php:828
 msgid "Post: %s"
 msgstr "Poste : %s"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:175 includes/class-dahu-serial-numbers-admin-serials.php:321 includes/class-dahu-serial-numbers-admin-stock.php:355 includes/class-dahu-serial-numbers-admin-stock.php:465 includes/class-dahu-serial-numbers-admin-stock.php:672
+#: includes/class-dahu-serial-numbers-admin-serials.php:175 includes/class-dahu-serial-numbers-admin-serials.php:324 includes/class-dahu-serial-numbers-admin-stock.php:355 includes/class-dahu-serial-numbers-admin-stock.php:465 includes/class-dahu-serial-numbers-admin-stock.php:672
 msgid "Product"
 msgstr "Produit"
 
@@ -798,18 +798,18 @@ msgstr "Corrections de produit"
 
 #: includes/class-dahu-serial-numbers-product-fix.php:366
 msgid "Product corrections are switched off. The Settings screen turns them on."
-msgstr "Les corrections de produit sont désactivées. L’écran des réglages permet de les activer."
+msgstr "Les corrections de produit sont désactivées. L’écran Réglages les active."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:743 includes/class-dahu-serial-numbers-admin-stock.php:773
 msgid "Put back"
-msgstr "Remise en place"
+msgstr "Annuler le lot"
 
 #. translators: %d: number of units. */
 #: includes/class-dahu-serial-numbers-admin-stock.php:702
 msgid "Re-file %d unit"
 msgid_plural "Re-file %d units"
-msgstr[0] "Re-ranger %d unité"
-msgstr[1] "Re-ranger %d unités"
+msgstr[0] "Reclasser %d unité"
+msgstr[1] "Reclasser %d unités"
 
 #: includes/class-dahu-serial-numbers-order-metabox.php:124
 msgid "Read-only here on purpose: a serial number is assigned by scanning the unit at the bench, so that the history records which bench did it and when."
@@ -823,13 +823,13 @@ msgstr "Prête"
 msgid "Reason"
 msgstr "Motif"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:325 includes/class-dahu-serial-numbers-statuses.php:96
+#: includes/class-dahu-serial-numbers-admin-serials.php:328 includes/class-dahu-serial-numbers-statuses.php:96
 msgid "Received"
 msgstr "Reçu"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:462
 msgid "Recent pushes"
-msgstr "Poussées récentes"
+msgstr "Reports récents"
 
 #. translators: %s: the carrier's error message. */
 #: includes/class-dahu-serial-numbers-rest.php:699
@@ -859,7 +859,7 @@ msgstr "Retirer"
 
 #: includes/class-dahu-serial-numbers-statuses.php:105
 msgid "Repaired"
-msgstr "Réparé"
+msgstr "Réparée"
 
 #: includes/class-dahu-serial-numbers-admin-stations.php:304
 msgid "Replace"
@@ -871,7 +871,7 @@ msgstr "Remplacé"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:543
 msgid "Required: it is what the history line will say, to whoever reads it next year."
-msgstr "Obligatoire : c’est ce que dira la ligne d’historique à celui qui la lira l’an prochain."
+msgstr "Obligatoire : c’est ce que dira la ligne d’historique, à qui la lira l’an prochain."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:357
 msgid "Reserved by orders"
@@ -927,7 +927,7 @@ msgstr "Rechercher des envois"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:646
 msgid "Serial"
-msgstr "Série"
+msgstr "Numéro de série"
 
 #: includes/class-dahu-serial-numbers-admin-serials.php:122 includes/class-dahu-serial-numbers-admin-serials.php:173 includes/class-dahu-serial-numbers-order-metabox.php:138
 msgid "Serial number"
@@ -939,17 +939,17 @@ msgid "Serial number %1$s is not in stock — it is currently “%2$s”."
 msgstr "Le numéro de série %1$s n’est pas en stock — il est actuellement « %2$s »."
 
 #. translators: 1: serial number, 2: status label. */
-#: includes/class-dahu-serial-numbers-manager.php:840
+#: includes/class-dahu-serial-numbers-manager.php:895
 msgid "Serial number %1$s is “%2$s”, so its product is what an order or a case says it is. Only a unit in stock can be re-filed."
-msgstr "Le numéro de série %1$s est « %2$s » : son produit est donc celui que dit une commande ou un dossier. Seule une unité en stock peut être re-rangée."
+msgstr "Le numéro de série %1$s est « %2$s », son produit est donc celui que dit une commande ou un dossier. Seule une unité en stock peut être reclassée."
 
 #. translators: 1: serial number, 2: order number. */
-#: includes/class-dahu-serial-numbers-manager.php:852
+#: includes/class-dahu-serial-numbers-manager.php:907
 msgid "Serial number %1$s still carries order #%2$d. Detach it before re-filing it."
-msgstr "Le numéro de série %1$s porte encore la commande n° %2$d. Détachez-le avant de le re-ranger."
+msgstr "Le numéro de série %1$s porte encore la commande n° %2$d. Désaffectez-le avant de le reclasser."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:1084
+#: includes/class-dahu-serial-numbers-manager.php:1103
 msgid "Serial number %s could not be attached."
 msgstr "Le numéro de série %s n’a pas pu être rattaché."
 
@@ -959,19 +959,19 @@ msgid "Serial number %s could not be filed."
 msgstr "Le numéro de série %s n’a pas pu être enregistré."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:881
+#: includes/class-dahu-serial-numbers-manager.php:936
 msgid "Serial number %s could not be re-filed — it changed while this was being prepared."
-msgstr "Le numéro de série %s n’a pas pu être re-rangé : il a changé pendant la préparation."
+msgstr "Le numéro de série %s n’a pas pu être reclassé — il a changé pendant la préparation."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:702
+#: includes/class-dahu-serial-numbers-manager.php:757
 msgid "Serial number %s could not be updated."
 msgstr "Le numéro de série %s n’a pas pu être mis à jour."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:829
+#: includes/class-dahu-serial-numbers-manager.php:884
 msgid "Serial number %s is already filed under that product."
-msgstr "Le numéro de série %s est déjà rangé sous ce produit."
+msgstr "Le numéro de série %s est déjà classé sous ce produit."
 
 #. translators: %s: serial number. */
 #: includes/class-dahu-serial-numbers-manager.php:460
@@ -984,9 +984,9 @@ msgid "Serial number %s is already on this order."
 msgstr "Le numéro de série %s est déjà sur cette commande."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:818
+#: includes/class-dahu-serial-numbers-manager.php:873
 msgid "Serial number %s is filed under no product, so there is nothing to correct."
-msgstr "Le numéro de série %s est rangé sous aucun produit : il n’y a donc rien à corriger."
+msgstr "Le numéro de série %s est classé sous aucun produit, il n’y a donc rien à corriger."
 
 #. translators: %s: serial number. */
 #: includes/class-dahu-serial-numbers-rest.php:598
@@ -998,17 +998,12 @@ msgstr "Le numéro de série %s n’est pas sur cette commande."
 msgid "Serial number %s is on another order."
 msgstr "Le numéro de série %s est sur une autre commande."
 
-#. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:930
-msgid "Serial number %s was left where it was: its history line could not be written, and a correction with no history is worse than none."
-msgstr "Le numéro de série %s a été laissé où il était : sa ligne d’historique n’a pas pu être écrite, et une correction sans historique est pire que pas de correction."
-
 #. translators: 1: maximum number of characters, 2: serial number. */
 #: includes/class-dahu-serial-numbers-manager.php:448
 msgid "Serial number longer than %1$d characters: %2$s"
 msgstr "Numéro de série de plus de %1$d caractères : %2$s"
 
-#: dahu-serial-numbers.php:256 includes/class-dahu-serial-numbers-admin-serials.php:35 includes/class-dahu-serial-numbers-admin-stock.php:526 includes/class-dahu-serial-numbers-admin.php:53 includes/class-dahu-serial-numbers-admin.php:54 includes/class-dahu-serial-numbers-admin.php:64 includes/class-dahu-serial-numbers-order-metabox.php:48 includes/class-dahu-serial-numbers-product-field.php:51 includes/class-dahu-serial-numbers-product-field.php:105
+#: dahu-serial-numbers.php:256 includes/class-dahu-serial-numbers-admin-serials.php:35 includes/class-dahu-serial-numbers-admin-stock.php:526 includes/class-dahu-serial-numbers-admin.php:84 includes/class-dahu-serial-numbers-admin.php:85 includes/class-dahu-serial-numbers-admin.php:95 includes/class-dahu-serial-numbers-order-metabox.php:48 includes/class-dahu-serial-numbers-product-field.php:51 includes/class-dahu-serial-numbers-product-field.php:105
 msgid "Serial numbers"
 msgstr "Numéros de série"
 
@@ -1020,7 +1015,11 @@ msgstr "Session expirée, reconnectez-vous."
 msgid "Session over. Sign in again."
 msgstr "Session terminée. Reconnectez-vous."
 
-#: includes/class-dahu-serial-numbers-admin-settings.php:37 includes/class-dahu-serial-numbers-admin.php:103 includes/class-dahu-serial-numbers-admin.php:104
+#: includes/class-dahu-serial-numbers-admin-serials.php:192
+msgid "Set up a workshop post"
+msgstr "Créer un poste atelier"
+
+#: includes/class-dahu-serial-numbers-admin-settings.php:37 includes/class-dahu-serial-numbers-admin.php:134 includes/class-dahu-serial-numbers-admin.php:135
 msgid "Settings"
 msgstr "Réglages"
 
@@ -1053,14 +1052,14 @@ msgstr "Expédiée. Aucun numéro de série sur cette commande."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:546
 msgid "Show me what would happen"
-msgstr "Me montrer ce qui se passerait"
+msgstr "Montrer ce qui se passerait"
 
-#: dahu-serial-numbers.php:309
+#: dahu-serial-numbers.php:317
 msgid "Show only the units in one state, such as shipped or in repair."
 msgstr "N'affichez que les unités dans un état donné, expédiée ou en réparation par exemple."
 
 #. translators: 1: rows shown, 2: total rows. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:246
+#: includes/class-dahu-serial-numbers-admin-serials.php:249
 msgid "Showing %1$s of %2$s matching units."
 msgstr "%1$s unités affichées sur %2$s correspondantes."
 
@@ -1076,13 +1075,13 @@ msgstr "Se connecter"
 msgid "Sign out"
 msgstr "Se déconnecter"
 
-#: dahu-serial-numbers.php:269
+#: dahu-serial-numbers.php:277
 msgid "Skip"
 msgstr "Passer"
 
 #: includes/class-dahu-serial-numbers-product-fix.php:375
 msgid "Something moved since this summary was drawn up. Here it is again — read it and run it once more."
-msgstr "Quelque chose a bougé depuis l’établissement de ce récapitulatif. Le voici de nouveau : relisez-le et relancez."
+msgstr "Quelque chose a bougé depuis que ce récapitulatif a été établi. Le voici de nouveau — relisez-le et relancez."
 
 #: includes/class-dahu-serial-numbers-admin-stations.php:195
 msgid "Something the bench can read off a card: bench-1, packing-left."
@@ -1092,7 +1091,7 @@ msgstr "Quelque chose que le poste peut lire sur une étiquette : atelier-1, emb
 msgid "State"
 msgstr "État"
 
-#: includes/class-dahu-serial-numbers-admin-consignments.php:258 includes/class-dahu-serial-numbers-admin-serials.php:125 includes/class-dahu-serial-numbers-admin-serials.php:174 includes/class-dahu-serial-numbers-admin-serials.php:320 includes/class-dahu-serial-numbers-order-metabox.php:140
+#: includes/class-dahu-serial-numbers-admin-consignments.php:258 includes/class-dahu-serial-numbers-admin-serials.php:125 includes/class-dahu-serial-numbers-admin-serials.php:174 includes/class-dahu-serial-numbers-admin-serials.php:323 includes/class-dahu-serial-numbers-order-metabox.php:140
 msgid "Status"
 msgstr "Statut"
 
@@ -1100,13 +1099,13 @@ msgstr "Statut"
 msgid "Still carries an order."
 msgstr "Porte encore une commande."
 
-#: includes/class-dahu-serial-numbers-admin-stock.php:67 includes/class-dahu-serial-numbers-admin.php:82 includes/class-dahu-serial-numbers-admin.php:83
+#: includes/class-dahu-serial-numbers-admin-stock.php:67 includes/class-dahu-serial-numbers-admin.php:113 includes/class-dahu-serial-numbers-admin.php:114
 msgid "Stock"
 msgstr "Stock"
 
-#: includes/class-dahu-serial-numbers-stock.php:933
+#: includes/class-dahu-serial-numbers-stock.php:1012
 msgid "Stock changed since this list was drawn up. Here it is again — read it and run it once more."
-msgstr "Le stock a changé depuis l’établissement de cette liste. La voici de nouveau : relisez-la et relancez."
+msgstr "Le stock a changé depuis que cette liste a été établie. La voici de nouveau — relisez-la et relancez."
 
 #. translators: %d: number of products. */
 #: includes/class-dahu-serial-numbers-admin-stock.php:191
@@ -1115,11 +1114,11 @@ msgid_plural "Stock written for %d products."
 msgstr[0] "Stock écrit pour %d produit."
 msgstr[1] "Stock écrit pour %d produits."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:135 includes/class-dahu-serial-numbers-admin-serials.php:141 includes/class-dahu-serial-numbers-admin-serials.php:176 includes/class-dahu-serial-numbers-admin-serials.php:322 includes/class-dahu-serial-numbers-order-metabox.php:141
+#: includes/class-dahu-serial-numbers-admin-serials.php:135 includes/class-dahu-serial-numbers-admin-serials.php:141 includes/class-dahu-serial-numbers-admin-serials.php:176 includes/class-dahu-serial-numbers-admin-serials.php:325 includes/class-dahu-serial-numbers-order-metabox.php:141
 msgid "Supplier batch"
 msgstr "Lot fournisseur"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:323
+#: includes/class-dahu-serial-numbers-admin-serials.php:326
 msgid "Supplier name"
 msgstr "Désignation fournisseur"
 
@@ -1153,15 +1152,15 @@ msgstr "Cette ligne de commande ne peut pas porter de numéro de série."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:163
 msgid "The automatic push is off, so this run needs the confirmation box ticked."
-msgstr "La poussée automatique est désactivée : cette passe demande donc que la case de confirmation soit cochée."
+msgstr "Le report automatique est inactif, ce lot demande donc que la case de confirmation soit cochée."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:339
 msgid "The automatic push is off. Nothing here has been written; this is what would be. The Settings screen turns the push on, and this run works either way."
-msgstr "La poussée automatique est désactivée. Rien n’a été écrit ici ; voici ce qui le serait. L’écran des réglages permet d’activer la poussée, et cette passe fonctionne dans les deux cas."
+msgstr "Le report automatique est inactif. Rien ici n’a été écrit ; ceci est ce qui le serait. L’écran Réglages active le report, et ce lot fonctionne dans les deux cas."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:338
 msgid "The automatic push is on: the stock of a serialised product is rewritten whenever its units move. This screen is the full picture, and the way to put a product right that drifted while the push was off."
-msgstr "La poussée automatique est activée : le stock d’un produit à numéro de série est réécrit dès que ses unités bougent. Cet écran donne le tableau complet, et le moyen de remettre d’aplomb un produit qui a dérivé pendant que la poussée était désactivée."
+msgstr "Le report automatique est actif : le stock d’un produit sérialisé est réécrit à chaque mouvement de ses unités. Cet écran en donne l’image complète, et de quoi remettre d’aplomb un produit qui a dérivé pendant que le report était inactif."
 
 #. translators: %s: the carrier's error message. */
 #: includes/class-dahu-serial-numbers-shipment.php:360 includes/class-dahu-serial-numbers-shipment.php:755
@@ -1174,7 +1173,7 @@ msgid "The carrier could not create the label: %s — the parcel was recorded as
 msgstr "Le transporteur n’a pas pu créer l’étiquette : %s — le colis a été enregistré comme expédié malgré tout, les unités sont donc tracées. Ajoutez le numéro de suivi à la main quand vous l’aurez."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:1003
+#: includes/class-dahu-serial-numbers-manager.php:1022
 msgid "The check on serial number %s could not be recorded."
 msgstr "Le pointage du numéro de série %s n’a pas pu être enregistré."
 
@@ -1192,7 +1191,7 @@ msgstr "L’envoi est annulé. Ses unités sont libres de partir dans un autre c
 
 #: includes/class-dahu-serial-numbers-product-fix.php:149
 msgid "The destination is a variable product: pick one of its variations."
-msgstr "La destination est un produit variable : choisissez l’une de ses variations."
+msgstr "La destination est un produit variable : choisissez une de ses variations."
 
 #: includes/class-dahu-serial-numbers-product-fix.php:150
 msgid "The destination product is not marked as carrying serial numbers."
@@ -1237,7 +1236,7 @@ msgstr "Le mot de passe doit faire au moins %d caractères."
 msgid "The plugin’s database tables are missing."
 msgstr "Les tables de l’extension sont absentes."
 
-#: includes/class-dahu-serial-numbers-admin.php:226
+#: includes/class-dahu-serial-numbers-admin.php:257
 msgid "The plugin’s database tables are missing. Deactivating and reactivating the plugin creates them."
 msgstr "Les tables de l’extension sont absentes. Les recréer : désactiver puis réactiver l’extension."
 
@@ -1257,7 +1256,7 @@ msgstr "La boutique n’a pas répondu. Rien n’a été enregistré — scannez
 msgid "The sign-in token could not be issued."
 msgstr "Le jeton de connexion n’a pas pu être délivré."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:835
+#: includes/class-dahu-serial-numbers-admin-serials.php:838
 msgid "The site"
 msgstr "Le site"
 
@@ -1266,9 +1265,9 @@ msgid "The tracking number could not be recorded."
 msgstr "Le numéro de suivi n’a pas pu être enregistré."
 
 #. translators: %s: new status label. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:509
+#: includes/class-dahu-serial-numbers-admin-serials.php:512
 msgid "The unit is now “%s”, and the move is in its history."
-msgstr "L’unité est maintenant « %s », et le changement figure dans son historique."
+msgstr "L’unité est maintenant « %s », et la transition figure dans son historique."
 
 #. translators: 1: consignment reference, 2: the error. */
 #: includes/class-dahu-serial-numbers-shipment.php:448
@@ -1286,7 +1285,7 @@ msgstr "Ces unités n’ont PAS pu être enregistrées dans le colis et ne sont 
 
 #: includes/class-dahu-serial-numbers-admin-settings.php:150
 msgid "This changes what customers can buy. The Stock screen shows every product and what would be written before anything is, and the manual resynchronisation works whether this is on or off."
-msgstr "Cela change ce que vos clients peuvent acheter. L’écran Stock montre chaque produit et ce qui serait écrit avant que rien ne le soit, et la resynchronisation manuelle fonctionne que ce réglage soit activé ou non."
+msgstr "Ceci change ce que les clients peuvent acheter. L’écran Stock montre chaque produit et ce qui serait écrit avant que rien ne le soit, et la resynchronisation manuelle fonctionne que ce soit coché ou non."
 
 #: includes/class-dahu-serial-numbers-consignments.php:825
 msgid "This consignment is no longer open, so its parcel cannot be measured."
@@ -1307,7 +1306,7 @@ msgstr "Ce colis a déjà été mesuré en %1$s et la boutique utilise maintenan
 
 #: includes/class-dahu-serial-numbers-product-fix.php:503
 msgid "This run has already been put back."
-msgstr "Cette passe a déjà été annulée."
+msgstr "Ce lot a déjà été annulé."
 
 #: includes/class-dahu-serial-numbers-workshop.php:195
 msgid "This screen needs JavaScript. Serial numbers are scanned into it one at a time, and every scan is checked against the shop as it happens."
@@ -1349,7 +1348,7 @@ msgstr "Suivi : %s"
 msgid "Triggered by"
 msgstr "Déclenché par"
 
-#: dahu-serial-numbers.php:304
+#: dahu-serial-numbers.php:312
 msgid "Type a serial number to open that unit."
 msgstr "Saisissez un numéro de série pour ouvrir cette unité."
 
@@ -1383,12 +1382,12 @@ msgid "Unknown serial number."
 msgstr "Numéro de série inconnu."
 
 #. translators: %s: serial number. */
-#: includes/class-dahu-serial-numbers-manager.php:623 includes/class-dahu-serial-numbers-manager.php:795 includes/class-dahu-serial-numbers-manager.php:981 includes/class-dahu-serial-numbers-manager.php:1050 includes/class-dahu-serial-numbers-rest.php:457 includes/class-dahu-serial-numbers-rest.php:853
+#: includes/class-dahu-serial-numbers-manager.php:678 includes/class-dahu-serial-numbers-manager.php:850 includes/class-dahu-serial-numbers-manager.php:1000 includes/class-dahu-serial-numbers-manager.php:1069 includes/class-dahu-serial-numbers-rest.php:457 includes/class-dahu-serial-numbers-rest.php:853
 msgid "Unknown serial number: %s"
 msgstr "Numéro de série inconnu : %s"
 
 #. translators: %s: status key. */
-#: includes/class-dahu-serial-numbers-manager.php:474 includes/class-dahu-serial-numbers-manager.php:634
+#: includes/class-dahu-serial-numbers-manager.php:474 includes/class-dahu-serial-numbers-manager.php:689
 msgid "Unknown status: %s"
 msgstr "Statut inconnu : %s"
 
@@ -1396,7 +1395,7 @@ msgstr "Statut inconnu : %s"
 msgid "Unknown workshop post."
 msgstr "Poste atelier inconnu."
 
-#: includes/class-dahu-serial-numbers-stock.php:632
+#: includes/class-dahu-serial-numbers-stock.php:803
 msgid "Variable product: stock belongs to its variations."
 msgstr "Produit variable : le stock appartient à ses variations."
 
@@ -1405,23 +1404,23 @@ msgstr "Produit variable : le stock appartient à ses variations."
 msgid "Weight (%s)"
 msgstr "Poids (%s)"
 
-#: dahu-serial-numbers.php:280
+#: dahu-serial-numbers.php:288
 msgid "What left together, what came back, and when."
 msgstr "Ce qui est parti ensemble, ce qui est revenu, et quand."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:68
 msgid "What the units on your shelves say the WooCommerce stock of each serialised product should be — and a way to re-file units that went in under the wrong product."
-msgstr "Ce que disent les unités de vos rayons sur le stock WooCommerce de chaque produit à numéro de série — et un moyen de re-ranger les unités entrées sous le mauvais produit."
+msgstr "Ce que les unités de vos étagères disent que le stock WooCommerce de chaque produit sérialisé devrait être — et de quoi reclasser les unités entrées sous le mauvais produit."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:627
 msgid "What would happen"
 msgstr "Ce qui se passerait"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:662 includes/class-dahu-serial-numbers-admin-stock.php:464 includes/class-dahu-serial-numbers-admin-stock.php:739
+#: includes/class-dahu-serial-numbers-admin-serials.php:665 includes/class-dahu-serial-numbers-admin-stock.php:464 includes/class-dahu-serial-numbers-admin-stock.php:739
 msgid "When"
 msgstr "Quand"
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:532
+#: includes/class-dahu-serial-numbers-admin-serials.php:535
 msgid "Where it can go next"
 msgstr "Où elle peut aller ensuite"
 
@@ -1429,9 +1428,9 @@ msgstr "Où elle peut aller ensuite"
 msgid "Which orders the packing screen lists. Completed orders are deliberately not the default: a completed order has left, and a queue that lists it invites somebody to open a parcel that is already on a van."
 msgstr "Quelles commandes l’écran d’atelier liste. Les commandes terminées ne sont volontairement pas dans la sélection par défaut : une commande terminée est partie, et une file qui la liste invite à ouvrir un colis déjà dans un camion."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:578
+#: includes/class-dahu-serial-numbers-admin-serials.php:581
 msgid "Why, for the history (optional)"
-msgstr "Pourquoi, pour l’historique (facultatif)"
+msgstr "Motif, pour l’historique (facultatif)"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:358
 msgid "WooCommerce now"
@@ -1441,9 +1440,9 @@ msgstr "WooCommerce actuellement"
 msgid "WooCommerce stock"
 msgstr "Stock WooCommerce"
 
-#: includes/class-dahu-serial-numbers-stock.php:633
+#: includes/class-dahu-serial-numbers-stock.php:804
 msgid "WooCommerce stock management is off for this product."
-msgstr "La gestion du stock WooCommerce est désactivée pour ce produit."
+msgstr "La gestion de stock WooCommerce est désactivée pour ce produit."
 
 #: includes/class-dahu-serial-numbers-workshop.php:281
 msgid "Working…"
@@ -1462,7 +1461,7 @@ msgstr "Poste atelier désactivé, et déconnecté partout où il était connect
 msgid "Workshop post “%s” created."
 msgstr "Poste atelier « %s » créé."
 
-#: includes/class-dahu-serial-numbers-admin-stations.php:38 includes/class-dahu-serial-numbers-admin.php:91 includes/class-dahu-serial-numbers-admin.php:92
+#: includes/class-dahu-serial-numbers-admin-stations.php:38 includes/class-dahu-serial-numbers-admin.php:122 includes/class-dahu-serial-numbers-admin.php:123
 msgid "Workshop posts"
 msgstr "Postes atelier"
 
@@ -1476,7 +1475,7 @@ msgstr "Deviendrait"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:439
 msgid "Write these numbers to WooCommerce"
-msgstr "Écrire ces chiffres dans WooCommerce"
+msgstr "Écrire ces nombres dans WooCommerce"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:468
 msgid "Written"
@@ -1487,11 +1486,11 @@ msgid "Wrong product"
 msgstr "Mauvais produit"
 
 #. translators: %s: wanted status label. */
-#: includes/class-dahu-serial-numbers-admin-serials.php:627
+#: includes/class-dahu-serial-numbers-admin-serials.php:630
 msgid "Yes, move it to “%s”"
-msgstr "Oui, la passer à « %s »"
+msgstr "Oui, la déplacer vers « %s »"
 
-#: dahu-serial-numbers.php:271
+#: dahu-serial-numbers.php:279
 msgid "You are not allowed to view this page."
 msgstr "Vous n’avez pas l’autorisation de voir cette page."
 
@@ -1505,19 +1504,19 @@ msgstr "Vous n’avez pas les droits nécessaires pour modifier ces réglages."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:57
 msgid "You do not have permission to look at stock."
-msgstr "Vous n’avez pas le droit de consulter le stock."
+msgstr "Vous n’avez pas l’autorisation de consulter le stock."
 
 #: includes/class-dahu-serial-numbers-admin-stations.php:34
 msgid "You do not have permission to manage workshop posts."
 msgstr "Vous n’avez pas les droits nécessaires pour gérer les postes atelier."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:411
+#: includes/class-dahu-serial-numbers-admin-serials.php:414
 msgid "You do not have permission to move a unit."
-msgstr "Vous n’avez pas le droit de déplacer une unité."
+msgstr "Vous n’avez pas l’autorisation de déplacer une unité."
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:219
 msgid "You do not have permission to re-file a unit."
-msgstr "Vous n’avez pas le droit de re-ranger une unité."
+msgstr "Vous n’avez pas l’autorisation de reclasser une unité."
 
 #: includes/class-dahu-serial-numbers-admin-consignments.php:56
 msgid "You do not have permission to view consignments."
@@ -1529,9 +1528,9 @@ msgstr "Vous n’avez pas les droits nécessaires pour consulter les numéros de
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:154
 msgid "You do not have permission to write stock."
-msgstr "Vous n’avez pas le droit d’écrire le stock."
+msgstr "Vous n’avez pas l’autorisation d’écrire le stock."
 
-#: dahu-serial-numbers.php:270
+#: dahu-serial-numbers.php:278
 msgid "of"
 msgstr "sur"
 
@@ -1549,16 +1548,16 @@ msgstr "%1$s %2$s"
 
 #: includes/class-dahu-serial-numbers-admin-stock.php:533
 msgid "— pick a product —"
-msgstr "— choisissez un produit —"
+msgstr "— choisir un produit —"
 
 #. translators: 1: product name, 2: number of units already shipped, 3: number this parcel would add, 4: ordered quantity. */
 #: includes/class-dahu-serial-numbers-shipment.php:182
 msgid "“%1$s” already has %2$d unit recorded as shipped on this order, and this parcel would add %3$d more, against %4$d ordered. Nothing has been shipped. Record what became of the unit that is already out before sending another."
 msgid_plural "“%1$s” already has %2$d units recorded as shipped on this order, and this parcel would add %3$d more, against %4$d ordered. Nothing has been shipped. Record what became of the units that are already out before sending another."
-msgstr[0] "« %1$s » a déjà %2$d unité notée comme expédiée sur cette commande, et ce colis en ajouterait %3$d de plus, pour %4$d commandée(s). Rien n’a été expédié. Notez ce qu’est devenue l’unité déjà partie avant d’en envoyer une autre."
-msgstr[1] "« %1$s » a déjà %2$d unités notées comme expédiées sur cette commande, et ce colis en ajouterait %3$d de plus, pour %4$d commandée(s). Rien n’a été expédié. Notez ce que sont devenues les unités déjà parties avant d’en envoyer d’autres."
+msgstr[0] "« %1$s » compte déjà %2$d unité expédiée sur cette commande, et ce colis en ajouterait %3$d, pour %4$d commandée. Rien n’a été expédié. Enregistrez ce qu’est devenue l’unité déjà sortie avant d’en envoyer une autre."
+msgstr[1] "« %1$s » compte déjà %2$d unités expédiées sur cette commande, et ce colis en ajouterait %3$d, pour %4$d commandées. Rien n’a été expédié. Enregistrez ce que sont devenues les unités déjà sorties avant d’en envoyer une autre."
 
-#: includes/class-dahu-serial-numbers-admin-serials.php:298
+#: includes/class-dahu-serial-numbers-admin-serials.php:301
 msgid "← All serial numbers"
 msgstr "← Tous les numéros de série"
 

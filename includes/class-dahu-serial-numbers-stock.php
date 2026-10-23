@@ -56,6 +56,23 @@ defined( 'ABSPATH' ) || exit;
 class Dahu_Serial_Numbers_Stock {
 
 	/**
+	 * The statuses a product has to carry for its stock to be written.
+	 *
+	 * `publish` and `private` both count: a private product is still sold, to
+	 * whoever can see it. Everything else — `draft`, `pending`, `future`,
+	 * `trash`, an auto-draft, a parent that no longer exists — does not.
+	 *
+	 * ONE list, read in two places, and that is the point. `on_sale_status()`
+	 * decides whether a push is refused, and `on_back_on_sale()` decides when
+	 * a product has come back and owes itself a fresh push. The two have to
+	 * agree exactly: a status the first refuses and the second does not treat
+	 * as a return is a status whose stock is never written and never caught up
+	 * either. Written twice, they would drift the day one of them gained a
+	 * status, and the hole would be silent.
+	 */
+	const ON_SALE_STATUSES = array( 'publish', 'private' );
+
+	/**
 	 * Option holding the last pushes, newest first.
 	 */
 	const OPTION_HISTORY = 'dahu_serial_numbers_stock_history';
@@ -97,22 +114,19 @@ class Dahu_Serial_Numbers_Stock {
 		add_action( 'dahu_serial_numbers_created', array( __CLASS__, 'on_created' ), 10, 2 );
 		add_action( 'dahu_serial_numbers_product_changed', array( __CLASS__, 'on_product_changed' ), 10, 4 );
 
-		/*
-		 * NOT hooked: the serialised flag on a product.
-		 *
-		 * Pushing when somebody ticks the box looks obliging and is a trap. A
-		 * shop part way through filing its stock has forty units on the shelf
-		 * and three on file; ticking the box would write 3 and take the
-		 * product out of sale, from a product-edit screen that showed no
-		 * summary and asked for no confirmation. An adversarial review found
-		 * this before anybody's stock did.
-		 *
-		 * The Stock screen is the answer: it names the gap for every product,
-		 * writes nothing until asked, and the run is the same code path. A
-		 * newly serialised product appears there with its WooCommerce number
-		 * and ours side by side, which is exactly the decision the shop has
-		 * to make.
-		 */
+		// The serialised flag, in all the shapes WordPress writes a meta in.
+		// A product that has just been marked serialised has a WooCommerce
+		// stock number that owes nothing to its serials, and the first push
+		// is what makes the two agree.
+		foreach ( array( 'added_post_meta', 'updated_post_meta' ) as $hook ) {
+			add_action( $hook, array( __CLASS__, 'on_flag_written' ), 10, 4 );
+		}
+
+		add_action( 'deleted_post_meta', array( __CLASS__, 'on_flag_removed' ), 10, 4 );
+
+		// A product that goes back on sale. Units may have moved while it was
+		// out of sale, and nothing wrote a stock for it in the meantime.
+		add_action( 'transition_post_status', array( __CLASS__, 'on_back_on_sale' ), 10, 3 );
 	}
 
 	/**
@@ -193,6 +207,138 @@ class Dahu_Serial_Numbers_Stock {
 		self::queue( (int) $to, 'product_fix' );
 	}
 
+	/**
+	 * The serialised flag was written on a product.
+	 *
+	 * @param int    $meta_id    Meta row id.
+	 * @param int    $object_id  Product id.
+	 * @param string $meta_key   Meta key.
+	 * @param mixed  $meta_value Meta value.
+	 * @return void
+	 */
+	public static function on_flag_written( $meta_id, $object_id, $meta_key, $meta_value ) {
+
+		unset( $meta_id );
+
+		if ( Dahu_Serial_Numbers_Products::META_KEY !== $meta_key || 'yes' !== $meta_value ) {
+			return;
+		}
+
+		self::queue( (int) $object_id, 'serialised_flag' );
+	}
+
+	/**
+	 * The serialised flag was removed from a product.
+	 *
+	 * One last push, and then never again: the product's stock is left where
+	 * the serials put it, and from here on it is the shop's to manage. Not
+	 * pushing at all would leave a number that counted serials this product
+	 * no longer claims.
+	 *
+	 * @param array  $meta_ids  Meta row ids.
+	 * @param int    $object_id Product id.
+	 * @param string $meta_key  Meta key.
+	 * @param mixed  $meta_value Meta value.
+	 * @return void
+	 */
+	public static function on_flag_removed( $meta_ids, $object_id, $meta_key, $meta_value ) {
+
+		unset( $meta_ids, $meta_value );
+
+		if ( Dahu_Serial_Numbers_Products::META_KEY !== $meta_key ) {
+			return;
+		}
+
+		self::queue( (int) $object_id, 'serialised_flag_removed' );
+	}
+
+	/**
+	 * A product that comes back on sale — out of the bin, or published again.
+	 *
+	 * WHY THIS TRIGGER EXISTS. While a product is out of sale the push is
+	 * refused for the whole time, and rightly so: nothing should write a
+	 * stock number on a product nobody can buy. But units go on moving on the
+	 * shelf, and the number WooCommerce still holds is the one from before.
+	 * Without this, a product restored from the bin kept that stale number
+	 * until somebody happened to open the Stock screen or a further unit
+	 * moved — the shop offering a quantity no unit agrees with, which is the
+	 * one thing a stock is for.
+	 *
+	 * Only the crossing counts. A save that leaves a published product
+	 * published changes nothing here: the serial events already queue what
+	 * they need, and queueing on every product save would push the whole
+	 * catalogue for nothing.
+	 *
+	 * A variable parent holds no stock of its own, so restoring one queues
+	 * each variation that is itself on sale. A variation still out of sale is
+	 * left alone: its own crossing will queue it when it comes.
+	 *
+	 * @param string  $new_status Status it moves to.
+	 * @param string  $old_status Status it comes from.
+	 * @param WP_Post $post       The post that moved.
+	 * @return void
+	 */
+	public static function on_back_on_sale( $new_status, $old_status, $post ) {
+
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+
+		if ( ! in_array( $post->post_type, array( 'product', 'product_variation' ), true ) ) {
+			return;
+		}
+
+		$on_sale = self::ON_SALE_STATUSES;
+
+		if ( ! in_array( (string) $new_status, $on_sale, true ) || in_array( (string) $old_status, $on_sale, true ) ) {
+			return;
+		}
+
+		// A product being BORN is not a product coming back.
+		//
+		// WHY THIS LINE EXISTS. wp_insert_post() emits `new` as the old
+		// status, so without this an import of a thousand products queued a
+		// thousand pushes. Each one is then refused — they carry no serial
+		// numbers — but a refusal is remembered, and the history keeps only
+		// its last five hundred lines: measured, an import of six hundred
+		// products wiped every real stock write from the history and left
+		// nothing but refusals. A product that has just been created has no
+		// units that moved while it was out of sale, and if it is marked as
+		// serialised, the flag written on it queues it already.
+		if ( in_array( (string) $old_status, array( 'new', 'auto-draft' ), true ) ) {
+			return;
+		}
+
+		$variations = 'product' === $post->post_type
+			? get_posts(
+				array(
+					'post_type'      => 'product_variation',
+					'post_parent'    => (int) $post->ID,
+					'post_status'    => $on_sale,
+					'fields'         => 'ids',
+					'posts_per_page' => -1,
+					'orderby'        => 'ID',
+					'order'          => 'ASC',
+				)
+			)
+			: array();
+
+		// A product that has variations is a variable parent, and a variable
+		// parent holds no stock of its own: pushing it is refused every time,
+		// and the refusal would take a line of history for nothing. Its
+		// variations are what carry the units. Read as a count and not as a
+		// product type, so nothing has to be loaded to find out.
+		if ( ! $variations ) {
+			self::queue( (int) $post->ID, 'product_back_on_sale' );
+
+			return;
+		}
+
+		foreach ( (array) $variations as $variation_id ) {
+			self::queue( (int) $variation_id, 'product_back_on_sale' );
+		}
+	}
+
 	/* ---------------------------------------------------------------------
 	 * Queue
 	 * ------------------------------------------------------------------ */
@@ -240,20 +386,27 @@ class Dahu_Serial_Numbers_Stock {
 		$queue       = self::$queue;
 		self::$queue = array();
 
+		if ( ! $queue ) {
+			return $done;
+		}
+
+		// The two maps are read ONCE for the whole queue, as resync_plan()
+		// already does.
+		//
+		// WHY IT MATTERS. plan_one() rebuilds both maps in full whenever it is
+		// not handed them, and each of them walks the orders. Restoring a
+		// hundred products from the bin in one go therefore loaded every order
+		// a hundred times over — measured at 18 000 order loads for 120
+		// products — which ends in a timeout half way through. And the queue is
+		// emptied at the top of this method, so nothing is retried: the
+		// products that did not get their turn keep a stock number no unit
+		// agrees with. That is the very hole this queue exists to close, moved
+		// from the bin to the timeout.
+		$free     = self::free_map();
+		$reserved = self::reserved_map();
+
 		foreach ( $queue as $product_id => $origin ) {
-			// Each product in its own guard. `push()` catches what it can,
-			// but it reads WooCommerce orders and a third-party filter on the
-			// way, and an exception there used to abandon every product left
-			// in the queue without a word. Found by an adversarial review.
-			try {
-				$done[ $product_id ] = self::push( $product_id, $origin );
-			} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
-				$done[ $product_id ] = array(
-					'product_id' => (int) $product_id,
-					'written'    => false,
-					'error'      => $e->getMessage(),
-				);
-			}
+			$done[ $product_id ] = self::push( $product_id, $origin, $free, $reserved );
 		}
 
 		return $done;
@@ -335,7 +488,7 @@ class Dahu_Serial_Numbers_Stock {
 			return $map;
 		}
 
-		$held = self::held( $order_ids );
+		$held = self::held_by_line( $order_ids );
 
 		foreach ( $order_ids as $order_id ) {
 			$order = wc_get_order( $order_id );
@@ -362,36 +515,13 @@ class Dahu_Serial_Numbers_Stock {
 					continue;
 				}
 
-				$key     = (int) $order_id . ':' . (int) $item_id . ':' . $product_id;
-				$already = isset( $held['lines'][ $key ] ) ? (int) $held['lines'][ $key ] : 0;
-
-				// Never below zero. A line can be over-assigned — four
-				// serials against a line of three, which `transition()` does
-				// not refuse — and a negative reservation would invent stock.
-				$left = max( 0, $reduced - $already );
+				$line_key = (int) $order_id . ':' . (int) $item_id . ':' . $product_id;
+				$already  = isset( $held[ $line_key ] ) ? (int) $held[ $line_key ] : 0;
+				$left     = max( 0, $reduced - $already );
 
 				if ( $left > 0 ) {
 					$map[ $product_id ] = ( isset( $map[ $product_id ] ) ? (int) $map[ $product_id ] : 0 ) + $left;
 				}
-			}
-		}
-
-		// Units attached to an order but to no LINE are credited against the
-		// product's total rather than against a line of it. An order with two
-		// lines of the same product gives no way to tell which line such a
-		// unit belongs to, and the first version of this picked the first
-		// line — which, with a line of one and a line of three, lost two
-		// credits to the floor above and held two pieces back from sale.
-		// Found by an adversarial review. At the product level there is
-		// nothing to guess: the unit is spoken for on that order, whichever
-		// line carries it.
-		foreach ( $held['loose'] as $key => $count ) {
-			list( , $product_id ) = explode( ':', $key );
-
-			$product_id = (int) $product_id;
-
-			if ( isset( $map[ $product_id ] ) ) {
-				$map[ $product_id ] = max( 0, (int) $map[ $product_id ] - (int) $count );
 			}
 		}
 
@@ -405,30 +535,22 @@ class Dahu_Serial_Numbers_Stock {
 	}
 
 	/**
-	 * Units already standing against the orders in the window.
+	 * Units already standing against each order line.
 	 *
-	 * One query for every order rather than one per line. Returns two sets:
-	 * `lines`, keyed `order:line:product`, and `loose`, keyed
-	 * `order:product`, for the units that name an order and no line.
-	 *
-	 * Both are keyed by the RESOLVED product id, like `reserved_map()` and
-	 * `free_map()`. They were not, and that was a defect worth stating: with
-	 * a `dahu_serial_numbers_resolve_product` filter in place, the
-	 * reservation landed on the resolved id while the units were counted
-	 * under the raw one, so neither side ever met the other and units a
-	 * customer had paid for went back on sale.
+	 * One query for every order in the window rather than one per line. The
+	 * key is `order:line:product` so that an order with two lines of the
+	 * same product does not have one line's serials counted against the
+	 * other — and a unit attached to an order without a line falls back to
+	 * its product, which is the best that can honestly be said about it.
 	 *
 	 * @param int[] $order_ids Orders to look at.
-	 * @return array{lines:array<string,int>,loose:array<string,int>}
+	 * @return array<string,int>
 	 */
-	private static function held( array $order_ids ) {
+	private static function held_by_line( array $order_ids ) {
 
 		global $wpdb;
 
-		$held      = array(
-			'lines' => array(),
-			'loose' => array(),
-		);
+		$held      = array();
 		$order_ids = array_values( array_unique( array_map( 'intval', $order_ids ) ) );
 
 		if ( ! $order_ids ) {
@@ -458,21 +580,49 @@ class Dahu_Serial_Numbers_Stock {
 		foreach ( (array) $rows as $row ) {
 			$order_id   = (int) $row['order_id'];
 			$item_id    = (int) $row['order_item_id'];
-			$product_id = Dahu_Serial_Numbers_Products::resolve( (int) $row['product_id'] );
+			$product_id = (int) $row['product_id'];
 			$count      = (int) $row['held'];
 
-			if ( $product_id <= 0 ) {
-				continue;
-			}
-
 			if ( $item_id > 0 ) {
-				$key                     = $order_id . ':' . $item_id . ':' . $product_id;
-				$held['lines'][ $key ]   = ( isset( $held['lines'][ $key ] ) ? $held['lines'][ $key ] : 0 ) + $count;
+				$key          = $order_id . ':' . $item_id . ':' . $product_id;
+				$held[ $key ] = ( isset( $held[ $key ] ) ? $held[ $key ] : 0 ) + $count;
 				continue;
 			}
 
-			$key                   = $order_id . ':' . $product_id;
-			$held['loose'][ $key ] = ( isset( $held['loose'][ $key ] ) ? $held['loose'][ $key ] : 0 ) + $count;
+			// No line: remembered under a wildcard the caller resolves by
+			// product, below.
+			$key          = $order_id . ':*:' . $product_id;
+			$held[ $key ] = ( isset( $held[ $key ] ) ? $held[ $key ] : 0 ) + $count;
+		}
+
+		// Fold the wildcards into the lines of the same product. A unit that
+		// says "order 42, product 7" and nothing more is counted against
+		// whichever line of order 42 sells product 7; when there are two such
+		// lines it lands on the first, and that is stated rather than hidden:
+		// the alternative is not counting it at all, which offers a unit for
+		// sale that a customer has already bought.
+		foreach ( $held as $key => $count ) {
+			if ( false === strpos( $key, ':*:' ) ) {
+				continue;
+			}
+
+			list( $order_id, , $product_id ) = explode( ':', $key );
+
+			unset( $held[ $key ] );
+
+			foreach ( array_keys( $held ) as $other ) {
+				$parts = explode( ':', $other );
+
+				if ( $parts[0] === $order_id && $parts[2] === $product_id ) {
+					$held[ $other ] += $count;
+					continue 2;
+				}
+			}
+
+			// No line of that order sells that product: keep it under a line
+			// id of zero, where nothing will match it. Counting it against an
+			// unrelated line would be worse than losing it.
+			$held[ $order_id . ':0:' . $product_id ] = $count;
 		}
 
 		return $held;
@@ -509,7 +659,13 @@ class Dahu_Serial_Numbers_Stock {
 			ARRAY_A
 		);
 
-		return self::resolved_counts( $rows, 'free' );
+		$map = array();
+
+		foreach ( (array) $rows as $row ) {
+			$map[ (int) $row['product_id'] ] = (int) $row['free'];
+		}
+
+		return $map;
 	}
 
 	/**
@@ -540,32 +696,10 @@ class Dahu_Serial_Numbers_Stock {
 			ARRAY_A
 		);
 
-		return self::resolved_counts( $rows, 'stuck' );
-	}
-
-	/**
-	 * Rows of `product_id` and a count, folded onto resolved product ids.
-	 *
-	 * The resolution cannot happen in SQL — it is a filter the shop owns —
-	 * so it happens here, and it happens on every map so that all of them
-	 * speak about the same products.
-	 *
-	 * @param array  $rows   Rows with `product_id` and the count column.
-	 * @param string $column Name of the count column.
-	 * @return array<int,int>
-	 */
-	private static function resolved_counts( $rows, $column ) {
-
 		$map = array();
 
 		foreach ( (array) $rows as $row ) {
-			$product_id = Dahu_Serial_Numbers_Products::resolve( (int) $row['product_id'] );
-
-			if ( $product_id <= 0 ) {
-				continue;
-			}
-
-			$map[ $product_id ] = ( isset( $map[ $product_id ] ) ? (int) $map[ $product_id ] : 0 ) + (int) $row[ $column ];
+			$map[ (int) $row['product_id'] ] = (int) $row['stuck'];
 		}
 
 		return $map;
@@ -595,6 +729,16 @@ class Dahu_Serial_Numbers_Stock {
 			return 'unknown_product';
 		}
 
+		// Out of sale, out of the count. A product in the bin, a draft or a
+		// pending revision is not on the shelf, and a variation stays
+		// published when its parent goes to the bin — so the parent is asked
+		// too. Without this, units filed against a withdrawn reference keep
+		// writing a stock figure on a row nobody can buy, and the screen
+		// counts them among the products it manages.
+		if ( ! self::on_sale_status( $product_id, $product ) ) {
+			return 'not_published';
+		}
+
 		// A variable product is a container. Its stock column exists but the
 		// units are its variations', and writing the parent would hide the
 		// variation numbers behind a total that means nothing.
@@ -617,6 +761,35 @@ class Dahu_Serial_Numbers_Stock {
 	}
 
 	/**
+	 * Is this row on sale, parent included?
+	 *
+	 * The statuses that count are `self::ON_SALE_STATUSES`, and the reason
+	 * they live there rather than here is written on the constant. A variation
+	 * carries its own status and keeps it when its parent is binned, which is
+	 * why the parent is read as well.
+	 *
+	 * @param int        $product_id Product or variation id.
+	 * @param WC_Product $product    The product, already loaded.
+	 * @return bool
+	 */
+	private static function on_sale_status( $product_id, $product ) {
+
+		$allowed = self::ON_SALE_STATUSES;
+
+		if ( ! in_array( (string) get_post_status( $product_id ), $allowed, true ) ) {
+			return false;
+		}
+
+		$parent_id = (int) $product->get_parent_id();
+
+		if ( $parent_id <= 0 ) {
+			return true;
+		}
+
+		return in_array( (string) get_post_status( $parent_id ), $allowed, true );
+	}
+
+	/**
 	 * A refusal, in words.
 	 *
 	 * @param string $code Refusal code.
@@ -625,10 +798,8 @@ class Dahu_Serial_Numbers_Stock {
 	public static function refusal_label( $code ) {
 
 		$labels = array(
-			// A push that wrote nothing and refused nothing failed on the
-			// way; the history row says so rather than showing an empty cell.
-			''                   => __( 'Not written.', 'dahu-serial-numbers' ),
 			'unknown_product'    => __( 'No such product.', 'dahu-serial-numbers' ),
+			'not_published'      => __( 'Not on sale: the product, or its parent, is in the bin or unpublished.', 'dahu-serial-numbers' ),
 			'variable_parent'    => __( 'Variable product: stock belongs to its variations.', 'dahu-serial-numbers' ),
 			'stock_not_managed'  => __( 'WooCommerce stock management is off for this product.', 'dahu-serial-numbers' ),
 			'not_serialised'     => __( 'Not marked as carrying serial numbers.', 'dahu-serial-numbers' ),
@@ -680,11 +851,7 @@ class Dahu_Serial_Numbers_Stock {
 			'before'     => null === $before ? null : (int) $before,
 			'gap'        => $negative_gap,
 			'refusal'    => $refusal,
-			// A product whose stock column is NULL while WooCommerce manages
-			// its stock counts as changing: `(int) null` is zero, so a
-			// product that should be written zero was being left at NULL for
-			// ever, which reads as "no stock figure" rather than "none left".
-			'changes'    => '' === $refusal && ( null === $before || (int) $before !== (int) $wanted ),
+			'changes'    => '' === $refusal && (int) $before !== (int) $wanted,
 		);
 	}
 
@@ -703,20 +870,7 @@ class Dahu_Serial_Numbers_Stock {
 	 */
 	public static function push( $product_id, $origin, array $free = null, array $reserved = null ) {
 
-		try {
-			$plan = self::plan_one( $product_id, $free, $reserved );
-		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
-			// Counting is not safe either: it reads WooCommerce's orders and
-			// passes through a filter the shop may own. "Never blocking" has
-			// to cover the measurement, not only the write.
-			return array(
-				'product_id' => (int) $product_id,
-				'origin'     => (string) $origin,
-				'written'    => false,
-				'error'      => $e->getMessage(),
-			);
-		}
-
+		$plan            = self::plan_one( $product_id, $free, $reserved );
 		$plan['origin']  = (string) $origin;
 		$plan['written'] = false;
 
@@ -776,21 +930,7 @@ class Dahu_Serial_Numbers_Stock {
 		$reserved = self::reserved_map();
 		$stuck    = self::stuck_map();
 
-		// Every serialised product, and not only those that hold a unit or
-		// owe one to an order. A product whose last unit has shipped has no
-		// row in either map, and leaving it out meant the screen said
-		// "nothing to change" while WooCommerce went on selling four
-		// exemplars that no longer exist — which is precisely the drift this
-		// screen exists to catch. Found by an adversarial review.
-		$ids = array_values(
-			array_unique(
-				array_merge(
-					array_keys( $free ),
-					array_keys( $reserved ),
-					self::serialised_product_ids()
-				)
-			)
-		);
+		$ids = array_values( array_unique( array_merge( array_keys( $free ), array_keys( $reserved ) ) ) );
 		sort( $ids );
 
 		$rows     = array();
@@ -815,68 +955,7 @@ class Dahu_Serial_Numbers_Stock {
 			'changing'    => $changing,
 			'refused'     => $refused,
 			'fingerprint' => self::fingerprint( $rows ),
-			// The maps the rows were built from. The run writes from THESE,
-			// never from a fresh count: the decision came from the figures
-			// that were shown, so the value must come from them too. Before
-			// this, `resync()` re-counted after comparing the fingerprint and
-			// could write a number nobody had ever seen — the fingerprint
-			// was protecting nothing at all.
-			'free'        => $free,
-			'reserved'    => $reserved,
 		);
-	}
-
-	/**
-	 * Every product marked as carrying serial numbers.
-	 *
-	 * Read from the meta rather than from `wc_get_products()`: a shop with
-	 * four hundred serialised references does not need four hundred product
-	 * objects built to be listed, and this runs on a screen somebody is
-	 * waiting on. Products that answer the `is_serialised` filter without
-	 * carrying the flag are not here — nothing can enumerate a filter — and
-	 * they appear anyway as soon as they hold a unit or owe one to an order.
-	 *
-	 * @return int[]
-	 */
-	public static function serialised_product_ids() {
-
-		global $wpdb;
-
-		$ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.SlowDBQuery -- one indexed meta read, on a screen.
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s",
-				Dahu_Serial_Numbers_Products::META_KEY,
-				'yes'
-			)
-		);
-
-		$out = array();
-
-		foreach ( (array) $ids as $id ) {
-			$resolved = Dahu_Serial_Numbers_Products::resolve( (int) $id );
-
-			// A variable parent is here because the shop ticked the box once
-			// rather than on each of nine variations. Its variations are the
-			// products that hold units, so they are the ones worth listing;
-			// the parent itself is reported as a refusal when it holds any.
-			if ( $resolved > 0 && function_exists( 'wc_get_product' ) ) {
-				$product = wc_get_product( $resolved );
-
-				if ( $product && $product->is_type( 'variable' ) ) {
-					foreach ( $product->get_children() as $child ) {
-						$out[] = (int) $child;
-					}
-
-					continue;
-				}
-			}
-
-			if ( $resolved > 0 ) {
-				$out[] = $resolved;
-			}
-		}
-
-		return array_values( array_unique( $out ) );
 	}
 
 	/**
@@ -934,8 +1013,8 @@ class Dahu_Serial_Numbers_Stock {
 			);
 		}
 
-		$free     = $plan['free'];
-		$reserved = $plan['reserved'];
+		$free     = self::free_map();
+		$reserved = self::reserved_map();
 		$written  = array();
 		$failed   = array();
 

@@ -422,7 +422,12 @@ fois pour rester juste ; une valeur absolue est juste dès qu'elle passe.
 **Ce qui n'est pas touché**, et nommé sur l'écran « Stock » plutôt que sauté en
 silence : les parents variables, dont les unités appartiennent aux variations ;
 les produits dont WooCommerce ne gère pas le stock ; les produits non marqués
-comme portant des numéros de série. Une unité qui se dit *en stock* en portant
+comme portant des numéros de série ; et les produits hors vente — à la
+corbeille, en brouillon, programmés ou en attente, ou une variation dont le
+parent est dans l'un de ces états. Rien n'écrit un stock sur un produit que
+personne ne peut acheter. Les unités continuent de bouger pendant qu'un produit
+est hors vente : le stock est donc remis à jour dès qu'il revient en vente,
+plutôt que laissé au nombre qu'il portait avant. Une unité qui se dit *en stock* en portant
 encore une commande n'est pas comptée non plus, et l'écran dit combien il y en
 a : quelque chose l'a remise en stock sans passer par le cycle de vie, et une
 poussée de stock n'est pas l'endroit où décider de ce que cela voulait dire.

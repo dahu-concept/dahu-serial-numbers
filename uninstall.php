@@ -14,8 +14,14 @@
  * silent, and done at the moment nobody is watching.
  *
  * So what always goes is what costs nothing to rebuild: the scheduled event,
- * the login lockout counters, the schema version. The data goes only when the
- * box was ticked, and the box says what it does.
+ * the login lockout counters, and the three version and rewrite markers. The
+ * data goes only when the box was ticked, and the box says what it does.
+ *
+ * What the box covers is counted, not remembered: the plugin creates six
+ * tables and writes nine options, and the lists below hold six and nine.
+ * Anything added to `Dahu_Serial_Numbers_Install` or to a new `OPTION_`
+ * constant belongs here the same day, or a "delete everything" quietly
+ * becomes a "delete most of it".
  *
  * The drop order below matters and used to be wrong: it said credentials
  * first and traceability last, and dropped the serials table first. On a
@@ -34,6 +40,18 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
  */
 function dahu_serial_numbers_uninstall_site() {
 
+	// The welcome screen's own three flags.
+	//
+	// They are interface state, not the shop's data, which is why they sit
+	// BEFORE any “remove data on uninstall” guard: whatever a shop chose to
+	// keep, a reinstall has to greet it again. `includes/dahu-welcome.php`
+	// writes them with update_option(), so they outlive the plugin unless
+	// they are deleted here — and the welcome screen and the guided tour
+	// would then stay silent for good, with nothing on screen to explain why.
+	delete_option( 'dahu_welcome_seen_dahu-serial-numbers' );
+	delete_option( 'dahu_welcome_pending_dahu-serial-numbers' );
+	delete_option( 'dahu_welcome_tour_dahu-serial-numbers' );
+
 	global $wpdb;
 
 	wp_clear_scheduled_hook( 'dahu_serial_numbers_purge_tokens' );
@@ -49,15 +67,25 @@ function dahu_serial_numbers_uninstall_site() {
 		)
 	);
 
+	// Markers, not data. These go either way: leaving the schema version
+	// behind means a reinstall believes the tables are already up to date and
+	// skips the dbDelta that would have created them, and the same reasoning
+	// applies to the consignment API version and to the rewrite marker, which
+	// is the only thing standing between a reinstall and a flush of the
+	// workshop URL. Not one of them holds anything a shop would miss.
+	$markers = array(
+		'dahu_serial_numbers_schema',
+		'dahu_serial_numbers_consignments_api',
+		'dahu_serial_numbers_rewrite',
+	);
+
+	foreach ( $markers as $marker ) {
+		delete_option( $marker );
+	}
+
 	$settings = get_option( 'dahu_serial_numbers_settings', array() );
 
 	if ( ! is_array( $settings ) || empty( $settings['delete_data_on_uninstall'] ) ) {
-		// The schema version goes either way: leaving it behind means a
-		// reinstall believes the tables are already up to date, and skips
-		// the dbDelta that would have created them.
-		delete_option( 'dahu_serial_numbers_schema' );
-		delete_option( 'dahu_serial_numbers_consignments_api' );
-
 		return;
 	}
 
@@ -88,9 +116,23 @@ function dahu_serial_numbers_uninstall_site() {
 		$wpdb->query( "DROP TABLE IF EXISTS {$table}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix, uninstall.
 	}
 
-	delete_option( 'dahu_serial_numbers_settings' );
-	delete_option( 'dahu_serial_numbers_schema' );
-	delete_option( 'dahu_serial_numbers_consignments_api' );
+	// Every option this plugin writes, with the markers above: nine in all.
+	// Counted against the code rather than remembered, because an option left
+	// behind by a "delete everything" is both a lie and, for the two run
+	// records, shop data — the stock pushes carry product names and the id of
+	// whoever asked for them, and the correction runs carry serial numbers.
+	$options = array(
+		'dahu_serial_numbers_settings',
+		// What the Stock screen shows as history, and what a correction run
+		// needs to be undone. Both are records of what was done, which is
+		// exactly what the box asks to be rid of.
+		'dahu_serial_numbers_stock_history',
+		'dahu_serial_numbers_product_fix_runs',
+	);
+
+	foreach ( $options as $option ) {
+		delete_option( $option );
+	}
 
 	// The serialised flag lives on products, which survive the plugin. Left
 	// in place on purpose: a reinstall finds the shop's choices intact, and a
