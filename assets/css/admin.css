@@ -77,11 +77,6 @@
  * CSS.
  */
 
-.dahu-serial-numbers__intro {
-	color: var( --dahu-admin-text-muted );
-	max-width: var( --dahu-admin-measure );
-}
-
 .dahu-serial-numbers__panel {
 	background: var( --dahu-admin-surface );
 	border: 1px solid var( --dahu-admin-border );
