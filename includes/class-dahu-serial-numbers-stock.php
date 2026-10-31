@@ -402,8 +402,47 @@ class Dahu_Serial_Numbers_Stock {
 		// products that did not get their turn keep a stock number no unit
 		// agrees with. That is the very hole this queue exists to close, moved
 		// from the bin to the timeout.
-		$free     = self::free_map();
-		$reserved = self::reserved_map();
+		/* LES CARTES LUES SOUS GARDE, ET UN ECHEC N'ECRIT RIEN.
+		 *
+		 * reserved_map() finit sur un filtre que la BOUTIQUE possede, et une
+		 * boutique est libre d'y lever. Lu hors d'un try, cette exception
+		 * quittait flush() sur place -- apres que la file ait ete videe plus
+		 * haut. Chaque produit en attente gardait alors une quantite de stock
+		 * qu'aucune unite ne corrobore, rien n'etait rejoue, et aucune ligne ne
+		 * le disait : le trou meme que cette file existe pour fermer, deplace de
+		 * la corbeille vers le filtre.
+		 *
+		 * POURQUOI ABANDONNER LE LOT ET NON REESSAYER PRODUIT PAR PRODUIT. Une
+		 * revue adverse a mesure la seconde option : sans les cartes, push()
+		 * les relit par produit et releve au meme endroit, soit pour 120
+		 * produits environ 18 150 chargements de commande pour zero ecriture --
+		 * exactement le volume que la lecture groupee existe pour supprimer, et
+		 * assez pour depasser le temps d'execution. Or un depassement est une
+		 * erreur fatale que catch ( Throwable ) ne rattrape pas : la file serait
+		 * perdue quand meme, et cette fois sans meme un journal.
+		 *
+		 * La file est donc remise en place, et c'est ce qui donne a la requete
+		 * suivante une chance de faire le travail proprement. */
+		try {
+			$free     = self::free_map();
+			$reserved = self::reserved_map();
+		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
+			self::$queue = $queue;
+
+			/* error_log, et non le tableau de retour : flush() est accrochee a
+			 * `shutdown`, dont WordPress JETTE la valeur de retour. Une erreur
+			 * rangee dans $done ne serait lue par personne, ce qui laisserait
+			 * intact le reproche d'origine -- rien dans les journaux. */
+			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				sprintf(
+					'dahu-serial-numbers: stock maps unreadable, nothing written, %d product(s) left queued: %s',
+					count( $queue ),
+					$e->getMessage()
+				)
+			);
+
+			return $done;
+		}
 
 		foreach ( $queue as $product_id => $origin ) {
 			$done[ $product_id ] = self::push( $product_id, $origin, $free, $reserved );
