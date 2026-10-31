@@ -188,6 +188,7 @@ class Dahu_Serial_Numbers_Workshop {
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 	<meta name="robots" content="noindex, nofollow" />
 	<title><?php echo esc_html( self::title() ); ?></title>
+	<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- standalone document built with ob_start(): it has its own <html> and <head> and never calls wp_head(), so an enqueued style would be printed nowhere. ?>
 	<link rel="stylesheet" href="<?php echo esc_url( DAHU_SERIAL_NUMBERS_URL . 'assets/css/workshop.css?ver=' . DAHU_SERIAL_NUMBERS_VERSION ); ?>" />
 </head>
 <body class="dahu-packing">
@@ -200,6 +201,7 @@ class Dahu_Serial_Numbers_Workshop {
 	<script type="application/json" id="dahu-packing-config">
 		<?php echo wp_json_encode( self::config() ); ?>
 	</script>
+	<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- same standalone document: no wp_footer(), so an enqueued script would be printed nowhere. ?>
 	<script src="<?php echo esc_url( DAHU_SERIAL_NUMBERS_URL . 'assets/js/workshop.js?ver=' . DAHU_SERIAL_NUMBERS_VERSION ); ?>"></script>
 </body>
 </html>
@@ -247,6 +249,7 @@ class Dahu_Serial_Numbers_Workshop {
 				'search'          => __( 'Search an order', 'dahu-serial-numbers' ),
 				'nothingToPack'   => __( 'Nothing waiting to be packed.', 'dahu-serial-numbers' ),
 				'noResults'       => __( 'No order matches that.', 'dahu-serial-numbers' ),
+				/* translators: %d: how many units are still to be scanned on the order */
 				'owed'            => __( '%d to scan', 'dahu-serial-numbers' ),
 				'ready'           => __( 'Ready', 'dahu-serial-numbers' ),
 				'scan'            => __( 'Scan or type a serial number', 'dahu-serial-numbers' ),
@@ -255,10 +258,13 @@ class Dahu_Serial_Numbers_Workshop {
 				// the placeholder made a button as wide as the sentence, and
 				// pushed the line's name off the row. Seen on a screenshot.
 				'pickLine'        => __( 'Scan into this line', 'dahu-serial-numbers' ),
+				/* translators: %s: the name of the order line being scanned into */
 				'scanInto'        => __( 'Scanning into: %s', 'dahu-serial-numbers' ),
 				'chooseLine'      => __( 'Choose which line you are packing.', 'dahu-serial-numbers' ),
 				'remove'          => __( 'Remove', 'dahu-serial-numbers' ),
+				/* translators: %s: the serial number being taken off the order */
 				'removeConfirm'   => __( 'Take %s off this order?', 'dahu-serial-numbers' ),
+				/* translators: %1$d: units scanned so far, %2$d: units on the line */
 				'ofQuantity'      => __( '%1$d of %2$d', 'dahu-serial-numbers' ),
 				'noSerialNeeded'  => __( 'No serial number needed', 'dahu-serial-numbers' ),
 				'allScanned'      => __( 'Every unit on this order has been scanned.', 'dahu-serial-numbers' ),

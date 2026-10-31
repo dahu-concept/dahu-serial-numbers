@@ -184,7 +184,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		$sql .= ' ORDER BY order_item_id ASC, serial ASC';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, placeholders generated here, every value prepared.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, placeholders generated here, every value prepared.
 		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
 
 		foreach ( (array) $rows as $row ) {
@@ -358,7 +358,7 @@ class Dahu_Serial_Numbers_Manager {
 		$total     = (int) ( $params
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- clause built from literals here, every value prepared.
 			? $wpdb->get_var( $wpdb->prepare( $count_sql, $params ) )
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- no user value in the statement.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- this branch runs only when $params is empty, so every $where entry is a literal and the clause carries no user value.
 			: $wpdb->get_var( $count_sql ) );
 
 		$rows_sql       = "SELECT * FROM {$table} WHERE {$clause} ORDER BY updated_at DESC, id DESC LIMIT %d OFFSET %d";
