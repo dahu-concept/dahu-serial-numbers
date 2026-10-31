@@ -13,6 +13,7 @@
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * WC requires at least: 7.0
+ * WC tested up to:   11.2
  *
  * @package DahuSerialNumbers
  */
