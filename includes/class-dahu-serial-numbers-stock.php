@@ -104,6 +104,28 @@ class Dahu_Serial_Numbers_Stock {
 	private static $flush_hooked = false;
 
 	/**
+	 * Whether flush() is running right now.
+	 *
+	 * Writing a stock number fires WooCommerce's own hooks, which can reach
+	 * back into queue(). Re-entering the queue mid-flush would either lose
+	 * the product silently or, now that the queue is persisted, have it
+	 * retried on every single request for ever. The product being written is
+	 * the one whose number is up to date, so there is nothing to retry.
+	 *
+	 * @var bool
+	 */
+	private static $flushing = false;
+
+	/**
+	 * Option holding the products a failed flush could not write.
+	 *
+	 * Autoloaded on purpose: it is a short list of integers, it rides along
+	 * with the options WordPress already loads, and reading it therefore
+	 * costs no query. It is deleted as soon as it has been drained.
+	 */
+	const FILE_REPRISE = 'dahu_serial_numbers_stock_a_reprendre';
+
+	/**
 	 * Registers the triggers.
 	 *
 	 * @return void
@@ -127,6 +149,64 @@ class Dahu_Serial_Numbers_Stock {
 		// A product that goes back on sale. Units may have moved while it was
 		// out of sale, and nothing wrote a stock for it in the meantime.
 		add_action( 'transition_post_status', array( __CLASS__, 'on_back_on_sale' ), 10, 3 );
+
+		// Ce qu'un `flush()` en echec a laisse derriere lui. Sans ce crochet,
+		// la remise en place de la file ne servait a rien : voir reprendre().
+		add_action( 'init', array( __CLASS__, 'reprendre' ), 20 );
+	}
+
+	/**
+	 * Re-queues whatever a failed flush left behind.
+	 *
+	 * POURQUOI CE CROCHET EXISTE. flush() est accrochee a `shutdown`
+	 * priorite 5. Au moment ou elle abandonne un lot, `shutdown` est deja en
+	 * cours : plus rien dans la requete ne la rappellera, `self::$flush_hooked`
+	 * reste vrai, et `self::$queue` est une propriete statique que la requete
+	 * suivante ne voit pas. « La file est donc remise en place, et c'est ce
+	 * qui donne a la requete suivante une chance de faire le travail
+	 * proprement » : c'etait faux, et une assertion du banc certifiait cette
+	 * recuperation inexistante. Une revue adverse l'a mesure.
+	 *
+	 * La file est donc ecrite en option, et c'est cette option que la requete
+	 * suivante reprend. Elle est supprimee AVANT la remise en file : si le
+	 * nouvel essai echoue a son tour, c'est flush() qui la reecrira, et un
+	 * echec permanent ne boucle donc pas sur une option qui grossit.
+	 *
+	 * @return void
+	 */
+	public static function reprendre() {
+
+		$attente = get_option( self::FILE_REPRISE, array() );
+
+		if ( ! is_array( $attente ) || ! $attente ) {
+			return;
+		}
+
+		delete_option( self::FILE_REPRISE );
+
+		foreach ( $attente as $product_id => $origin ) {
+			self::queue( (int) $product_id, (string) $origin );
+		}
+	}
+
+	/**
+	 * Writes a queue down so the next request can pick it up.
+	 *
+	 * @param array<int,string> $queue Product id => origin.
+	 * @return void
+	 */
+	private static function persister( array $queue ) {
+
+		if ( ! $queue ) {
+			return;
+		}
+
+		$deja = get_option( self::FILE_REPRISE, array() );
+		$deja = is_array( $deja ) ? $deja : array();
+
+		// L'origine la plus ancienne gagne : c'est celle qui dit pourquoi ce
+		// produit attend depuis le debut.
+		update_option( self::FILE_REPRISE, $deja + $queue, true );
 	}
 
 	/**
@@ -358,6 +438,25 @@ class Dahu_Serial_Numbers_Stock {
 			return;
 		}
 
+		// Ecrire un stock fait tourner les crochets de WooCommerce, qui
+		// peuvent revenir jusqu'ici. Le produit en cours d'ecriture est
+		// justement celui dont le nombre est a jour : il n'y a rien a rejouer.
+		if ( self::$flushing ) {
+			return;
+		}
+
+		/* MIS EN FILE APRES LE PASSAGE DE `shutdown:5`.
+		 *
+		 * Une extension branchee sur `shutdown` priorite 10 qui bouge un
+		 * numero arrive apres flush(). Le produit entrait alors dans une file
+		 * que plus rien ne videra, et rien ne le disait. Il est donc ecrit
+		 * directement pour la requete suivante. */
+		if ( did_action( 'shutdown' ) ) {
+			self::persister( array( $product_id => (string) $origin ) );
+
+			return;
+		}
+
 		if ( ! isset( self::$queue[ $product_id ] ) ) {
 			self::$queue[ $product_id ] = (string) $origin;
 		}
@@ -370,6 +469,20 @@ class Dahu_Serial_Numbers_Stock {
 
 	/**
 	 * Pushes everything queued, one product at a time.
+	 *
+	 * DANS QUEL ETAT LA BOUTIQUE RESTE SI CELA S'ARRETE EN PLEIN MILIEU.
+	 * Ce n'est pas une transaction, pas plus que resync(), et cela se dit ici
+	 * parce que ce n'etait dit que la. Chaque produit atteint porte une
+	 * quantite juste et une ligne d'historique ; chaque produit non atteint
+	 * garde celle qu'il avait, et son tour reviendra par reprendre() si
+	 * l'arret est venu d'une lecture de carte. Si l'arret est une erreur
+	 * fatale que `catch ( Throwable )` ne rattrape pas -- depassement du temps
+	 * d'execution, memoire epuisee, erreur fatale d'une extension branchee sur
+	 * `woocommerce_product_set_stock` -- la file est perdue avec la requete et
+	 * les produits non atteints gardent un nombre qu'aucune unite ne
+	 * corrobore, sans trace : remember() n'ecrit que pour les produits
+	 * atteints. C'est le prix de la lecture groupee, et la resynchronisation
+	 * manuelle est ce qui le rattrape.
 	 *
 	 * @return array<int,array<string,mixed>> What was pushed, keyed by product.
 	 */
@@ -421,13 +534,17 @@ class Dahu_Serial_Numbers_Stock {
 		 * erreur fatale que catch ( Throwable ) ne rattrape pas : la file serait
 		 * perdue quand meme, et cette fois sans meme un journal.
 		 *
-		 * La file est donc remise en place, et c'est ce qui donne a la requete
-		 * suivante une chance de faire le travail proprement. */
+		 * LA FILE EST ECRITE EN BASE, PAS REMISE DANS LA PROPRIETE STATIQUE.
+		 * `self::$queue = $queue` ne survivait pas a la requete, et `shutdown`
+		 * etant deja en cours, plus rien ne rappelait flush() : la phrase
+		 * « cela donne a la requete suivante une chance de faire le travail »
+		 * etait fausse, et une assertion du banc la certifiait. Une seconde
+		 * revue adverse l'a mesure. Voir reprendre(). */
 		try {
 			$free     = self::free_map();
 			$reserved = self::reserved_map();
 		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
-			self::$queue = $queue;
+			self::persister( $queue );
 
 			/* error_log, et non le tableau de retour : flush() est accrochee a
 			 * `shutdown`, dont WordPress JETTE la valeur de retour. Une erreur
@@ -435,7 +552,7 @@ class Dahu_Serial_Numbers_Stock {
 			 * intact le reproche d'origine -- rien dans les journaux. */
 			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				sprintf(
-					'dahu-serial-numbers: stock maps unreadable, nothing written, %d product(s) left queued: %s',
+					'dahu-serial-numbers: stock maps unreadable, nothing written, %d product(s) carried over to the next request: %s',
 					count( $queue ),
 					$e->getMessage()
 				)
@@ -444,8 +561,14 @@ class Dahu_Serial_Numbers_Stock {
 			return $done;
 		}
 
-		foreach ( $queue as $product_id => $origin ) {
-			$done[ $product_id ] = self::push( $product_id, $origin, $free, $reserved );
+		self::$flushing = true;
+
+		try {
+			foreach ( $queue as $product_id => $origin ) {
+				$done[ $product_id ] = self::push( $product_id, $origin, $free, $reserved );
+			}
+		} finally {
+			self::$flushing = false;
 		}
 
 		return $done;
@@ -498,21 +621,47 @@ class Dahu_Serial_Numbers_Stock {
 			}
 		}
 
+		/* UNE LISTE VIDEE PAR FILTRE N'EST PAS « ZERO RESERVE ».
+		 *
+		 * Le defaut n'est jamais vide : une liste vide ici veut dire qu'un
+		 * filtre l'a videe, ou que tous ses statuts ont ete rejetes par
+		 * sanitize_key(). Rendue telle quelle, elle faisait sortir
+		 * reserved_map() sur une carte vide, donc `wanted = libres - 0`, donc
+		 * un stock ecrit TROP HAUT et les unites deja payees remises en vente
+		 * -- le danger que le docblock de cette classe nomme en premier. */
+		if ( ! $clean ) {
+			throw new RuntimeException(
+				'dahu-serial-numbers: no order status reserves stock, so reservations cannot be counted.'
+			);
+		}
+
 		return $clean;
 	}
 
 	/**
 	 * How many pieces each product owes to orders being prepared.
 	 *
+	 * CE QUE CETTE METHODE NE SAIT PAS DISTINGUER, ET QUI RESTE OUVERT.
+	 * `wc_get_orders()` rend un tableau vide pour une boutique sans commande
+	 * ouverte comme pour une requete de commandes en echec -- HPOS compris.
+	 * Les deux se lisent pareil, et le second ferait ecrire un stock trop
+	 * haut. Ce qui est verifiable l'est : le type du retour, la liste des
+	 * statuts, et le type de ce que rend le filtre de sortie. Le cas du
+	 * tableau vide legitime, lui, n'est pas detectable d'ici, et il est dit
+	 * plutot que tu.
+	 *
 	 * @return array<int,int> Product id => pieces reserved.
+	 * @throws RuntimeException When reservations cannot be counted at all.
 	 */
 	public static function reserved_map() {
 
 		$map      = array();
 		$statuses = self::reserving_statuses();
 
-		if ( ! $statuses || ! function_exists( 'wc_get_orders' ) ) {
-			return $map;
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			throw new RuntimeException(
+				'dahu-serial-numbers: WooCommerce is not loaded, so reservations cannot be counted.'
+			);
 		}
 
 		$order_ids = wc_get_orders(
@@ -522,6 +671,14 @@ class Dahu_Serial_Numbers_Stock {
 				'return' => 'ids',
 			)
 		);
+
+		// Un filtre tiers sur la requete de commandes peut rendre tout autre
+		// chose qu'une liste. Ce n'est pas « aucune commande ouverte ».
+		if ( ! is_array( $order_ids ) ) {
+			throw new RuntimeException(
+				'dahu-serial-numbers: the order query did not return a list of ids.'
+			);
+		}
 
 		if ( ! $order_ids ) {
 			return $map;
@@ -570,7 +727,20 @@ class Dahu_Serial_Numbers_Stock {
 		 * @param array<int,int> $map       Product id => pieces reserved.
 		 * @param int[]          $order_ids Orders that were counted.
 		 */
-		return (array) apply_filters( 'dahu_serial_numbers_stock_reserved_map', $map, $order_ids );
+		$filtre = apply_filters( 'dahu_serial_numbers_stock_reserved_map', $map, $order_ids );
+
+		/* `(array) $scalaire` DONNE `array( 0 => $scalaire )`.
+		 *
+		 * Soit une carte d'un seul produit d'identifiant 0, c'est-a-dire aucun
+		 * produit reel : toutes les reservations disparaissaient, et le stock
+		 * partait trop haut. Un filtre qui ne rend pas une liste est refuse. */
+		if ( ! is_array( $filtre ) ) {
+			throw new RuntimeException(
+				'dahu-serial-numbers: the dahu_serial_numbers_stock_reserved_map filter did not return a list.'
+			);
+		}
+
+		return $filtre;
 	}
 
 	/**
@@ -604,7 +774,7 @@ class Dahu_Serial_Numbers_Stock {
 			array( Dahu_Serial_Numbers_Statuses::ASSIGNED, Dahu_Serial_Numbers_Statuses::SHIPPED )
 		);
 
-		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL -- own table, placeholders built above.
+		$rows = self::lignes(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders -- the lists are %d/%s placeholders.
 				"SELECT order_id, order_item_id, product_id, COUNT(*) AS held
@@ -613,7 +783,7 @@ class Dahu_Serial_Numbers_Stock {
 				 GROUP BY order_id, order_item_id, product_id",
 				$placeholders
 			),
-			ARRAY_A
+			array( 'order_id', 'order_item_id', 'product_id', 'held' )
 		);
 
 		foreach ( (array) $rows as $row ) {
@@ -668,6 +838,104 @@ class Dahu_Serial_Numbers_Stock {
 	}
 
 	/**
+	 * Runs one of this class's own queries, or says it could not.
+	 *
+	 * THE SINGLE PLACE THESE THREE QUERIES GO THROUGH, AND IT EXISTS FOR ONE
+	 * REASON: `$wpdb->get_results()` RETURNS null ON FAILURE AND THROWS
+	 * NOTHING.
+	 *
+	 * A missing table after an interrupted update, a deadlock, a prepare that
+	 * came back null -- any of these, and `(array) null` is `array()`. An
+	 * empty map is then indistinguishable from a shop whose units are all
+	 * sold, and everything downstream believes it: `$wanted` becomes 0, no
+	 * refusal fires, and `wc_update_product_stock( $product, 0, 'set' )`
+	 * writes zero over every serialised product in the queue, with a history
+	 * line that says the count was zero. No exception, so nothing in the log.
+	 *
+	 * The resynchronisation screen reached the same lie by its own route: with
+	 * an empty plan it prints « no serialised product holds a unit yet, so
+	 * there is nothing to compare », which is the most reassuring possible
+	 * wording for a broken database.
+	 *
+	 * So failure is made loud, by three checks rather than one -- a second
+	 * adversarial review found the first version blind to exactly the family
+	 * of cases a third-party plugin causes, and each check below names the
+	 * hole it closes.
+	 *
+	 * @param string   $sql       Prepared SQL.
+	 * @param string[] $colonnes  Columns the result must carry.
+	 * @return array<int,array<string,mixed>>
+	 * @throws RuntimeException When the query failed, was short-circuited, or
+	 *                          came back carrying someone else's columns.
+	 */
+	private static function lignes( $sql, array $colonnes ) {
+
+		global $wpdb;
+
+		/* UN `prepare()` NUL N'ARRIVE JAMAIS JUSQU'A LA BASE.
+		 *
+		 * prepare() rend null quand le nombre d'arguments ne correspond pas a
+		 * celui des marqueurs, et get_results() rend alors null sans jamais
+		 * atteindre query() : donc sans poser last_error. La carte revenait
+		 * vide en jurant que tout allait bien, et c'est le cas plausible ici
+		 * puisque held_by_line() construit ses listes de marqueurs a la
+		 * volee. */
+		if ( ! is_string( $sql ) || '' === trim( $sql ) ) {
+			throw new RuntimeException( 'dahu-serial-numbers: the query was not prepared.' );
+		}
+
+		/* query() ET last_result, PLUTOT QUE get_results().
+		 *
+		 * get_results() ne consulte pas la valeur de retour de query() : il
+		 * rebatit son tableau depuis $wpdb->last_result. Or un filtre `query`
+		 * tiers -- mode maintenance, lecture seule, repartition -- qui vide la
+		 * requete fait sortir wpdb::query() par un `return false` place AVANT
+		 * flush() : last_error n'est pas pose et last_result garde LES LIGNES
+		 * DE LA REQUETE PRECEDENTE. get_results() rendait donc des lignes
+		 * etrangeres, (int) null valait 0, et une quantite inventee partait
+		 * sur chaque produit serialise sans une ligne de journal.
+		 *
+		 * La valeur de retour de query() est le seul signal qui distingue ce
+		 * court-circuit d'un resultat legitimement vide. */
+		$issue = $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL -- own table, prepared by the caller.
+
+		if ( false === $issue ) {
+			$raison = (string) $wpdb->last_error;
+
+			throw new RuntimeException(
+				'dahu-serial-numbers: ' . ( '' !== $raison ? $raison : 'the query was refused without an error message.' )
+			);
+		}
+
+		if ( '' !== (string) $wpdb->last_error ) {
+			throw new RuntimeException( 'dahu-serial-numbers: ' . $wpdb->last_error );
+		}
+
+		$rows = array();
+
+		foreach ( (array) $wpdb->last_result as $objet ) {
+			$ligne = is_object( $objet ) ? get_object_vars( $objet ) : (array) $objet;
+
+			/* SECOND FILET : DES LIGNES QUI NE SONT PAS LES NOTRES.
+			 *
+			 * Si malgre tout last_result portait le resultat d'une autre
+			 * requete, ses colonnes ne sont pas celles-ci. Mieux vaut refuser
+			 * que lire null et ecrire zero. */
+			foreach ( $colonnes as $colonne ) {
+				if ( ! array_key_exists( $colonne, $ligne ) ) {
+					throw new RuntimeException(
+						'dahu-serial-numbers: the result carries no column named ' . $colonne . '.'
+					);
+				}
+			}
+
+			$rows[] = $ligne;
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Free units in stock, per product.
 	 *
 	 * Free means: `in_stock`, and on no order. A unit `in_stock` that still
@@ -684,7 +952,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		$table = Dahu_Serial_Numbers_Install::serials_table();
 
-		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$rows = self::lignes(
 			$wpdb->prepare(
 				"SELECT product_id, COUNT(*) AS free
 				 FROM {$table}
@@ -695,7 +963,7 @@ class Dahu_Serial_Numbers_Stock {
 				 GROUP BY product_id",
 				Dahu_Serial_Numbers_Statuses::IN_STOCK
 			),
-			ARRAY_A
+			array( 'product_id', 'free' )
 		);
 
 		$map = array();
@@ -722,7 +990,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		$table = Dahu_Serial_Numbers_Install::serials_table();
 
-		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$rows = self::lignes(
 			$wpdb->prepare(
 				"SELECT product_id, COUNT(*) AS stuck
 				 FROM {$table}
@@ -732,7 +1000,7 @@ class Dahu_Serial_Numbers_Stock {
 				 GROUP BY product_id",
 				Dahu_Serial_Numbers_Statuses::IN_STOCK
 			),
-			ARRAY_A
+			array( 'product_id', 'stuck' )
 		);
 
 		$map = array();
@@ -842,6 +1110,7 @@ class Dahu_Serial_Numbers_Stock {
 			'variable_parent'    => __( 'Variable product: stock belongs to its variations.', 'dahu-serial-numbers' ),
 			'stock_not_managed'  => __( 'WooCommerce stock management is off for this product.', 'dahu-serial-numbers' ),
 			'not_serialised'     => __( 'Not marked as carrying serial numbers.', 'dahu-serial-numbers' ),
+			'counts_unreadable'  => __( 'The units could not be counted: the database refused the query. Nothing was written — that way no stock figure is invented.', 'dahu-serial-numbers' ),
 		);
 
 		return isset( $labels[ $code ] ) ? $labels[ $code ] : (string) $code;
@@ -862,8 +1131,31 @@ class Dahu_Serial_Numbers_Stock {
 	public static function plan_one( $product_id, array $free = null, array $reserved = null ) {
 
 		$product_id = (int) $product_id;
-		$free       = null === $free ? self::free_map() : $free;
-		$reserved   = null === $reserved ? self::reserved_map() : $reserved;
+
+		/* UNE CARTE ILLISIBLE EST UN REFUS, PAS UN ZERO.
+		 *
+		 * C'est le canal qui existe deja pour « il n'y a pas de nombre de
+		 * nous a ecrire sur cette ligne », et push() l'honore sans rien
+		 * ecrire. Le faire passer par la plutot que par une exception donne
+		 * en plus, gratuitement, la bonne phrase sur l'ecran de
+		 * resynchronisation : la ligne dit pourquoi elle ne bouge pas. */
+		try {
+			$free     = null === $free ? self::free_map() : $free;
+			$reserved = null === $reserved ? self::reserved_map() : $reserved;
+		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
+			return array(
+				'product_id' => $product_id,
+				'name'       => '',
+				'sku'        => '',
+				'in_stock'   => 0,
+				'reserved'   => 0,
+				'wanted'     => 0,
+				'before'     => null,
+				'gap'        => 0,
+				'refusal'    => 'counts_unreadable',
+				'changes'    => false,
+			);
+		}
 
 		$in_stock      = isset( $free[ $product_id ] ) ? (int) $free[ $product_id ] : 0;
 		$held_back     = isset( $reserved[ $product_id ] ) ? (int) $reserved[ $product_id ] : 0;
@@ -965,9 +1257,34 @@ class Dahu_Serial_Numbers_Stock {
 	 */
 	public static function resync_plan() {
 
-		$free     = self::free_map();
-		$reserved = self::reserved_map();
-		$stuck    = self::stuck_map();
+		/* L'ECRAN DOIT POUVOIR DIRE « JE N'AI PAS PU COMPTER ».
+		 *
+		 * Sans ce troisieme etat, un plan vide fait afficher « aucun produit
+		 * serialise ne porte encore d'unite, il n'y a donc rien a comparer » —
+		 * la phrase la plus rassurante possible devant une base cassee. Le
+		 * message est donc remonte tel quel, et l'ecran le montre en erreur. */
+		try {
+			$free     = self::free_map();
+			$reserved = self::reserved_map();
+			$stuck    = self::stuck_map();
+		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
+			/* L'ECRAN DIT « THE ERROR IS IN THE SITE LOG » : IL FAUT QU'ELLE Y SOIT.
+			 *
+			 * Seule flush() journalisait. L'ecran de resynchronisation
+			 * envoyait donc le lecteur vers un journal vide. */
+			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				'dahu-serial-numbers: stock maps unreadable, resynchronisation plan empty: ' . $e->getMessage()
+			);
+
+			return array(
+				'rows'        => array(),
+				'changing'    => 0,
+				'refused'     => 0,
+				'fingerprint' => '',
+				'cartes'      => null,
+				'erreur'      => $e->getMessage(),
+			);
+		}
 
 		$ids = array_values( array_unique( array_merge( array_keys( $free ), array_keys( $reserved ) ) ) );
 		sort( $ids );
@@ -990,6 +1307,10 @@ class Dahu_Serial_Numbers_Stock {
 		}
 
 		return array(
+			'cartes'      => array(
+				'free'     => $free,
+				'reserved' => $reserved,
+			),
 			'rows'        => $rows,
 			'changing'    => $changing,
 			'refused'     => $refused,
@@ -1045,6 +1366,20 @@ class Dahu_Serial_Numbers_Stock {
 
 		$plan = self::resync_plan();
 
+		/* LA BASE CASSEE SE DIT AVANT L'EMPREINTE, ET NON APRES.
+		 *
+		 * Dans l'autre ordre, un plan en echec rend une empreinte vide, donc
+		 * la comparaison tombait la premiere et repondait « Stock changed
+		 * since this list was drawn up » : la phrase rassurante, remontee d'un
+		 * etage. Et la branche ci-dessous n'etait atteignable qu'avec une
+		 * empreinte soumise vide, c'est-a-dire a peu pres jamais. */
+		if ( isset( $plan['erreur'] ) ) {
+			return new WP_Error(
+				'dahu_serial_numbers_counts_unreadable',
+				__( 'The units could not be counted: the database refused the query. Nothing was written.', 'dahu-serial-numbers' )
+			);
+		}
+
 		if ( (string) $fingerprint !== $plan['fingerprint'] ) {
 			return new WP_Error(
 				'dahu_serial_numbers_stock_moved',
@@ -1052,8 +1387,17 @@ class Dahu_Serial_Numbers_Stock {
 			);
 		}
 
-		$free     = self::free_map();
-		$reserved = self::reserved_map();
+		/* LES CARTES DU PLAN, ET NON UNE SECONDE LECTURE.
+		 *
+		 * L'empreinte etait calculee sur une premiere lecture, puis les cartes
+		 * etaient RELUES et c'est la seconde lecture qui fournissait le nombre
+		 * ecrit. Une commande tombant entre les deux faisait ecrire un nombre
+		 * autre que celui montre et approuve -- l'inverse exact de ce que le
+		 * docblock de fingerprint() promet -- et c'etait en prime du travail en
+		 * double. */
+		$free     = $plan['cartes']['free'];
+		$reserved = $plan['cartes']['reserved'];
+
 		$written  = array();
 		$failed   = array();
 

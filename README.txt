@@ -4,7 +4,7 @@ Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -160,6 +160,12 @@ records which bench did what.
 4. The packing screen on a bench tablet.
 
 == Changelog ==
+
+= 1.5.2 =
+* A database that refuses the query no longer makes the stock figure zero. The units are counted, or the plugin says it could not count them and writes nothing — including when another plugin short-circuits the query rather than failing it, which left no error behind to notice.
+* Reservations are guarded the same way as the units themselves. A filter that empties the list of reserving order statuses, or that returns something other than a list, is now refused instead of silently reading as "nothing is reserved" and putting paid-for units back on sale.
+* A batch the plugin could not write is carried over to the next request instead of being dropped at the end of this one.
+* The manual resynchronisation now writes the figures it showed you, not a second count taken after you approved the first. A database it cannot read says so, rather than reporting that the stock moved.
 
 = 1.5.1 =
 * The screen a shop sees before it has any data now says what will appear there, and offers the link to the action that fills it.
