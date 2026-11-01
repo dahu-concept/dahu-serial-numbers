@@ -1152,3 +1152,223 @@ parce qu'éteindre le produit payant aurait alors bloqué toutes les unités en
 pleine réparation. La correction est donc arrivée du bon côté, et le payant en
 bénéficie sans avoir pris le gratuit en otage. Une boutique restée en 1.1.0
 continue de recevoir le refus écrit, nommément, plutôt qu'un blocage muet.
+
+## 12. Une quantité n'est jamais inventée quand les unités ne se comptent pas (1.5.2)
+
+Deux revues adverses successives sur le même endroit. La première a trouvé le
+défaut ; la seconde a trouvé que le correctif de la première était aveugle
+précisément à la famille de cas qu'une extension tierce provoque. Les deux
+valent d'être écrites, parce que la leçon est dans l'écart entre elles.
+
+### 12.1 Le défaut d'origine
+
+`$wpdb->get_results()` rend `null` sur échec et **ne lève rien**. `(array) null`
+vaut `array()`, donc une carte de stock vide est indistinguable d'une boutique
+dont toutes les unités sont vendues. Tout l'aval le croyait : `$wanted` tombait
+à 0, aucun refus ne se déclenchait, et `wc_update_product_stock( $product, 0,
+'set' )` écrivait zéro sur chaque produit sérialisé de la file, avec une ligne
+d'historique qui l'affirmait. Aucune exception, donc rien dans les journaux.
+
+L'écran de resynchronisation atteignait le même mensonge par sa propre route :
+devant un plan vide il affichait « aucun produit sérialisé ne porte encore
+d'unité, il n'y a donc rien à comparer » — la phrase la plus rassurante
+possible devant une base cassée.
+
+### 12.2 Pourquoi `last_error` seul ne suffisait pas
+
+Le premier correctif a fait passer les trois requêtes de la classe par un
+`lignes()` unique qui lève sur `$wpdb->last_error`. C'est juste pour une erreur
+SQL véritable, et **aveugle pour un court-circuit** :
+
+```php
+// wpdb::query()
+$query = apply_filters( 'query', $query );
+if ( ! $query ) { $this->insert_id = 0; return false; }   // AVANT flush()
+$this->flush();
+```
+
+Le `return false` précède `flush()`. Donc `last_error` n'est pas posé **et
+`last_result` conserve le jeu de lignes de la requête précédente**. Or
+`get_results()` ne consulte pas la valeur de retour de `query()` : il rebâtit
+son tableau depuis `last_result`. Une extension de mode maintenance, de lecture
+seule ou de répartition qui vide la requête faisait donc rendre des lignes
+étrangères, `(int) null` valait 0, et le défaut d'origine repassait entier —
+par la porte même que le banc utilisait pour le mesurer.
+
+### 12.3 Ce que `lignes()` fait maintenant, et dans quel ordre
+
+Trois contrôles, chacun nommant le trou qu'il ferme :
+
+1. **`$sql` doit être une chaîne non vide.** Un `prepare()` qui rend `null`
+   (nombre d'arguments ≠ nombre de marqueurs) n'atteint jamais `query()`, donc
+   ne pose aucune erreur. C'est le cas plausible ici, `held_by_line()`
+   construisant ses listes de marqueurs à la volée.
+2. **`$wpdb->query()`, et sa valeur de retour.** C'est le seul signal qui
+   distingue le court-circuit d'un résultat légitimement vide. Les lignes sont
+   ensuite lues dans `last_result` et converties ici.
+3. **Les colonnes attendues sont exigées sur chaque ligne.** Second filet : si
+   malgré tout `last_result` portait le résultat d'une autre requête, ses
+   colonnes ne sont pas les nôtres. On refuse au lieu de lire `null` et
+   d'écrire zéro.
+
+`$wpdb->last_error = ''` a été **retiré** : il était redondant — `query()`
+appelle `flush()`, qui le vide — et nocif dans les deux chemins de sortie
+anticipée, où il effaçait la dernière erreur qui aurait pu faire lever par
+accident.
+
+### 12.4 La moitié « réservations », laissée sans garde par le premier correctif
+
+`voulu = libres − réservé`. Le premier correctif a durci les trois lectures de
+la table des numéros et laissé intacte la lecture des commandes, qui pèse
+autant. Une carte de réservations vide par erreur fait écrire un stock **trop
+haut**, c'est-à-dire remet en vente des unités déjà payées — le danger que le
+docblock de la classe nomme en premier.
+
+Ce qui est désormais refusé plutôt que lu comme « zéro réservé » :
+
+* une liste de statuts vidée par le filtre `..._reserving_statuses`, ou dont
+  tous les statuts sont rejetés par `sanitize_key()` ;
+* un retour de `wc_get_orders()` qui n'est pas une liste ;
+* un filtre `..._reserved_map` qui ne rend pas une liste — `(array) 7` vaut
+  `array( 0 => 7 )`, soit une carte d'un seul produit d'identifiant 0, donc
+  aucun produit réel, donc toutes les réservations disparues.
+
+**Ce qui reste ouvert, et c'est dit dans le docblock plutôt que tu :**
+`wc_get_orders()` rend un tableau vide pour une boutique sans commande ouverte
+comme pour une requête de commandes en échec, HPOS compris. Les deux se lisent
+pareil et ce n'est pas détectable d'ici.
+
+### 12.5 La file « remise en place » était une fiction
+
+```php
+self::$queue = $queue;   // ce que faisait l'ancien catch
+```
+
+`flush()` est accrochée à `shutdown` priorité 5. Au moment où elle abandonne un
+lot, `shutdown` est **déjà en cours** : plus rien dans la requête ne la
+rappellera, `self::$flush_hooked` reste vrai, et `self::$queue` est un statique
+PHP que la requête suivante ne voit pas. Le commentaire qui promettait « cela
+donne à la requête suivante une chance de faire le travail proprement » était
+faux, et une assertion du banc **certifiait cette récupération inexistante** en
+lisant `queued()`, c'est-à-dire la ligne de code et non la propriété.
+
+Le lot est donc écrit dans l'option `dahu_serial_numbers_stock_a_reprendre`
+(autochargée : une courte liste d'entiers, qui voyage avec les options déjà
+lues, donc sans requête supplémentaire), et `reprendre()`, sur `init`, la
+consomme **avant** de remettre en file — pour qu'un échec permanent ne fasse pas
+grossir l'option indéfiniment.
+
+Deux corollaires du même statique, fermés au passage :
+
+* `queue()` ignore les appels **réentrants** pendant un `flush()`. Écrire un
+  stock fait tourner les crochets de WooCommerce, qui peuvent revenir jusqu'ici ;
+  le produit en cours d'écriture est justement celui dont le nombre est à jour.
+  Sans cette garde, et la file désormais persistée, il serait rejoué à chaque
+  requête pour toujours.
+* un produit mis en file **après** le passage de `shutdown:5` — une extension
+  branchée sur `shutdown` priorité 10 — est écrit directement pour la requête
+  suivante, au lieu d'entrer dans une file que plus rien ne videra.
+
+### 12.6 L'empreinte garantit de nouveau ce qu'elle promet
+
+`resync()` validait l'empreinte, puis **relisait** les cartes, et c'est la
+seconde lecture qui fournissait le nombre écrit. Une commande tombant entre les
+deux faisait écrire un nombre autre que celui montré et approuvé — l'inverse
+exact de ce que le docblock de `fingerprint()` promet — et c'était en prime du
+travail en double. `resync_plan()` rend désormais les cartes qu'il a employées,
+et `resync()` écrit avec celles-là.
+
+Deux conséquences qui n'étaient pas l'objectif et qui valaient le détour :
+
+* l'écran n'annonce plus « %d products could not be written » pour des lignes
+  que la seconde lecture trouvait déjà justes ;
+* l'erreur de base est testée **avant** l'empreinte. Dans l'autre ordre, un
+  plan en échec rend une empreinte vide, donc la comparaison tombait la
+  première et répondait « Stock changed since this list was drawn up » : la
+  phrase rassurante, remontée d'un étage. Et la branche `counts_unreadable`
+  n'était atteignable qu'avec une empreinte soumise vide, c'est-à-dire à peu
+  près jamais — du code quasi mort.
+
+`resync_plan()` journalise aussi désormais, parce que l'écran dit « the error is
+in the site log » et que seule `flush()` journalisait : le lecteur était envoyé
+vers un journal vide.
+
+### 12.7 Ce que `flush()` dit maintenant sur l'état de la boutique
+
+`resync()` le disait, `flush()` non. Ce n'est pas une transaction. Chaque
+produit atteint porte une quantité juste et une ligne d'historique ; chaque
+produit non atteint garde celle qu'il avait, et son tour reviendra par
+`reprendre()` si l'arrêt est venu d'une lecture de carte. Si l'arrêt est une
+erreur fatale que `catch ( Throwable )` ne rattrape pas — dépassement du temps
+d'exécution, mémoire, erreur fatale d'une extension branchée sur
+`woocommerce_product_set_stock` — la file est perdue avec la requête et les
+produits non atteints gardent un nombre qu'aucune unité ne corrobore, sans
+trace : `remember()` n'écrit que pour les produits atteints. C'est le prix de la
+lecture groupée, qui existe pour supprimer les ~18 150 chargements de commande
+mesurés sur 120 produits, et la resynchronisation manuelle est ce qui le
+rattrape.
+
+### 12.8 Le banc, et les trois assertions qui passaient pour rien
+
+`_bench/t-serial-numbers-carte-illisible.php`, **38 assertions vertes** sur
+WordPress réel. L'échec est provoqué par le filtre `query` de WordPress et non
+en touchant au schéma : le banc tourne sur l'intégration SQLite, où
+`RENAME TABLE` et `SHOW TABLES` ne répondent pas comme sur MySQL, et six
+assertions avaient été rouges pour cette raison et non pour la bonne.
+
+Trois assertions de la première version ne mesuraient pas ce qu'elles
+disaient, et chacune est une famille d'erreur à reconnaître :
+
+| assertion | ce qu'elle faisait vraiment |
+|---|---|
+| « ET LA FILE EST REMISE EN PLACE » | lisait le statique, donc la ligne de code, et certifiait une récupération inexistante |
+| « la resynchronisation rend une WP_Error » | verte par l'empreinte volontairement fausse : le `try/catch` de `resync()` n'était **jamais exécuté**, l'assertion serait restée verte si on l'avait supprimé |
+| « le refus se dit en français sur l'écran » | cherchait une chaîne **anglaise**, dans un libellé, sans toucher aucun écran |
+
+S'y ajoutaient : aucun **contre-contrôle positif** — rien ne démontrait qu'une
+écriture a lieu quand la carte se lit, donc « push n'a rien écrit » serait
+resté vert si `wc_update_product_stock()` n'était plus jamais atteint, pour
+n'importe quelle raison étrangère ; **zéro** assertion sur l'échec de
+`reserved_map()` ; et `Settings::save()` passant par `sanitise()`, qui
+reconstruit l'option entière, laissait la poussée automatique **allumée** en
+base à la sortie et les suites suivantes dans un décor changé.
+
+Tout cela est mesuré maintenant, y compris le nombre de lectures de cartes
+(§ 12.6), relevé sur le plan seul plutôt que devin.
+
+### 12.9 Les neuf chutes, et le garde qui n'est pas éprouvable
+
+`_bench/prove-carte-illisible.py` : **9 injections, 9 chutes prouvées**, chacune
+faisant tomber l'assertion nommée.
+
+Un script séparé de `prove-serial-numbers.py`, et c'est délibéré : celui-là
+refuse de tourner sur une base rouge, et `t-serial-numbers-stock.php` porte
+onze assertions rouges enregistrées comme dette. Les injections y auraient été
+écrites sans être exécutables — non prouvées tout en étant écrites, exactement
+ce que ce chapitre raconte. La suite reste inscrite dans les `BENCHES` de
+`prove-serial-numbers.py` pour y être **exécutée**.
+
+Les deux filets du court-circuit sont éprouvés **séparément et ensemble** : une
+injection retire la valeur de retour de `query()` seule — le contrôle des
+colonnes rattrape alors le refus, et c'est son *message* qui change — et une
+injection les retire tous les deux, ce qui fait passer le court-circuit pour un
+résultat légitime. C'est ce que veut dire « défense en profondeur » quand on la
+mesure au lieu de l'affirmer.
+
+**Un garde est délibérément absent de la liste.** Le test
+`'' !== $wpdb->last_error` est réel et sert sur MySQL, mais il n'est pas
+éprouvable ici : une erreur SQL véritable fait **aussi** rendre `false` à
+`query()`, donc le premier filet l'attrape et le retirer ne change aucun
+verdict. Pour le faire tomber il faudrait une erreur qui remplisse `last_error`
+sans que `query()` rende `false`, et l'intégration SQLite n'en produit pas. Le
+réclamer comme prouvé serait faux ; le laisser en échec permanent apprendrait au
+lecteur à passer sur les échecs.
+
+### 12.10 Un rouge de la dette est devenu vert
+
+`t-serial-numbers-stock.php` portait **douze** assertions rouges avant ce
+correctif, et en porte onze après. Celle qui a verdi est
+« et ecrit la valeur montree, pas un recomptage » — exactement la propriété de
+§ 12.6, écrite et en attente depuis la session précédente. Une assertion rouge
+laissée en place comme dette, et non supprimée, a donc fini par valider le
+correctif qu'elle réclamait.
