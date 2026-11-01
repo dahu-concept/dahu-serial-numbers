@@ -902,13 +902,20 @@ class Dahu_Serial_Numbers_Stock {
 		if ( false === $issue ) {
 			$raison = (string) $wpdb->last_error;
 
+			/* esc_html() SUR LA PART VARIABLE DU MESSAGE.
+			 *
+			 * Le message d'une exception non rattrapee finit a l'ecran, et
+			 * `$wpdb->last_error` porte du contenu que la base a compose.
+			 * Plugin Check le refuse sous WordPress.Security.EscapeOutput —
+			 * mesure sur le zip, apres avoir estime a tort que ce correctif
+			 * n'ajoutait rien que des sniffs regardent. */
 			throw new RuntimeException(
-				'dahu-serial-numbers: ' . ( '' !== $raison ? $raison : 'the query was refused without an error message.' )
+				esc_html( 'dahu-serial-numbers: ' . ( '' !== $raison ? $raison : 'the query was refused without an error message.' ) )
 			);
 		}
 
 		if ( '' !== (string) $wpdb->last_error ) {
-			throw new RuntimeException( 'dahu-serial-numbers: ' . $wpdb->last_error );
+			throw new RuntimeException( esc_html( 'dahu-serial-numbers: ' . $wpdb->last_error ) );
 		}
 
 		$rows = array();
@@ -924,7 +931,7 @@ class Dahu_Serial_Numbers_Stock {
 			foreach ( $colonnes as $colonne ) {
 				if ( ! array_key_exists( $colonne, $ligne ) ) {
 					throw new RuntimeException(
-						'dahu-serial-numbers: the result carries no column named ' . $colonne . '.'
+						esc_html( 'dahu-serial-numbers: the result carries no column named ' . $colonne . '.' )
 					);
 				}
 			}
