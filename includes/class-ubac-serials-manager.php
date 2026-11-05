@@ -1036,16 +1036,15 @@ class Ubac_Serials_Manager {
 		 * @param int    $to      Product it is under now.
 		 * @param array  $context Caller context.
 		 */
-		/* `defer_action` : L'APPELANT ANNONCERA LUI-MEME, APRES SON COMMIT.
+		/* `defer_action`: THE CALLER WILL ANNOUNCE, AFTER ITS OWN COMMIT.
 		 *
-		 * Product_Fix::apply() deplace tout un lot dans une transaction et
-		 * passe ce drapeau. Il etait ignore ici, donc l'action partait
-		 * QUAND MEME, et depuis l'interieur de la transaction : un ecouteur
-		 * qui agit sur un changement qui va etre annule agit sur un fait qui
-		 * n'a pas eu lieu, et un ecouteur qui ecrit — stock WooCommerce, un
-		 * post, son propre COMMIT — pouvait valider la moitie du lot sous les
-		 * pieds de l'appelant. Le commentaire de apply() decrivait cette
-		 * protection ; elle n'existait pas. */
+		 * Product_Fix::apply() moves a whole batch inside a transaction and
+		 * passes this flag. It was ignored here, so the action fired ANYWAY,
+		 * and from inside the transaction: a listener acting on a change that
+		 * is about to be rolled back acts on something that never happened,
+		 * and a listener that writes -- WooCommerce stock, a post, its own
+		 * COMMIT -- could commit half the batch from under the caller. The
+		 * comment in apply() described this protection; it did not exist. */
 		if ( empty( $context['defer_action'] ) ) {
 			do_action( 'ubac_serials_product_changed', $serial, $from, $to, $context );
 		}

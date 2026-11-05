@@ -717,9 +717,9 @@ class Ubac_Serials_Stock {
 				$already  = isset( $held[ $line_key ] ) ? (int) $held[ $line_key ] : 0;
 				$left     = max( 0, $reduced - $already );
 
-				/* Cumule par commande ET par produit, pas directement dans la
-				 * carte : la reserve joker de cette commande se soustrait du
-				 * total, et il faut donc l'avoir en entier avant de trancher. */
+				/* Accumulated per order AND per product rather than straight
+				 * into the map: this order's wildcard pool is subtracted from
+				 * the total, so the total has to be whole before deciding. */
 				if ( ! isset( $reste[ $product_id ] ) ) {
 					$reste[ $product_id ] = 0;
 				}
@@ -727,14 +727,14 @@ class Ubac_Serials_Stock {
 				$reste[ $product_id ] += $left;
 			}
 
-			/* LES UNITES SANS LIGNE, CREDITEES AU PRODUIT.
+			/* UNITS WITH NO LINE, CREDITED TO THE PRODUCT.
 			 *
-			 * Une unite qui dit « commande 42, produit 7 » et rien de plus est
-			 * bien une piece deja vendue : elle doit retirer du reserve, sinon
-			 * la piece est offerte deux fois. Appliquee au total du produit
-			 * plutot qu'a une ligne, elle ne peut plus etre mangee par le
-			 * plancher d'une ligne trop petite. Le `max` reste, pour le cas
-			 * ou plus d'unites portent la commande que de pieces engagees. */
+			 * A unit that says "order 42, product 7" and nothing more is a
+			 * piece already sold: it has to come off the reserved count, or
+			 * the piece is offered twice. Applied to the product's total
+			 * rather than to one line, it can no longer be eaten by the floor
+			 * of a line too small to hold it. The `max` stays, for the case
+			 * where more units carry the order than pieces were committed. */
 			foreach ( $reste as $product_id => $left ) {
 				$joker = isset( $held[ (int) $order_id . ':*:' . $product_id ] )
 					? (int) $held[ (int) $order_id . ':*:' . $product_id ]
@@ -831,24 +831,24 @@ class Ubac_Serials_Stock {
 			$held[ $key ] = ( isset( $held[ $key ] ) ? $held[ $key ] : 0 ) + $count;
 		}
 
-		/* LE JOKER RESTE UN JOKER, IL N'EST PLUS REPLIE SUR UNE LIGNE.
+		/* THE WILDCARD STAYS A WILDCARD; IT IS NO LONGER FOLDED ONTO A LINE.
 		 *
-		 * Le repli choisissait la premiere ligne du meme produit et lui
-		 * donnait tout le lot. Deux defauts, et le second est muet :
+		 * The fold picked the first line of the same product and gave it the
+		 * whole batch. Two defects, and the second one is silent:
 		 *
-		 * — sur une commande a deux lignes du meme produit, une de un et une
-		 *   de trois, trois unites sans ligne tombaient sur la ligne de un.
-		 *   `max( 0, 1 - 3 )` mangeait deux credits au plancher, et la
-		 *   reserve retenait deux pieces de trop ;
-		 * — s'il n'existe aucune entree de ligne pour ce produit — le cas
-		 *   normal quand aucune unite ne porte de ligne — le repli ne
-		 *   trouvait rien, et le lot entier etait perdu. La reserve restait
-		 *   pleine, le stock partait d'autant trop bas, et le produit
-		 *   sortait de la vente sans qu'une ligne le dise.
+		 * - on an order with two lines of the same product, one of one and
+		 *   one of three, three units with no line landed on the line of one.
+		 *   `max( 0, 1 - 3 )` ate two credits at the floor, and the reserved
+		 *   count held two pieces too many;
+		 * - when no line entry exists for that product at all -- the normal
+		 *   case when no unit names a line -- the fold found nothing and the
+		 *   whole batch was lost. The reserved count stayed full, the stock
+		 *   went that much too low, and the product left the shelf with
+		 *   nothing on screen to say so.
 		 *
-		 * La reserve est donc rendue telle quelle, sous sa clef joker, et
-		 * `reserved_map()` la soustrait du total engage de la commande pour ce
-		 * produit — la ou le plancher ne peut plus rien manger. */
+		 * The pool is therefore returned as it is, under its wildcard key,
+		 * and `reserved_map()` subtracts it from the order's committed total
+		 * for that product -- where no line's floor can eat it. */
 		return $held;
 	}
 
@@ -988,17 +988,17 @@ class Ubac_Serials_Stock {
 			array( 'product_id', 'free' )
 		);
 
-		/* L'ID EST RESOLU ICI AUSSI, ET LES UNITES SE CUMULENT.
+		/* THE ID IS RESOLVED HERE TOO, AND THE UNITS ACCUMULATE.
 		 *
-		 * `reserved_map()` resout, et `free_map()` ne le faisait pas. Une
-		 * boutique qui se sert du filtre `resolve` avait donc ses
-		 * reservations sur l'id cible et ses unites libres sur l'id source :
-		 * deux colonnes du meme plan qui ne parlaient pas du meme produit, et
-		 * un stock calcule a partir de la difference des deux.
+		 * `reserved_map()` resolves and `free_map()` did not. A shop using the
+		 * `resolve` filter therefore had its reservations on the target id and
+		 * its free units on the source id: two columns of the same plan that
+		 * were not talking about the same product, with a stock figure worked
+		 * out from the difference between them.
 		 *
-		 * Le cumul n'est pas un detail : `resolve()` peut rabattre plusieurs
-		 * ids sources sur une seule cible, et une affectation simple aurait
-		 * garde la derniere ligne en jetant les autres. */
+		 * Accumulating is not a detail: `resolve()` may fold several source
+		 * ids onto a single target, and a plain assignment would have kept
+		 * the last row and thrown the others away. */
 		$map = array();
 
 		foreach ( (array) $rows as $row ) {
@@ -1065,8 +1065,8 @@ class Ubac_Serials_Stock {
 			array( 'product_id', 'units' )
 		);
 
-		/* Meme resolution et meme cumul que `free_map()`, pour la meme
-		 * raison : les trois cartes du plan doivent indexer le meme produit. */
+		/* Same resolution and same accumulation as `free_map()`, for the same
+		 * reason: the plan's three maps must index the same product. */
 		$map = array();
 
 		foreach ( (array) $rows as $row ) {
@@ -1090,18 +1090,19 @@ class Ubac_Serials_Stock {
 		 * « serialise » sans lui donner d'unite est precisement ce qu'on fait
 		 * en le preparant, et son stock WooCommerce doit tomber a zero plutot
 		 * que de rester vendable. */
-		/* PAS DE PLAFOND, ET C'EST DELIBERE.
+		/* NO CEILING, AND THAT IS DELIBERATE.
 		 *
-		 * Une page de 500 aurait deux defauts, et le second est pire que le
-		 * premier. Au-dela de 500, les plus anciens tombent du plan en
-		 * silence — donc exactement ceux qui ont eu le plus de temps pour
-		 * deriver. Et la fenetre serait datee (`ORDER BY post_date DESC` par
-		 * defaut), si bien que creer un produit coche entre l'affichage et le
-		 * clic decalerait la liste et ferait repondre « Stock changed since
-		 * this list was drawn up » pour un produit etranger au plan.
+		 * A page of 500 would have two defects, and the second is worse than
+		 * the first. Past 500, the oldest fall out of the plan silently --
+		 * so precisely those that have had the most time to drift. And the
+		 * window would be dated (`ORDER BY post_date DESC` by default), so
+		 * creating a ticked product between the screen being drawn and the
+		 * button being pressed would shift the list and answer "Stock changed
+		 * since this list was drawn up" for a product with no part in the
+		 * plan.
 		 *
-		 * C'est une requete d'ids, pas une page : `no_found_rows` evite le
-		 * COUNT, et l'ecran ne tourne que sur demande, sous capacite. */
+		 * This is a query for ids, not a page: `no_found_rows` skips the
+		 * COUNT, and the screen only runs on demand, behind a capability. */
 		$drapeau = get_posts(
 			array(
 				'post_type'      => array( 'product', 'product_variation' ),
@@ -1123,20 +1124,20 @@ class Ubac_Serials_Stock {
 				continue;
 			}
 
-			/* LE DRAPEAU SE POSE SUR LE PARENT, LE STOCK VIT SUR L'ENFANT.
+			/* THE FLAG SITS ON THE PARENT; THE STOCK LIVES ON THE CHILD.
 			 *
-			 * `is_serialised()` remonte au parent : cocher la case sur le
-			 * produit variable plutot que sur chacune de ses variations est
-			 * la facon normale de faire, et son docblock le dit. Mais le
-			 * stock, lui, appartient aux variations, et le plan refuse tout
-			 * parent variable (`variable_parent`). Garder le parent ici
-			 * donnerait donc une ligne qui a l'air examinee et ne decide
-			 * rien, pendant que les variations — invisibles au plan — restent
-			 * vendables sans une seule unite en table. C'est le silence meme
-			 * que cette carte existe pour tuer.
+			 * `is_serialised()` walks up to the parent: ticking the box on
+			 * the variable product rather than on each of its variations is
+			 * the normal way to do it, and its docblock says so. But the
+			 * stock belongs to the variations, and the plan refuses every
+			 * variable parent (`variable_parent`). Keeping the parent here
+			 * would therefore produce a row that looks examined and decides
+			 * nothing, while the variations -- invisible to the plan -- stay
+			 * sellable with not one unit in the table. That is the very
+			 * silence this map exists to end.
 			 *
-			 * Le parent est donc remplace par ses enfants, et pas ajoute
-			 * avec eux : il n'a pas de stock a reconcilier. */
+			 * The parent is therefore replaced by its children rather than
+			 * added alongside them: it has no stock to reconcile. */
 			$produit = wc_get_product( $product_id );
 
 			if ( $produit && $produit->is_type( 'variable' ) ) {
@@ -1179,20 +1180,20 @@ class Ubac_Serials_Stock {
 		 */
 		$map = apply_filters( 'ubac_serials_stock_known_products', $map );
 
-		/* LE FILTRE EST REFUSE S'IL REND UNE LISTE, PAS RATTRAPE.
+		/* A FILTER THAT RETURNS A LIST IS REFUSED, NOT PATCHED UP.
 		 *
-		 * L'erreur naturelle est de rendre une liste plate d'ids plutot
-		 * qu'une carte. Les clefs sont alors 0, 1, 2 : le plan porterait des
-		 * lignes `unknown_product` sur des ids qui n'existent pas, et les
-		 * vrais ids seraient perdus en silence — le symptome meme que cette
-		 * carte existe pour tuer, repose dans le chemin d'extension.
+		 * The natural mistake is to return a flat list of ids rather than a
+		 * map. The keys are then 0, 1, 2: the plan would carry
+		 * `unknown_product` rows for ids that do not exist, and the real ids
+		 * would be lost silently -- the very symptom this map exists to end,
+		 * laid back down in the extension path.
 		 *
-		 * Filtrer les clefs ne suffirait pas : seule la clef 0 est invalide,
-		 * et 1, 2, 3 passeraient pour des identifiants de produit. Ce qui se
-		 * reconnait, c'est la forme — des clefs entieres consecutives depuis
-		 * zero. Aucune carte legitime ne peut l'avoir, puisque l'id 0 n'est
-		 * pas un produit. Le refus est donc sur, et il est explicite plutot
-		 * que silencieux, comme pour `ubac_serials_stock_reserved_map`. */
+		 * Filtering the keys would not be enough: only key 0 is invalid, and
+		 * 1, 2, 3 would pass for product ids. What is recognisable is the
+		 * shape -- integer keys running consecutively from zero. No
+		 * legitimate map can have it, since id 0 is not a product. The
+		 * refusal is therefore safe, and it is explicit rather than silent,
+		 * as for `ubac_serials_stock_reserved_map`. */
 		if ( ! is_array( $map ) ) {
 			throw new RuntimeException(
 				'ubac-serials: the ubac_serials_stock_known_products filter did not return an array.'
