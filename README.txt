@@ -1,4 +1,4 @@
-=== Ubac Serial Numbers ===
+=== Ubac Serial ===
 Contributors: dahuconcept
 Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.0
