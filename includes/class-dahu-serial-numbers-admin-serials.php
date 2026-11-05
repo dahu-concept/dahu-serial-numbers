@@ -25,15 +25,15 @@ class Dahu_Serial_Numbers_Admin_Serials {
 	public static function render() {
 
 		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to view serial numbers.', 'dahu-serial-numbers' ) );
+			wp_die( esc_html__( 'You do not have permission to view serial numbers.', 'ubac-serials' ) );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only filter on a capability-checked screen.
 		$one = isset( $_GET['serial'] ) ? Dahu_Serial_Numbers_Format::normalise( wp_unslash( $_GET['serial'] ) ) : '';
 
 		Dahu_Serial_Numbers_Admin::open(
-			__( 'Serial numbers', 'dahu-serial-numbers' ),
-			__( 'Dahu Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been.', 'dahu-serial-numbers' )
+			__( 'Serial numbers', 'ubac-serials' ),
+			__( 'Dahu Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been.', 'ubac-serials' )
 		);
 
 		self::render_move_notice();
@@ -113,18 +113,18 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		<form method="get" class="dahu-serial-numbers__filters">
 			<input type="hidden" name="page" value="<?php echo esc_attr( Dahu_Serial_Numbers_Admin::SLUG ); ?>" />
 
-			<label class="screen-reader-text" for="dahu-sn-search"><?php esc_html_e( 'Search a serial number', 'dahu-serial-numbers' ); ?></label>
+			<label class="screen-reader-text" for="dahu-sn-search"><?php esc_html_e( 'Search a serial number', 'ubac-serials' ); ?></label>
 			<input
 				type="search"
 				id="dahu-sn-search"
 				name="s"
 				value="<?php echo esc_attr( $filters['search'] ); ?>"
-				placeholder="<?php esc_attr_e( 'Serial number', 'dahu-serial-numbers' ); ?>"
+				placeholder="<?php esc_attr_e( 'Serial number', 'ubac-serials' ); ?>"
 			/>
 
-			<label class="screen-reader-text" for="dahu-sn-status"><?php esc_html_e( 'Status', 'dahu-serial-numbers' ); ?></label>
+			<label class="screen-reader-text" for="dahu-sn-status"><?php esc_html_e( 'Status', 'ubac-serials' ); ?></label>
 			<select id="dahu-sn-status" name="status">
-				<option value=""><?php esc_html_e( 'Any status', 'dahu-serial-numbers' ); ?></option>
+				<option value=""><?php esc_html_e( 'Any status', 'ubac-serials' ); ?></option>
 				<?php foreach ( Dahu_Serial_Numbers_Statuses::labels() as $key => $label ) : ?>
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $filters['status'], $key ); ?>>
 						<?php echo esc_html( $label ); ?>
@@ -132,16 +132,16 @@ class Dahu_Serial_Numbers_Admin_Serials {
 				<?php endforeach; ?>
 			</select>
 
-			<label class="screen-reader-text" for="dahu-sn-batch"><?php esc_html_e( 'Supplier batch', 'dahu-serial-numbers' ); ?></label>
+			<label class="screen-reader-text" for="dahu-sn-batch"><?php esc_html_e( 'Supplier batch', 'ubac-serials' ); ?></label>
 			<input
 				type="text"
 				id="dahu-sn-batch"
 				name="batch"
 				value="<?php echo esc_attr( $filters['batch'] ); ?>"
-				placeholder="<?php esc_attr_e( 'Supplier batch', 'dahu-serial-numbers' ); ?>"
+				placeholder="<?php esc_attr_e( 'Supplier batch', 'ubac-serials' ); ?>"
 			/>
 
-			<?php submit_button( __( 'Filter', 'dahu-serial-numbers' ), 'secondary', '', false ); ?>
+			<?php submit_button( __( 'Filter', 'ubac-serials' ), 'secondary', '', false ); ?>
 		</form>
 		</div>
 		<?php
@@ -170,13 +170,13 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		<table class="widefat striped dahu-serial-numbers__table">
 			<thead>
 				<tr>
-					<th scope="col"><?php esc_html_e( 'Serial number', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Status', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Product', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Supplier batch', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Order', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Made', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Last movement', 'dahu-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Serial number', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Status', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Product', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Supplier batch', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Order', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Made', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Last movement', 'ubac-serials' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -184,12 +184,12 @@ class Dahu_Serial_Numbers_Admin_Serials {
 				<tr>
 					<td colspan="7">
 						<?php if ( '' !== $filters['search'] || '' !== $filters['status'] || '' !== $filters['batch'] ) : ?>
-							<p class="dahu-ui-hint"><?php esc_html_e( 'Nothing matches those filters.', 'dahu-serial-numbers' ); ?></p>
+							<p class="dahu-ui-hint"><?php esc_html_e( 'Nothing matches those filters.', 'ubac-serials' ); ?></p>
 						<?php else : ?>
-							<p class="dahu-ui-hint"><?php esc_html_e( 'No serial number on file yet. One appears the first time a workshop post scans a unit.', 'dahu-serial-numbers' ); ?></p>
+							<p class="dahu-ui-hint"><?php esc_html_e( 'No serial number on file yet. One appears the first time a workshop post scans a unit.', 'ubac-serials' ); ?></p>
 							<p>
 								<a class="dahu-ui-btn" href="<?php echo esc_url( admin_url( 'admin.php?page=dahu-serial-numbers-stations' ) ); ?>">
-									<?php esc_html_e( 'Set up a workshop post', 'dahu-serial-numbers' ); ?>
+									<?php esc_html_e( 'Set up a workshop post', 'ubac-serials' ); ?>
 								</a>
 							</p>
 						<?php endif; ?>
@@ -246,7 +246,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 			esc_html(
 				sprintf(
 					/* translators: 1: rows shown, 2: total rows. */
-					__( 'Showing %1$s of %2$s matching units.', 'dahu-serial-numbers' ),
+					__( 'Showing %1$s of %2$s matching units.', 'ubac-serials' ),
 					number_format_i18n( min( self::PER_PAGE, $total - ( ( $filters['page'] - 1 ) * self::PER_PAGE ) ) ),
 					number_format_i18n( $total )
 				)
@@ -298,7 +298,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		printf(
 			'<p><a href="%s">%s</a></p>',
 			esc_url( admin_url( 'admin.php?page=' . Dahu_Serial_Numbers_Admin::SLUG ) ),
-			esc_html__( '← All serial numbers', 'dahu-serial-numbers' )
+			esc_html__( '← All serial numbers', 'ubac-serials' )
 		);
 
 		if ( ! $row ) {
@@ -306,7 +306,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 				'error',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'No unit on file under %s.', 'dahu-serial-numbers' ),
+					__( 'No unit on file under %s.', 'ubac-serials' ),
 					$serial
 				)
 			);
@@ -320,14 +320,14 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		// at page load. A definition table is what WordPress uses for this
 		// everywhere, so it is what this uses.
 		$pairs = array(
-			__( 'Status', 'dahu-serial-numbers' )         => Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] ),
-			__( 'Product', 'dahu-serial-numbers' )        => self::product_name( $row ),
-			__( 'Supplier batch', 'dahu-serial-numbers' ) => '' !== (string) $row['supplier_order'] ? (string) $row['supplier_order'] : '—',
-			__( 'Supplier name', 'dahu-serial-numbers' )  => '' !== (string) $row['supplier_name'] ? (string) $row['supplier_name'] : '—',
-			__( 'Made', 'dahu-serial-numbers' )           => self::made( $row ),
-			__( 'Received', 'dahu-serial-numbers' )       => Dahu_Serial_Numbers_Admin::local( $row['received_at'] ),
-			__( 'Last checked', 'dahu-serial-numbers' )   => Dahu_Serial_Numbers_Admin::local( $row['checked_at'] ),
-			__( 'Last movement', 'dahu-serial-numbers' )  => Dahu_Serial_Numbers_Admin::local( $row['updated_at'] ),
+			__( 'Status', 'ubac-serials' )         => Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] ),
+			__( 'Product', 'ubac-serials' )        => self::product_name( $row ),
+			__( 'Supplier batch', 'ubac-serials' ) => '' !== (string) $row['supplier_order'] ? (string) $row['supplier_order'] : '—',
+			__( 'Supplier name', 'ubac-serials' )  => '' !== (string) $row['supplier_name'] ? (string) $row['supplier_name'] : '—',
+			__( 'Made', 'ubac-serials' )           => self::made( $row ),
+			__( 'Received', 'ubac-serials' )       => Dahu_Serial_Numbers_Admin::local( $row['received_at'] ),
+			__( 'Last checked', 'ubac-serials' )   => Dahu_Serial_Numbers_Admin::local( $row['checked_at'] ),
+			__( 'Last movement', 'ubac-serials' )  => Dahu_Serial_Numbers_Admin::local( $row['updated_at'] ),
 		);
 
 		echo '<table class="widefat striped dahu-serial-numbers__table"><tbody>';
@@ -342,7 +342,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 
 		printf(
 			'<tr><th scope="row">%s</th><td>%s</td></tr>',
-			esc_html__( 'Order', 'dahu-serial-numbers' ),
+			esc_html__( 'Order', 'ubac-serials' ),
 			wp_kses_post( self::order_link( $row ) )
 		);
 
@@ -411,7 +411,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		check_admin_referer( 'dahu-serial-numbers-move-' . $serial );
 
 		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to move a unit.', 'dahu-serial-numbers' ) );
+			wp_die( esc_html__( 'You do not have permission to move a unit.', 'ubac-serials' ) );
 		}
 
 		$to   = sanitize_key( wp_unslash( $_POST['dahu_serial_move_to'] ) );
@@ -435,7 +435,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		if ( ! array_key_exists( $to, Dahu_Serial_Numbers_Statuses::next( (string) $row['status'] ) ) ) {
 			self::$move_error = sprintf(
 				/* translators: 1: current status label, 2: wanted status label. */
-				__( 'A unit cannot go from “%1$s” to “%2$s”. The list on this screen only offers the moves that are allowed, so this one did not come from here.', 'dahu-serial-numbers' ),
+				__( 'A unit cannot go from “%1$s” to “%2$s”. The list on this screen only offers the moves that are allowed, so this one did not come from here.', 'ubac-serials' ),
 				Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] ),
 				Dahu_Serial_Numbers_Statuses::label( $to )
 			);
@@ -461,7 +461,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 			$to,
 			array(
 				'event' => 'admin_move',
-				'note'  => '' !== $note ? $note : __( 'Moved by hand from the serial numbers screen.', 'dahu-serial-numbers' ),
+				'note'  => '' !== $note ? $note : __( 'Moved by hand from the serial numbers screen.', 'ubac-serials' ),
 			)
 		);
 
@@ -509,7 +509,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 			'success',
 			sprintf(
 				/* translators: %s: new status label. */
-				__( 'The unit is now “%s”, and the move is in its history.', 'dahu-serial-numbers' ),
+				__( 'The unit is now “%s”, and the move is in its history.', 'ubac-serials' ),
 				Dahu_Serial_Numbers_Statuses::label( $moved )
 			)
 		);
@@ -532,7 +532,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 
 		$next = Dahu_Serial_Numbers_Statuses::next( (string) $row['status'] );
 
-		printf( '<h3>%s</h3>', esc_html__( 'Where it can go next', 'dahu-serial-numbers' ) );
+		printf( '<h3>%s</h3>', esc_html__( 'Where it can go next', 'ubac-serials' ) );
 
 		if ( ! $next ) {
 			printf(
@@ -540,7 +540,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 				esc_html(
 					sprintf(
 						/* translators: %s: status label. */
-						__( 'Nothing leaves “%s”. That is deliberate: a unit that was replaced or destroyed reappearing elsewhere is either a mistake or a story this history should be able to tell.', 'dahu-serial-numbers' ),
+						__( 'Nothing leaves “%s”. That is deliberate: a unit that was replaced or destroyed reappearing elsewhere is either a mistake or a story this history should be able to tell.', 'ubac-serials' ),
 						Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] )
 					)
 				)
@@ -561,7 +561,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 
 		printf(
 			'<label class="screen-reader-text" for="dahu-serial-move-to">%s</label>',
-			esc_html__( 'New status', 'dahu-serial-numbers' )
+			esc_html__( 'New status', 'ubac-serials' )
 		);
 
 		echo '<select id="dahu-serial-move-to" name="dahu_serial_move_to">';
@@ -578,14 +578,14 @@ class Dahu_Serial_Numbers_Admin_Serials {
 
 		printf(
 			'<input type="text" name="dahu_serial_move_note" class="regular-text" placeholder="%s">',
-			esc_attr__( 'Why, for the history (optional)', 'dahu-serial-numbers' )
+			esc_attr__( 'Why, for the history (optional)', 'ubac-serials' )
 		);
 
-		submit_button( __( 'Move this unit', 'dahu-serial-numbers' ), 'secondary', '', false );
+		submit_button( __( 'Move this unit', 'ubac-serials' ), 'secondary', '', false );
 
 		printf(
 			'<p class="dahu-serial-numbers__hint">%s</p>',
-			esc_html__( 'Every move is recorded in the history below, with who made it and when. Nothing here skips the lifecycle: only the moves the register allows from where this unit is are offered.', 'dahu-serial-numbers' )
+			esc_html__( 'Every move is recorded in the history below, with who made it and when. Nothing here skips the lifecycle: only the moves the register allows from where this unit is are offered.', 'ubac-serials' )
 		);
 
 		echo '</form>';
@@ -618,7 +618,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 			esc_html(
 				sprintf(
 					/* translators: %s: wanted status label. */
-					__( 'Nothing leaves “%s”. The unit stays in the register with everything it has already done, and this screen will have no move left to offer it.', 'dahu-serial-numbers' ),
+					__( 'Nothing leaves “%s”. The unit stays in the register with everything it has already done, and this screen will have no move left to offer it.', 'ubac-serials' ),
 					Dahu_Serial_Numbers_Statuses::label( $to )
 				)
 			)
@@ -627,7 +627,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		submit_button(
 			sprintf(
 				/* translators: %s: wanted status label. */
-				__( 'Yes, move it to “%s”', 'dahu-serial-numbers' ),
+				__( 'Yes, move it to “%s”', 'ubac-serials' ),
 				Dahu_Serial_Numbers_Statuses::label( $to )
 			),
 			'primary',
@@ -638,7 +638,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		printf(
 			' <a href="%s">%s</a>',
 			esc_url( self::link( (string) $row['serial'] ) ),
-			esc_html__( 'Leave it where it is', 'dahu-serial-numbers' )
+			esc_html__( 'Leave it where it is', 'ubac-serials' )
 		);
 
 		echo '</form>';
@@ -654,23 +654,23 @@ class Dahu_Serial_Numbers_Admin_Serials {
 
 		$lines = Dahu_Serial_Numbers_Log::for_serial( $serial, 0 );
 
-		printf( '<h3>%s</h3>', esc_html__( 'History', 'dahu-serial-numbers' ) );
+		printf( '<h3>%s</h3>', esc_html__( 'History', 'ubac-serials' ) );
 
 		printf(
 			'<p class="dahu-serial-numbers__hint">%s</p>',
-			esc_html__( 'Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently.', 'dahu-serial-numbers' )
+			esc_html__( 'Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently.', 'ubac-serials' )
 		);
 
 		echo '<table class="widefat striped dahu-serial-numbers__table"><thead><tr>';
-		printf( '<th scope="col">%s</th>', esc_html__( 'When', 'dahu-serial-numbers' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Event', 'dahu-serial-numbers' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Movement', 'dahu-serial-numbers' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'By', 'dahu-serial-numbers' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Details', 'dahu-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'When', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Event', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Movement', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'By', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Details', 'ubac-serials' ) );
 		echo '</tr></thead><tbody>';
 
 		if ( ! $lines ) {
-			printf( '<tr><td colspan="5">%s</td></tr>', esc_html__( 'No history line, which should not happen: filing a unit writes one.', 'dahu-serial-numbers' ) );
+			printf( '<tr><td colspan="5">%s</td></tr>', esc_html__( 'No history line, which should not happen: filing a unit writes one.', 'ubac-serials' ) );
 		}
 
 		foreach ( $lines as $line ) {
@@ -680,7 +680,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 				$movement = $line['old_status']
 					? sprintf(
 						/* translators: 1: status before, 2: status after. */
-						__( '%1$s → %2$s', 'dahu-serial-numbers' ),
+						__( '%1$s → %2$s', 'ubac-serials' ),
 						Dahu_Serial_Numbers_Statuses::label( (string) $line['old_status'] ),
 						Dahu_Serial_Numbers_Statuses::label( (string) $line['new_status'] )
 					)
@@ -742,7 +742,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 			// what it was filed as.
 			return sprintf(
 				/* translators: %d: product id. */
-				__( 'Deleted product #%d', 'dahu-serial-numbers' ),
+				__( 'Deleted product #%d', 'ubac-serials' ),
 				$product_id
 			);
 		}
@@ -769,7 +769,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		if ( ! $order instanceof WC_Order ) {
 			return sprintf(
 				/* translators: %d: order id. */
-				esc_html__( 'Deleted order #%d', 'dahu-serial-numbers' ),
+				esc_html__( 'Deleted order #%d', 'ubac-serials' ),
 				$order_id
 			);
 		}
@@ -805,7 +805,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		// fact nobody recorded.
 		return sprintf(
 			/* translators: 1: month name, 2: year. */
-			__( '%1$s %2$d', 'dahu-serial-numbers' ),
+			__( '%1$s %2$d', 'ubac-serials' ),
 			date_i18n( 'F', mktime( 0, 0, 0, $month, 1, $year ) ),
 			$year
 		);
@@ -825,7 +825,7 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		if ( $station_id > 0 ) {
 			return sprintf(
 				/* translators: %s: workshop post name. */
-				__( 'Post: %s', 'dahu-serial-numbers' ),
+				__( 'Post: %s', 'ubac-serials' ),
 				Dahu_Serial_Numbers_Stations::label( $station_id )
 			);
 		}
@@ -835,14 +835,14 @@ class Dahu_Serial_Numbers_Admin_Serials {
 		if ( $user_id <= 0 ) {
 			// Zero is not a missing value: it says the site did this, on a
 			// schedule or from the command line, with nobody signed in.
-			return __( 'The site', 'dahu-serial-numbers' );
+			return __( 'The site', 'ubac-serials' );
 		}
 
 		$user = get_userdata( $user_id );
 
 		return $user ? $user->display_name : sprintf(
 			/* translators: %d: user id. */
-			__( 'Deleted user #%d', 'dahu-serial-numbers' ),
+			__( 'Deleted user #%d', 'ubac-serials' ),
 			$user_id
 		);
 	}

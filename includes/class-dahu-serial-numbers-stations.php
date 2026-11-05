@@ -61,7 +61,7 @@ class Dahu_Serial_Numbers_Stations {
 		if ( '' === $login ) {
 			return new WP_Error(
 				'dahu_serial_numbers_station_no_login',
-				__( 'A login is required.', 'dahu-serial-numbers' )
+				__( 'A login is required.', 'ubac-serials' )
 			);
 		}
 
@@ -70,7 +70,7 @@ class Dahu_Serial_Numbers_Stations {
 				'dahu_serial_numbers_station_weak_password',
 				sprintf(
 					/* translators: %d: minimum number of characters. */
-					__( 'The password must be at least %d characters long.', 'dahu-serial-numbers' ),
+					__( 'The password must be at least %d characters long.', 'ubac-serials' ),
 					self::MIN_PASSWORD_LENGTH
 				)
 			);
@@ -81,7 +81,7 @@ class Dahu_Serial_Numbers_Stations {
 				'dahu_serial_numbers_station_exists',
 				sprintf(
 					/* translators: %s: login. */
-					__( 'The login “%s” is already taken.', 'dahu-serial-numbers' ),
+					__( 'The login “%s” is already taken.', 'ubac-serials' ),
 					$login
 				)
 			);
@@ -102,7 +102,7 @@ class Dahu_Serial_Numbers_Stations {
 		if ( ! $inserted ) {
 			return new WP_Error(
 				'dahu_serial_numbers_station_insert_failed',
-				__( 'The workshop post could not be created.', 'dahu-serial-numbers' )
+				__( 'The workshop post could not be created.', 'ubac-serials' )
 			);
 		}
 
@@ -132,7 +132,7 @@ class Dahu_Serial_Numbers_Stations {
 		if ( ! self::get( $station_id ) ) {
 			return new WP_Error(
 				'dahu_serial_numbers_station_unknown',
-				__( 'Unknown workshop post.', 'dahu-serial-numbers' )
+				__( 'Unknown workshop post.', 'ubac-serials' )
 			);
 		}
 
@@ -141,7 +141,7 @@ class Dahu_Serial_Numbers_Stations {
 				'dahu_serial_numbers_station_weak_password',
 				sprintf(
 					/* translators: %d: minimum number of characters. */
-					__( 'The password must be at least %d characters long.', 'dahu-serial-numbers' ),
+					__( 'The password must be at least %d characters long.', 'ubac-serials' ),
 					self::MIN_PASSWORD_LENGTH
 				)
 			);
@@ -181,7 +181,7 @@ class Dahu_Serial_Numbers_Stations {
 		if ( ! self::get( $station_id ) ) {
 			return new WP_Error(
 				'dahu_serial_numbers_station_unknown',
-				__( 'Unknown workshop post.', 'dahu-serial-numbers' )
+				__( 'Unknown workshop post.', 'ubac-serials' )
 			);
 		}
 

@@ -93,19 +93,19 @@ class Dahu_Serial_Numbers_Statuses {
 	public static function labels() {
 
 		return array(
-			self::RECEIVED        => __( 'Received', 'dahu-serial-numbers' ),
-			self::IN_STOCK        => __( 'In stock', 'dahu-serial-numbers' ),
-			self::ASSIGNED        => __( 'Assigned to an order', 'dahu-serial-numbers' ),
-			self::SHIPPED         => __( 'Shipped', 'dahu-serial-numbers' ),
-			self::RETURN_EXPECTED => __( 'Return expected', 'dahu-serial-numbers' ),
-			self::RETURNED_OK     => __( 'Returned, as described', 'dahu-serial-numbers' ),
-			self::RETURNED_FAULTY => __( 'Returned, not as described', 'dahu-serial-numbers' ),
-			self::IN_REPAIR       => __( 'In repair', 'dahu-serial-numbers' ),
-			self::REPLACED        => __( 'Replaced', 'dahu-serial-numbers' ),
-			self::REPAIRED        => __( 'Repaired', 'dahu-serial-numbers' ),
-			self::RESTOCKING      => __( 'Going back to stock', 'dahu-serial-numbers' ),
-			self::ADJUSTED_OUT    => __( 'Held, not counted as stock', 'dahu-serial-numbers' ),
-			self::DESTROYED       => __( 'Destroyed', 'dahu-serial-numbers' ),
+			self::RECEIVED        => __( 'Received', 'ubac-serials' ),
+			self::IN_STOCK        => __( 'In stock', 'ubac-serials' ),
+			self::ASSIGNED        => __( 'Assigned to an order', 'ubac-serials' ),
+			self::SHIPPED         => __( 'Shipped', 'ubac-serials' ),
+			self::RETURN_EXPECTED => __( 'Return expected', 'ubac-serials' ),
+			self::RETURNED_OK     => __( 'Returned, as described', 'ubac-serials' ),
+			self::RETURNED_FAULTY => __( 'Returned, not as described', 'ubac-serials' ),
+			self::IN_REPAIR       => __( 'In repair', 'ubac-serials' ),
+			self::REPLACED        => __( 'Replaced', 'ubac-serials' ),
+			self::REPAIRED        => __( 'Repaired', 'ubac-serials' ),
+			self::RESTOCKING      => __( 'Going back to stock', 'ubac-serials' ),
+			self::ADJUSTED_OUT    => __( 'Held, not counted as stock', 'ubac-serials' ),
+			self::DESTROYED       => __( 'Destroyed', 'ubac-serials' ),
 		);
 	}
 

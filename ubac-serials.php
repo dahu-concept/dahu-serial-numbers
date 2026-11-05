@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name:       Dahu Serial Numbers
+ * Plugin Name:       Ubac Serial Numbers
  * Description:       Per-unit traceability for WooCommerce: a serial number on every item you ship, a lifecycle with a transition matrix that refuses the moves that make no sense, an append-only history, a workshop screen where the number is captured at packing time, and a consignment ledger so a tracking number resolves to the units that travelled under it.
  * Version:           1.5.2
  * Author:            Hugo Vial-Jaime
  * Author URI:        https://dahu-concept.fr
  * License:           MIT
  * License URI:       https://opensource.org/licenses/MIT
- * Text Domain:       dahu-serial-numbers
+ * Text Domain:       ubac-serials
  * Domain Path:       /languages
  * Requires at least: 6.0
  * Requires PHP:      7.4
@@ -212,7 +212,7 @@ add_filter(
 		$links[] = sprintf(
 			'<a href="%s" target="_blank" rel="noopener">%s</a>',
 			esc_url( 'https://dahu-concept.fr' ),
-			esc_html__( 'Hugo Vial-Jaime — Dahu-Concept', 'dahu-serial-numbers' )
+			esc_html__( 'Hugo Vial-Jaime — Dahu-Concept', 'ubac-serials' )
 		);
 
 		return $links;
@@ -248,8 +248,8 @@ add_action(
 		Dahu_Welcome::register(
 			array(
 				'slug'       => 'dahu-serial-numbers',
-				'name'       => __( 'Serial numbers', 'dahu-serial-numbers' ),
-				'tagline'    => __( 'Follows every unit you hold, from goods-in to the customer.', 'dahu-serial-numbers' ),
+				'name'       => __( 'Serial numbers', 'ubac-serials' ),
+				'tagline'    => __( 'Follows every unit you hold, from goods-in to the customer.', 'ubac-serials' ),
 				'file'       => DAHU_SERIAL_NUMBERS_FILE,
 				'version'    => DAHU_SERIAL_NUMBERS_VERSION,
 				'textdomain' => 'dahu-serial-numbers',
@@ -267,24 +267,24 @@ add_action(
 				 * no text domain of its own.
 				 */
 				'strings'    => array(
-					'next'   => __( 'Next', 'dahu-serial-numbers' ),
-					'done'   => __( 'Done', 'dahu-serial-numbers' ),
-					'skip'   => __( 'Skip', 'dahu-serial-numbers' ),
-					'of'     => __( 'of', 'dahu-serial-numbers' ),
-					'denied' => __( 'You are not allowed to view this page.', 'dahu-serial-numbers' ),
+					'next'   => __( 'Next', 'ubac-serials' ),
+					'done'   => __( 'Done', 'ubac-serials' ),
+					'skip'   => __( 'Skip', 'ubac-serials' ),
+					'of'     => __( 'of', 'ubac-serials' ),
+					'denied' => __( 'You are not allowed to view this page.', 'ubac-serials' ),
 				),
 				'points'     => array(
 				array(
-					'title' => __( 'Each unit, by name', 'dahu-serial-numbers' ),
-					'text'  => __( 'A serial has a state, a place and a history you can read.', 'dahu-serial-numbers' ),
+					'title' => __( 'Each unit, by name', 'ubac-serials' ),
+					'text'  => __( 'A serial has a state, a place and a history you can read.', 'ubac-serials' ),
 				),
 				array(
-					'title' => __( 'Consignments', 'dahu-serial-numbers' ),
-					'text'  => __( 'What left together, what came back, and when.', 'dahu-serial-numbers' ),
+					'title' => __( 'Consignments', 'ubac-serials' ),
+					'text'  => __( 'What left together, what came back, and when.', 'ubac-serials' ),
 				),
 				array(
-					'title' => __( 'No silent moves', 'dahu-serial-numbers' ),
-					'text'  => __( 'A unit never changes hands without a line saying so.', 'dahu-serial-numbers' ),
+					'title' => __( 'No silent moves', 'ubac-serials' ),
+					'text'  => __( 'A unit never changes hands without a line saying so.', 'ubac-serials' ),
 				),
 				),
 
@@ -303,18 +303,18 @@ add_action(
 				'tour'        => array(
 					array(
 						'selector' => '#dahu-sn-search',
-						'title'    => __( 'Find any unit', 'dahu-serial-numbers' ),
-						'text'     => __( 'Type a serial number to open that unit.', 'dahu-serial-numbers' ),
+						'title'    => __( 'Find any unit', 'ubac-serials' ),
+						'text'     => __( 'Type a serial number to open that unit.', 'ubac-serials' ),
 					),
 					array(
 						'selector' => '#dahu-sn-status',
-						'title'    => __( 'Narrow by state', 'dahu-serial-numbers' ),
-						'text'     => __( 'Show only the units in one state, such as shipped or in repair.', 'dahu-serial-numbers' ),
+						'title'    => __( 'Narrow by state', 'ubac-serials' ),
+						'text'     => __( 'Show only the units in one state, such as shipped or in repair.', 'ubac-serials' ),
 					),
 					array(
 						'selector' => '.dahu-serial-numbers__table',
-						'title'    => __( 'One row per unit', 'dahu-serial-numbers' ),
-						'text'     => __( 'Open a row to read that unit’s full history.', 'dahu-serial-numbers' ),
+						'title'    => __( 'One row per unit', 'ubac-serials' ),
+						'text'     => __( 'Open a row to read that unit’s full history.', 'ubac-serials' ),
 					),
 				),
 			)

@@ -118,7 +118,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		if ( ! Dahu_Serial_Numbers_Stations::is_active( $station_id ) ) {
 			return new WP_Error(
 				'dahu_serial_numbers_auth_unknown_station',
-				__( 'Unknown workshop post.', 'dahu-serial-numbers' ),
+				__( 'Unknown workshop post.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
 		}
@@ -139,7 +139,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		if ( ! $inserted ) {
 			return new WP_Error(
 				'dahu_serial_numbers_auth_token_failed',
-				__( 'The sign-in token could not be issued.', 'dahu-serial-numbers' )
+				__( 'The sign-in token could not be issued.', 'ubac-serials' )
 			);
 		}
 
@@ -168,7 +168,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		if ( '' === $token ) {
 			return new WP_Error(
 				'dahu_serial_numbers_auth_missing_token',
-				__( 'Missing token.', 'dahu-serial-numbers' ),
+				__( 'Missing token.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
 		}
@@ -181,7 +181,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		if ( ! $row ) {
 			return new WP_Error(
 				'dahu_serial_numbers_auth_invalid_token',
-				__( 'Invalid token.', 'dahu-serial-numbers' ),
+				__( 'Invalid token.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
 		}
@@ -197,7 +197,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 
 			return new WP_Error(
 				'dahu_serial_numbers_auth_expired_token',
-				__( 'Session expired, please sign in again.', 'dahu-serial-numbers' ),
+				__( 'Session expired, please sign in again.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
 		}
@@ -207,7 +207,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		if ( ! Dahu_Serial_Numbers_Stations::is_active( $station_id ) ) {
 			return new WP_Error(
 				'dahu_serial_numbers_auth_station_disabled',
-				__( 'This workshop post has been deactivated.', 'dahu-serial-numbers' ),
+				__( 'This workshop post has been deactivated.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
 		}
@@ -328,7 +328,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 
 		return new WP_Error(
 			'dahu_serial_numbers_auth_invalid',
-			__( 'Invalid credentials.', 'dahu-serial-numbers' ),
+			__( 'Invalid credentials.', 'ubac-serials' ),
 			array( 'status' => 401 )
 		);
 	}

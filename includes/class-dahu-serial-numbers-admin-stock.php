@@ -54,7 +54,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 	public static function render() {
 
 		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to look at stock.', 'dahu-serial-numbers' ) );
+			wp_die( esc_html__( 'You do not have permission to look at stock.', 'ubac-serials' ) );
 		}
 
 		self::handle();
@@ -64,8 +64,8 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		$tab = in_array( $tab, array( 'sync', 'fix' ), true ) ? $tab : 'sync';
 
 		Dahu_Serial_Numbers_Admin::open(
-			__( 'Stock', 'dahu-serial-numbers' ),
-			__( 'What the units on your shelves say the WooCommerce stock of each serialised product should be — and a way to re-file units that went in under the wrong product.', 'dahu-serial-numbers' )
+			__( 'Stock', 'ubac-serials' ),
+			__( 'What the units on your shelves say the WooCommerce stock of each serialised product should be — and a way to re-file units that went in under the wrong product.', 'ubac-serials' )
 		);
 
 		foreach ( self::$notices as $notice ) {
@@ -94,8 +94,8 @@ class Dahu_Serial_Numbers_Admin_Stock {
 	private static function render_tabs( $current ) {
 
 		$tabs = array(
-			'sync' => __( 'WooCommerce stock', 'dahu-serial-numbers' ),
-			'fix'  => __( 'Wrong product', 'dahu-serial-numbers' ),
+			'sync' => __( 'WooCommerce stock', 'ubac-serials' ),
+			'fix'  => __( 'Wrong product', 'ubac-serials' ),
 		);
 
 		echo '<nav class="nav-tab-wrapper dahu-serial-numbers__tabs">';
@@ -151,7 +151,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		check_admin_referer( self::NONCE_SYNC );
 
 		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to write stock.', 'dahu-serial-numbers' ) );
+			wp_die( esc_html__( 'You do not have permission to write stock.', 'ubac-serials' ) );
 		}
 
 		// The second tick box. The automatic push is off, so this run is the
@@ -160,7 +160,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		if ( ! Dahu_Serial_Numbers_Stock::enabled() && empty( $_POST['dahu_confirm'] ) ) {
 			self::notice(
 				'warning',
-				__( 'The automatic push is off, so this run needs the confirmation box ticked.', 'dahu-serial-numbers' )
+				__( 'The automatic push is off, so this run needs the confirmation box ticked.', 'ubac-serials' )
 			);
 
 			return;
@@ -179,7 +179,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		$failed  = count( $done['failed'] );
 
 		if ( 0 === $written && 0 === $failed ) {
-			self::notice( 'info', __( 'Nothing to write: every serialised product already shows what its units say.', 'dahu-serial-numbers' ) );
+			self::notice( 'info', __( 'Nothing to write: every serialised product already shows what its units say.', 'ubac-serials' ) );
 
 			return;
 		}
@@ -188,7 +188,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 			'success',
 			sprintf(
 				/* translators: %d: number of products. */
-				_n( 'Stock written for %d product.', 'Stock written for %d products.', $written, 'dahu-serial-numbers' ),
+				_n( 'Stock written for %d product.', 'Stock written for %d products.', $written, 'ubac-serials' ),
 				$written
 			)
 		);
@@ -198,7 +198,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 				'error',
 				sprintf(
 					/* translators: %d: number of products. */
-					_n( '%d product could not be written. The history below names it.', '%d products could not be written. The history below names them.', $failed, 'dahu-serial-numbers' ),
+					_n( '%d product could not be written. The history below names it.', '%d products could not be written. The history below names them.', $failed, 'ubac-serials' ),
 					$failed
 				)
 			);
@@ -216,7 +216,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		check_admin_referer( self::NONCE_FIX );
 
 		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to re-file a unit.', 'dahu-serial-numbers' ) );
+			wp_die( esc_html__( 'You do not have permission to re-file a unit.', 'ubac-serials' ) );
 		}
 
 		if ( 'fix_undo' === $action ) {
@@ -234,7 +234,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 					'success',
 					sprintf(
 						/* translators: %d: number of units. */
-						_n( '%d unit put back.', '%d units put back.', count( $done['put_back'] ), 'dahu-serial-numbers' ),
+						_n( '%d unit put back.', '%d units put back.', count( $done['put_back'] ), 'ubac-serials' ),
 						count( $done['put_back'] )
 					)
 				);
@@ -244,7 +244,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 				// in an hour.
 				self::notice(
 					'warning',
-					__( 'Nothing could be put back, so this correction is still on the list and can be tried again later.', 'dahu-serial-numbers' )
+					__( 'Nothing could be put back, so this correction is still on the list and can be tried again later.', 'ubac-serials' )
 				);
 			}
 
@@ -253,7 +253,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 					'warning',
 					sprintf(
 						/* translators: 1: number of units, 2: list of serial numbers. */
-						__( '%1$d unit was left alone because something else has happened to it since, or because the product it would go back to can no longer hold units: %2$s', 'dahu-serial-numbers' ),
+						__( '%1$d unit was left alone because something else has happened to it since, or because the product it would go back to can no longer hold units: %2$s', 'ubac-serials' ),
 						count( $done['skipped'] ),
 						implode( ', ', wp_list_pluck( $done['skipped'], 'serial' ) )
 					)
@@ -293,7 +293,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 			'success',
 			sprintf(
 				/* translators: 1: number of units, 2: product name. */
-				_n( '%1$d unit re-filed under %2$s.', '%1$d units re-filed under %2$s.', count( $done['moved'] ), 'dahu-serial-numbers' ),
+				_n( '%1$d unit re-filed under %2$s.', '%1$d units re-filed under %2$s.', count( $done['moved'] ), 'ubac-serials' ),
 				count( $done['moved'] ),
 				Dahu_Serial_Numbers_Product_Fix::product_name( $done['to'] )
 			)
@@ -335,15 +335,15 @@ class Dahu_Serial_Numbers_Admin_Stock {
 			'<p class="dahu-serial-numbers__hint">%s</p>',
 			esc_html(
 				$on
-					? __( 'The automatic push is on: the stock of a serialised product is rewritten whenever its units move. This screen is the full picture, and the way to put a product right that drifted while the push was off.', 'dahu-serial-numbers' )
-					: __( 'The automatic push is off. Nothing here has been written; this is what would be. The Settings screen turns the push on, and this run works either way.', 'dahu-serial-numbers' )
+					? __( 'The automatic push is on: the stock of a serialised product is rewritten whenever its units move. This screen is the full picture, and the way to put a product right that drifted while the push was off.', 'ubac-serials' )
+					: __( 'The automatic push is off. Nothing here has been written; this is what would be. The Settings screen turns the push on, and this run works either way.', 'ubac-serials' )
 			)
 		);
 
 		if ( ! $plan['rows'] ) {
 			printf(
 				'<p>%s</p>',
-				esc_html__( 'No serialised product holds a unit yet, so there is nothing to compare.', 'dahu-serial-numbers' )
+				esc_html__( 'No serialised product holds a unit yet, so there is nothing to compare.', 'ubac-serials' )
 			);
 			echo '</div>';
 
@@ -352,12 +352,12 @@ class Dahu_Serial_Numbers_Admin_Stock {
 
 		echo '<table class="widefat striped dahu-serial-numbers__table">';
 		echo '<thead><tr>';
-		printf( '<th>%s</th>', esc_html__( 'Product', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Units in stock', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Reserved by orders', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'WooCommerce now', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Would be written', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Note', 'dahu-serial-numbers' ) );
+		printf( '<th>%s</th>', esc_html__( 'Product', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Units in stock', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Reserved by orders', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'WooCommerce now', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Would be written', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Note', 'ubac-serials' ) );
 		echo '</tr></thead><tbody>';
 
 		foreach ( $plan['rows'] as $row ) {
@@ -374,7 +374,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 						'Orders reserve %d piece more than there are units on the shelf — written as zero rather than as a negative stock.',
 						'Orders reserve %d pieces more than there are units on the shelf — written as zero rather than as a negative stock.',
 						$row['gap'],
-						'dahu-serial-numbers'
+						'ubac-serials'
 					),
 					$row['gap']
 				);
@@ -387,7 +387,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 						'%d unit says in stock while still carrying an order, so it is not counted.',
 						'%d units say in stock while still carrying an order, so they are not counted.',
 						$row['stuck'],
-						'dahu-serial-numbers'
+						'ubac-serials'
 					),
 					$row['stuck']
 				);
@@ -422,7 +422,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 			<?php if ( ! $on ) : ?>
 				<label class="dahu-serial-numbers__check">
 					<input type="checkbox" name="dahu_confirm" value="1" />
-					<?php esc_html_e( 'I have read the table above and want these numbers written to WooCommerce', 'dahu-serial-numbers' ); ?>
+					<?php esc_html_e( 'I have read the table above and want these numbers written to WooCommerce', 'ubac-serials' ); ?>
 				</label>
 			<?php endif; ?>
 
@@ -430,13 +430,13 @@ class Dahu_Serial_Numbers_Admin_Stock {
 				<?php
 				printf(
 					/* translators: %d: number of products. */
-					esc_html( _n( '%d product would change.', '%d products would change.', (int) $plan['changing'], 'dahu-serial-numbers' ) ),
+					esc_html( _n( '%d product would change.', '%d products would change.', (int) $plan['changing'], 'ubac-serials' ) ),
 					(int) $plan['changing']
 				);
 				?>
 			</p>
 
-			<?php submit_button( __( 'Write these numbers to WooCommerce', 'dahu-serial-numbers' ), 'primary', 'submit', false, $plan['changing'] ? array() : array( 'disabled' => 'disabled' ) ); ?>
+			<?php submit_button( __( 'Write these numbers to WooCommerce', 'ubac-serials' ), 'primary', 'submit', false, $plan['changing'] ? array() : array( 'disabled' => 'disabled' ) ); ?>
 		</form>
 		<?php
 
@@ -459,13 +459,13 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		}
 
 		echo '<div class="dahu-serial-numbers__panel">';
-		printf( '<h2>%s</h2>', esc_html__( 'Recent pushes', 'dahu-serial-numbers' ) );
+		printf( '<h2>%s</h2>', esc_html__( 'Recent pushes', 'ubac-serials' ) );
 		echo '<table class="widefat striped dahu-serial-numbers__table"><thead><tr>';
-		printf( '<th>%s</th>', esc_html__( 'When', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Product', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Triggered by', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Before', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Written', 'dahu-serial-numbers' ) );
+		printf( '<th>%s</th>', esc_html__( 'When', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Product', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Triggered by', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Before', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Written', 'ubac-serials' ) );
 		echo '</tr></thead><tbody>';
 
 		foreach ( $history as $line ) {
@@ -507,13 +507,13 @@ class Dahu_Serial_Numbers_Admin_Stock {
 
 		printf(
 			'<p class="dahu-serial-numbers__hint">%s</p>',
-			esc_html__( 'For a box that went on the shelf under the wrong reference. Units in stock and on no order can be re-filed freely. A unit that has left stock can only be squared with its own order line, when the record and the line disagree about which product went out: the line is the authority, it is never changed, and no stock count moves.', 'dahu-serial-numbers' )
+			esc_html__( 'For a box that went on the shelf under the wrong reference. Units in stock and on no order can be re-filed freely. A unit that has left stock can only be squared with its own order line, when the record and the line disagree about which product went out: the line is the authority, it is never changed, and no stock count moves.', 'ubac-serials' )
 		);
 
 		if ( ! Dahu_Serial_Numbers_Product_Fix::enabled() ) {
 			printf(
 				'<p class="dahu-serial-numbers__caution">%s</p>',
-				esc_html__( 'Corrections are switched off, so this form will show what would happen and write nothing. The Settings screen turns them on.', 'dahu-serial-numbers' )
+				esc_html__( 'Corrections are switched off, so this form will show what would happen and write nothing. The Settings screen turns them on.', 'ubac-serials' )
 			);
 		}
 
@@ -523,14 +523,14 @@ class Dahu_Serial_Numbers_Admin_Stock {
 			<input type="hidden" name="dahu_action" value="fix_preview" />
 
 			<p>
-				<label for="dahu-serials"><strong><?php esc_html_e( 'Serial numbers', 'dahu-serial-numbers' ); ?></strong></label><br />
-				<textarea id="dahu-serials" name="dahu_serials" rows="5" class="large-text code" placeholder="<?php esc_attr_e( 'One per line, or separated by spaces, commas or semicolons', 'dahu-serial-numbers' ); ?>"><?php echo esc_textarea( self::posted( 'dahu_serials' ) ); ?></textarea>
+				<label for="dahu-serials"><strong><?php esc_html_e( 'Serial numbers', 'ubac-serials' ); ?></strong></label><br />
+				<textarea id="dahu-serials" name="dahu_serials" rows="5" class="large-text code" placeholder="<?php esc_attr_e( 'One per line, or separated by spaces, commas or semicolons', 'ubac-serials' ); ?>"><?php echo esc_textarea( self::posted( 'dahu_serials' ) ); ?></textarea>
 			</p>
 
 			<p>
-				<label for="dahu-to-product"><strong><?php esc_html_e( 'File them under', 'dahu-serial-numbers' ); ?></strong></label><br />
+				<label for="dahu-to-product"><strong><?php esc_html_e( 'File them under', 'ubac-serials' ); ?></strong></label><br />
 				<select id="dahu-to-product" name="dahu_to_product">
-					<option value="0"><?php esc_html_e( '— pick a product —', 'dahu-serial-numbers' ); ?></option>
+					<option value="0"><?php esc_html_e( '— pick a product —', 'ubac-serials' ); ?></option>
 					<?php foreach ( self::destinations() as $id => $label ) : ?>
 						<option value="<?php echo esc_attr( $id ); ?>" <?php selected( (int) self::posted( 'dahu_to_product' ), (int) $id ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
@@ -538,12 +538,12 @@ class Dahu_Serial_Numbers_Admin_Stock {
 			</p>
 
 			<p>
-				<label for="dahu-reason"><strong><?php esc_html_e( 'Reason', 'dahu-serial-numbers' ); ?></strong></label><br />
+				<label for="dahu-reason"><strong><?php esc_html_e( 'Reason', 'ubac-serials' ); ?></strong></label><br />
 				<input id="dahu-reason" type="text" class="large-text" name="dahu_reason" value="<?php echo esc_attr( self::posted( 'dahu_reason' ) ); ?>" />
-				<span class="dahu-serial-numbers__hint"><?php esc_html_e( 'Required: it is what the history line will say, to whoever reads it next year.', 'dahu-serial-numbers' ); ?></span>
+				<span class="dahu-serial-numbers__hint"><?php esc_html_e( 'Required: it is what the history line will say, to whoever reads it next year.', 'ubac-serials' ); ?></span>
 			</p>
 
-			<?php submit_button( __( 'Show me what would happen', 'dahu-serial-numbers' ), 'secondary', 'submit', false ); ?>
+			<?php submit_button( __( 'Show me what would happen', 'ubac-serials' ), 'secondary', 'submit', false ); ?>
 		</form>
 		<?php
 
@@ -624,12 +624,12 @@ class Dahu_Serial_Numbers_Admin_Stock {
 	private static function render_plan( array $plan ) {
 
 		echo '<div class="dahu-serial-numbers__panel">';
-		printf( '<h2>%s</h2>', esc_html__( 'What would happen', 'dahu-serial-numbers' ) );
+		printf( '<h2>%s</h2>', esc_html__( 'What would happen', 'ubac-serials' ) );
 
 		if ( $plan['refusals'] ) {
 			printf(
 				'<p class="dahu-serial-numbers__caution">%s</p>',
-				esc_html__( 'Nothing can be written while anything in this list is refused: a run is all of it or none of it, because half a correction is a state nobody can reason about afterwards.', 'dahu-serial-numbers' )
+				esc_html__( 'Nothing can be written while anything in this list is refused: a run is all of it or none of it, because half a correction is a state nobody can reason about afterwards.', 'ubac-serials' )
 			);
 
 			echo '<ul class="dahu-serial-numbers__list">';
@@ -643,11 +643,11 @@ class Dahu_Serial_Numbers_Admin_Stock {
 
 		if ( $plan['rows'] ) {
 			echo '<table class="widefat striped dahu-serial-numbers__table"><thead><tr>';
-			printf( '<th>%s</th>', esc_html__( 'Serial', 'dahu-serial-numbers' ) );
-			printf( '<th>%s</th>', esc_html__( 'Filed under', 'dahu-serial-numbers' ) );
-			printf( '<th>%s</th>', esc_html__( 'State', 'dahu-serial-numbers' ) );
-			printf( '<th>%s</th>', esc_html__( 'Would become', 'dahu-serial-numbers' ) );
-			printf( '<th>%s</th>', esc_html__( 'Note', 'dahu-serial-numbers' ) );
+			printf( '<th>%s</th>', esc_html__( 'Serial', 'ubac-serials' ) );
+			printf( '<th>%s</th>', esc_html__( 'Filed under', 'ubac-serials' ) );
+			printf( '<th>%s</th>', esc_html__( 'State', 'ubac-serials' ) );
+			printf( '<th>%s</th>', esc_html__( 'Would become', 'ubac-serials' ) );
+			printf( '<th>%s</th>', esc_html__( 'Note', 'ubac-serials' ) );
 			echo '</tr></thead><tbody>';
 
 			foreach ( $plan['rows'] as $row ) {
@@ -669,11 +669,11 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		}
 
 		if ( $plan['counts'] ) {
-			printf( '<h3>%s</h3>', esc_html__( 'Units in stock, before and after', 'dahu-serial-numbers' ) );
+			printf( '<h3>%s</h3>', esc_html__( 'Units in stock, before and after', 'ubac-serials' ) );
 			echo '<table class="widefat striped dahu-serial-numbers__table"><thead><tr>';
-			printf( '<th>%s</th>', esc_html__( 'Product', 'dahu-serial-numbers' ) );
-			printf( '<th>%s</th>', esc_html__( 'Before', 'dahu-serial-numbers' ) );
-			printf( '<th>%s</th>', esc_html__( 'After', 'dahu-serial-numbers' ) );
+			printf( '<th>%s</th>', esc_html__( 'Product', 'ubac-serials' ) );
+			printf( '<th>%s</th>', esc_html__( 'Before', 'ubac-serials' ) );
+			printf( '<th>%s</th>', esc_html__( 'After', 'ubac-serials' ) );
 			echo '</tr></thead><tbody>';
 
 			foreach ( $plan['counts'] as $count ) {
@@ -701,7 +701,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 				submit_button(
 					sprintf(
 						/* translators: %d: number of units. */
-						_n( 'Re-file %d unit', 'Re-file %d units', (int) $plan['movable'], 'dahu-serial-numbers' ),
+						_n( 'Re-file %d unit', 'Re-file %d units', (int) $plan['movable'], 'ubac-serials' ),
 						(int) $plan['movable']
 					),
 					'primary',
@@ -730,19 +730,19 @@ class Dahu_Serial_Numbers_Admin_Stock {
 		}
 
 		echo '<div class="dahu-serial-numbers__panel">';
-		printf( '<h2>%s</h2>', esc_html__( 'Corrections made', 'dahu-serial-numbers' ) );
+		printf( '<h2>%s</h2>', esc_html__( 'Corrections made', 'ubac-serials' ) );
 
 		printf(
 			'<p class="dahu-serial-numbers__hint">%s</p>',
-			esc_html__( 'A run can be put back as long as nothing else has happened to the units since. Those that have moved on are named and left alone — undoing them would undo a later decision.', 'dahu-serial-numbers' )
+			esc_html__( 'A run can be put back as long as nothing else has happened to the units since. Those that have moved on are named and left alone — undoing them would undo a later decision.', 'ubac-serials' )
 		);
 
 		echo '<table class="widefat striped dahu-serial-numbers__table"><thead><tr>';
-		printf( '<th>%s</th>', esc_html__( 'When', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Units', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Filed under', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Reason', 'dahu-serial-numbers' ) );
-		printf( '<th>%s</th>', esc_html__( 'Put back', 'dahu-serial-numbers' ) );
+		printf( '<th>%s</th>', esc_html__( 'When', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Units', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Filed under', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Reason', 'ubac-serials' ) );
+		printf( '<th>%s</th>', esc_html__( 'Put back', 'ubac-serials' ) );
 		echo '</tr></thead><tbody>';
 
 		foreach ( $runs as $run ) {
@@ -761,7 +761,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 					// two counts that would each need their own. Found while
 					// the French was being written.
 					/* translators: 1: date, 2: number of units put back, 3: number skipped. */
-					esc_html__( '%1$s — back: %2$d, left alone: %3$d', 'dahu-serial-numbers' ),
+					esc_html__( '%1$s — back: %2$d, left alone: %3$d', 'ubac-serials' ),
 					esc_html( Dahu_Serial_Numbers_Admin::local( $run['undone_at'] ) ),
 					(int) ( isset( $run['undone_put_back'] ) ? $run['undone_put_back'] : 0 ),
 					(int) ( isset( $run['undone_skipped'] ) ? $run['undone_skipped'] : 0 )
@@ -772,7 +772,7 @@ class Dahu_Serial_Numbers_Admin_Stock {
 					<?php wp_nonce_field( self::NONCE_FIX ); ?>
 					<input type="hidden" name="dahu_action" value="fix_undo" />
 					<input type="hidden" name="dahu_run_id" value="<?php echo esc_attr( isset( $run['run_id'] ) ? $run['run_id'] : '' ); ?>" />
-					<?php submit_button( __( 'Put back', 'dahu-serial-numbers' ), 'secondary small', 'submit', false ); ?>
+					<?php submit_button( __( 'Put back', 'ubac-serials' ), 'secondary small', 'submit', false ); ?>
 				</form>
 				<?php
 			}

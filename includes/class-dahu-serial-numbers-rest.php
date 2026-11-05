@@ -401,7 +401,7 @@ class Dahu_Serial_Numbers_Rest {
 		if ( ! $item instanceof WC_Order_Item_Product ) {
 			return new WP_Error(
 				'dahu_serial_numbers_item_not_found',
-				__( 'That order line cannot carry a serial number.', 'dahu-serial-numbers' ),
+				__( 'That order line cannot carry a serial number.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -411,7 +411,7 @@ class Dahu_Serial_Numbers_Rest {
 		if ( '' === $serial ) {
 			return new WP_Error(
 				'dahu_serial_numbers_empty_serial',
-				__( 'The serial number is empty or unreadable.', 'dahu-serial-numbers' ),
+				__( 'The serial number is empty or unreadable.', 'ubac-serials' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -439,7 +439,7 @@ class Dahu_Serial_Numbers_Rest {
 						'That line is for %d unit and already has its serial number.',
 						'That line is for %d units and already has all of them.',
 						(int) $item->get_quantity(),
-						'dahu-serial-numbers'
+						'ubac-serials'
 					),
 					(int) $item->get_quantity()
 				),
@@ -454,7 +454,7 @@ class Dahu_Serial_Numbers_Rest {
 				'dahu_serial_numbers_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'dahu-serial-numbers' ),
+					__( 'Unknown serial number: %s', 'ubac-serials' ),
 					$serial
 				),
 				array( 'status' => 404 )
@@ -473,12 +473,12 @@ class Dahu_Serial_Numbers_Rest {
 				$same_order
 					? sprintf(
 						/* translators: %s: serial number. */
-						__( 'Serial number %s is already on this order.', 'dahu-serial-numbers' ),
+						__( 'Serial number %s is already on this order.', 'ubac-serials' ),
 						$serial
 					)
 					: sprintf(
 						/* translators: %s: serial number. */
-						__( 'Serial number %s is on another order.', 'dahu-serial-numbers' ),
+						__( 'Serial number %s is on another order.', 'ubac-serials' ),
 						$serial
 					),
 				array(
@@ -493,7 +493,7 @@ class Dahu_Serial_Numbers_Rest {
 				'dahu_serial_numbers_wrong_status',
 				sprintf(
 					/* translators: 1: serial number, 2: current status label. */
-					__( 'Serial number %1$s is not in stock — it is currently “%2$s”.', 'dahu-serial-numbers' ),
+					__( 'Serial number %1$s is not in stock — it is currently “%2$s”.', 'ubac-serials' ),
 					$serial,
 					Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] )
 				),
@@ -509,7 +509,7 @@ class Dahu_Serial_Numbers_Rest {
 		// would be refusing a box that is correct and a mapping that is not.
 		// It says so, and lets the person decide.
 		if ( ! empty( $row['product_id'] ) && Dahu_Serial_Numbers_Products::resolve( (int) $row['product_id'] ) !== Dahu_Serial_Numbers_Products::resolve( (int) $line_product_id ) ) {
-			$warning = __( 'This serial number is on file under a different product from this order line. Check before carrying on.', 'dahu-serial-numbers' );
+			$warning = __( 'This serial number is on file under a different product from this order line. Check before carrying on.', 'ubac-serials' );
 		}
 
 		$assigned = Dahu_Serial_Numbers_Manager::transition(
@@ -595,7 +595,7 @@ class Dahu_Serial_Numbers_Rest {
 				'dahu_serial_numbers_not_on_this_order',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s is not on this order.', 'dahu-serial-numbers' ),
+					__( 'Serial number %s is not on this order.', 'ubac-serials' ),
 					$serial
 				),
 				array( 'status' => 404 )
@@ -684,7 +684,7 @@ class Dahu_Serial_Numbers_Rest {
 		if ( ! empty( $result['unregistered'] ) ) {
 			$payload['warning'] = sprintf(
 				/* translators: %s: comma-separated serial numbers. */
-				__( 'These units could NOT be recorded in the parcel and did not ship: %s. Take them out of the box.', 'dahu-serial-numbers' ),
+				__( 'These units could NOT be recorded in the parcel and did not ship: %s. Take them out of the box.', 'ubac-serials' ),
 				implode( ', ', $result['unregistered'] )
 			);
 		}
@@ -696,7 +696,7 @@ class Dahu_Serial_Numbers_Rest {
 		if ( '' !== $result['label_error'] ) {
 			$payload['warning'] = sprintf(
 				/* translators: %s: the carrier's error message. */
-				__( 'Recorded as shipped, but the carrier could not create the label: %s', 'dahu-serial-numbers' ),
+				__( 'Recorded as shipped, but the carrier could not create the label: %s', 'ubac-serials' ),
 				$result['label_error']
 			);
 		}
@@ -739,7 +739,7 @@ class Dahu_Serial_Numbers_Rest {
 		if ( ! $args['order_id'] && '' === $args['tracking'] && '' === $args['reference'] && '' === $args['serial'] ) {
 			return new WP_Error(
 				'dahu_serial_numbers_consignments_unscoped',
-				__( 'Say which parcel you are looking for: an order, a tracking number, a reference or a serial number.', 'dahu-serial-numbers' ),
+				__( 'Say which parcel you are looking for: an order, a tracking number, a reference or a serial number.', 'ubac-serials' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -778,7 +778,7 @@ class Dahu_Serial_Numbers_Rest {
 		if ( ! $consignment ) {
 			return new WP_Error(
 				'dahu_serial_numbers_consignment_unknown',
-				__( 'No such consignment.', 'dahu-serial-numbers' ),
+				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -850,7 +850,7 @@ class Dahu_Serial_Numbers_Rest {
 				'dahu_serial_numbers_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'dahu-serial-numbers' ),
+					__( 'Unknown serial number: %s', 'ubac-serials' ),
 					$serial
 				),
 				array( 'status' => 404 )
@@ -974,7 +974,7 @@ class Dahu_Serial_Numbers_Rest {
 				'dahu_serial_numbers_unknown_status',
 				sprintf(
 					/* translators: %s: status key. */
-					__( 'Unknown order status: %s', 'dahu-serial-numbers' ),
+					__( 'Unknown order status: %s', 'ubac-serials' ),
 					$status
 				),
 				array( 'status' => 400 )
@@ -997,7 +997,7 @@ class Dahu_Serial_Numbers_Rest {
 		if ( ! $order instanceof WC_Order ) {
 			return new WP_Error(
 				'dahu_serial_numbers_order_not_found',
-				__( 'Order not found.', 'dahu-serial-numbers' ),
+				__( 'Order not found.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
 		}

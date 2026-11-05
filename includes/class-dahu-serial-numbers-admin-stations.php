@@ -31,12 +31,12 @@ class Dahu_Serial_Numbers_Admin_Stations {
 	public static function render() {
 
 		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage workshop posts.', 'dahu-serial-numbers' ) );
+			wp_die( esc_html__( 'You do not have permission to manage workshop posts.', 'ubac-serials' ) );
 		}
 
 		Dahu_Serial_Numbers_Admin::open(
-			__( 'Workshop posts', 'dahu-serial-numbers' ),
-			__( 'Dahu Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing.', 'dahu-serial-numbers' )
+			__( 'Workshop posts', 'ubac-serials' ),
+			__( 'Dahu Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing.', 'ubac-serials' )
 		);
 
 		if ( ! Dahu_Serial_Numbers_Admin::warn_if_no_tables() ) {
@@ -102,7 +102,7 @@ class Dahu_Serial_Numbers_Admin_Stations {
 			'success',
 			sprintf(
 				/* translators: %s: workshop post login. */
-				__( 'Workshop post “%s” created.', 'dahu-serial-numbers' ),
+				__( 'Workshop post “%s” created.', 'ubac-serials' ),
 				$login
 			)
 		);
@@ -119,7 +119,7 @@ class Dahu_Serial_Numbers_Admin_Stations {
 		$post = Dahu_Serial_Numbers_Stations::get( $id );
 
 		if ( ! $post ) {
-			Dahu_Serial_Numbers_Admin::notice( 'error', __( 'Unknown workshop post.', 'dahu-serial-numbers' ) );
+			Dahu_Serial_Numbers_Admin::notice( 'error', __( 'Unknown workshop post.', 'ubac-serials' ) );
 
 			return;
 		}
@@ -136,11 +136,11 @@ class Dahu_Serial_Numbers_Admin_Stations {
 		Dahu_Serial_Numbers_Admin::notice(
 			'success',
 			$wanted
-				? __( 'Workshop post switched back on.', 'dahu-serial-numbers' )
+				? __( 'Workshop post switched back on.', 'ubac-serials' )
 				// Said explicitly, because it is the part somebody needs to
 				// know: switching a post off does not wait for its session to
 				// run out, it ends it now.
-				: __( 'Workshop post switched off, and signed out everywhere it was signed in.', 'dahu-serial-numbers' )
+				: __( 'Workshop post switched off, and signed out everywhere it was signed in.', 'ubac-serials' )
 		);
 	}
 
@@ -164,7 +164,7 @@ class Dahu_Serial_Numbers_Admin_Stations {
 
 		Dahu_Serial_Numbers_Admin::notice(
 			'success',
-			__( 'Password replaced, and the post signed out everywhere it was signed in.', 'dahu-serial-numbers' )
+			__( 'Password replaced, and the post signed out everywhere it was signed in.', 'ubac-serials' )
 		);
 	}
 
@@ -181,7 +181,7 @@ class Dahu_Serial_Numbers_Admin_Stations {
 		$suggestion = wp_generate_password( 16, false, false );
 
 		?>
-		<h2><?php esc_html_e( 'New post', 'dahu-serial-numbers' ); ?></h2>
+		<h2><?php esc_html_e( 'New post', 'ubac-serials' ); ?></h2>
 
 		<form method="post" class="dahu-serial-numbers__panel">
 			<?php wp_nonce_field( self::NONCE ); ?>
@@ -189,14 +189,14 @@ class Dahu_Serial_Numbers_Admin_Stations {
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="dahu-sn-login"><?php esc_html_e( 'Login', 'dahu-serial-numbers' ); ?></label></th>
+					<th scope="row"><label for="dahu-sn-login"><?php esc_html_e( 'Login', 'ubac-serials' ); ?></label></th>
 					<td>
 						<input type="text" id="dahu-sn-login" name="login" class="regular-text" autocomplete="off" required />
-						<p class="dahu-serial-numbers__hint"><?php esc_html_e( 'Something the bench can read off a card: bench-1, packing-left.', 'dahu-serial-numbers' ); ?></p>
+						<p class="dahu-serial-numbers__hint"><?php esc_html_e( 'Something the bench can read off a card: bench-1, packing-left.', 'ubac-serials' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="dahu-sn-password"><?php esc_html_e( 'Password', 'dahu-serial-numbers' ); ?></label></th>
+					<th scope="row"><label for="dahu-sn-password"><?php esc_html_e( 'Password', 'ubac-serials' ); ?></label></th>
 					<td>
 						<input
 							type="text"
@@ -212,7 +212,7 @@ class Dahu_Serial_Numbers_Admin_Stations {
 							<?php
 							printf(
 								/* translators: %d: minimum number of characters. */
-								esc_html__( 'Generated for you, and shown rather than hidden so you can write it down once. At least %d characters.', 'dahu-serial-numbers' ),
+								esc_html__( 'Generated for you, and shown rather than hidden so you can write it down once. At least %d characters.', 'ubac-serials' ),
 								(int) Dahu_Serial_Numbers_Stations::MIN_PASSWORD_LENGTH
 							);
 							?>
@@ -220,15 +220,15 @@ class Dahu_Serial_Numbers_Admin_Stations {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="dahu-sn-label"><?php esc_html_e( 'Name', 'dahu-serial-numbers' ); ?></label></th>
+					<th scope="row"><label for="dahu-sn-label"><?php esc_html_e( 'Name', 'ubac-serials' ); ?></label></th>
 					<td>
-						<input type="text" id="dahu-sn-label" name="label" class="regular-text" placeholder="<?php esc_attr_e( 'Bench 1', 'dahu-serial-numbers' ); ?>" />
-						<p class="dahu-serial-numbers__hint"><?php esc_html_e( 'Shown on the packing screen and in the history. Defaults to the login.', 'dahu-serial-numbers' ); ?></p>
+						<input type="text" id="dahu-sn-label" name="label" class="regular-text" placeholder="<?php esc_attr_e( 'Bench 1', 'ubac-serials' ); ?>" />
+						<p class="dahu-serial-numbers__hint"><?php esc_html_e( 'Shown on the packing screen and in the history. Defaults to the login.', 'ubac-serials' ); ?></p>
 					</td>
 				</tr>
 			</table>
 
-			<?php submit_button( __( 'Create post', 'dahu-serial-numbers' ) ); ?>
+			<?php submit_button( __( 'Create post', 'ubac-serials' ) ); ?>
 		</form>
 		<?php
 	}
@@ -243,22 +243,22 @@ class Dahu_Serial_Numbers_Admin_Stations {
 		$posts = Dahu_Serial_Numbers_Stations::all();
 
 		?>
-		<h2><?php esc_html_e( 'Existing posts', 'dahu-serial-numbers' ); ?></h2>
+		<h2><?php esc_html_e( 'Existing posts', 'ubac-serials' ); ?></h2>
 
 		<table class="widefat striped dahu-serial-numbers__table">
 			<thead>
 				<tr>
-					<th scope="col"><?php esc_html_e( 'Login', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Name', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'State', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Created', 'dahu-serial-numbers' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Last sign-in', 'dahu-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Login', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Name', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'State', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Created', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Last sign-in', 'ubac-serials' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 			<?php if ( ! $posts ) : ?>
 				<tr>
-					<td colspan="5"><?php esc_html_e( 'No workshop post yet. The packing screen needs one to sign in with.', 'dahu-serial-numbers' ); ?></td>
+					<td colspan="5"><?php esc_html_e( 'No workshop post yet. The packing screen needs one to sign in with.', 'ubac-serials' ); ?></td>
 				</tr>
 			<?php else : ?>
 				<?php foreach ( $posts as $post ) : ?>
@@ -280,7 +280,7 @@ class Dahu_Serial_Numbers_Admin_Stations {
 										<input type="hidden" name="dahu_action" value="toggle" />
 										<input type="hidden" name="station_id" value="<?php echo esc_attr( (string) (int) $post['id'] ); ?>" />
 										<button type="submit" class="button-link">
-											<?php echo $active ? esc_html__( 'Switch off', 'dahu-serial-numbers' ) : esc_html__( 'Switch back on', 'dahu-serial-numbers' ); ?>
+											<?php echo $active ? esc_html__( 'Switch off', 'ubac-serials' ) : esc_html__( 'Switch back on', 'ubac-serials' ); ?>
 										</button>
 									</form>
 								</span>
@@ -290,18 +290,18 @@ class Dahu_Serial_Numbers_Admin_Stations {
 										<input type="hidden" name="dahu_action" value="password" />
 										<input type="hidden" name="station_id" value="<?php echo esc_attr( (string) (int) $post['id'] ); ?>" />
 										<label class="screen-reader-text" for="dahu-sn-pass-<?php echo esc_attr( (string) (int) $post['id'] ); ?>">
-											<?php esc_html_e( 'New password', 'dahu-serial-numbers' ); ?>
+											<?php esc_html_e( 'New password', 'ubac-serials' ); ?>
 										</label>
 										<input
 											type="text"
 											id="dahu-sn-pass-<?php echo esc_attr( (string) (int) $post['id'] ); ?>"
 											name="password"
 											class="dahu-serial-numbers__inline-field"
-											placeholder="<?php esc_attr_e( 'New password', 'dahu-serial-numbers' ); ?>"
+											placeholder="<?php esc_attr_e( 'New password', 'ubac-serials' ); ?>"
 											autocomplete="off"
 											minlength="<?php echo esc_attr( (string) Dahu_Serial_Numbers_Stations::MIN_PASSWORD_LENGTH ); ?>"
 										/>
-										<button type="submit" class="button-link"><?php esc_html_e( 'Replace', 'dahu-serial-numbers' ); ?></button>
+										<button type="submit" class="button-link"><?php esc_html_e( 'Replace', 'ubac-serials' ); ?></button>
 									</form>
 								</span>
 							</div>
@@ -309,9 +309,9 @@ class Dahu_Serial_Numbers_Admin_Stations {
 						<td><?php echo esc_html( $post['label'] ); ?></td>
 						<td>
 							<?php if ( $active ) : ?>
-								<span class="dahu-serial-numbers__state dahu-serial-numbers__state--on"><?php esc_html_e( 'On', 'dahu-serial-numbers' ); ?></span>
+								<span class="dahu-serial-numbers__state dahu-serial-numbers__state--on"><?php esc_html_e( 'On', 'ubac-serials' ); ?></span>
 							<?php else : ?>
-								<span class="dahu-serial-numbers__state dahu-serial-numbers__state--off"><?php esc_html_e( 'Off', 'dahu-serial-numbers' ); ?></span>
+								<span class="dahu-serial-numbers__state dahu-serial-numbers__state--off"><?php esc_html_e( 'Off', 'ubac-serials' ); ?></span>
 							<?php endif; ?>
 						</td>
 						<td class="dahu-serial-numbers__num"><?php echo esc_html( Dahu_Serial_Numbers_Admin::local( $post['created_at'] ) ); ?></td>
@@ -323,7 +323,7 @@ class Dahu_Serial_Numbers_Admin_Stations {
 		</table>
 
 		<p class="dahu-serial-numbers__hint">
-			<?php esc_html_e( 'A post is never deleted. The history points at post ids, and a line that answers “who packed this parcel” with a missing id answers nothing — so switching off refuses every future sign-in while leaving the past readable.', 'dahu-serial-numbers' ); ?>
+			<?php esc_html_e( 'A post is never deleted. The history points at post ids, and a line that answers “who packed this parcel” with a missing id answers nothing — so switching off refuses every future sign-in while leaving the past readable.', 'ubac-serials' ); ?>
 		</p>
 		<?php
 	}

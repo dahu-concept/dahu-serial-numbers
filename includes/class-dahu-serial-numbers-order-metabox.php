@@ -45,7 +45,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 		foreach ( array( 'shop_order', 'woocommerce_page_wc-orders' ) as $screen ) {
 			add_meta_box(
 				'dahu-serial-numbers-order',
-				__( 'Serial numbers', 'dahu-serial-numbers' ),
+				__( 'Serial numbers', 'ubac-serials' ),
 				array( __CLASS__, 'render' ),
 				$screen,
 				'normal',
@@ -73,7 +73,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 		if ( ! Dahu_Serial_Numbers_Install::tables_exist() ) {
 			printf(
 				'<p>%s</p>',
-				esc_html__( 'The plugin’s database tables are missing.', 'dahu-serial-numbers' )
+				esc_html__( 'The plugin’s database tables are missing.', 'ubac-serials' )
 			);
 
 			return;
@@ -85,7 +85,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 		if ( ! $rows && ! $missing ) {
 			printf(
 				'<p>%s</p>',
-				esc_html__( 'Nothing on this order carries a serial number.', 'dahu-serial-numbers' )
+				esc_html__( 'Nothing on this order carries a serial number.', 'ubac-serials' )
 			);
 
 			return;
@@ -107,7 +107,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 							'%s unit on this order still has no serial number.',
 							'%s units on this order still have no serial number.',
 							$owed,
-							'dahu-serial-numbers'
+							'ubac-serials'
 						),
 						number_format_i18n( $owed )
 					)
@@ -121,7 +121,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 
 		printf(
 			'<p class="dahu-serial-numbers__hint">%s</p>',
-			esc_html__( 'Read-only here on purpose: a serial number is assigned by scanning the unit at the bench, so that the history records which bench did it and when.', 'dahu-serial-numbers' )
+			esc_html__( 'Read-only here on purpose: a serial number is assigned by scanning the unit at the bench, so that the history records which bench did it and when.', 'ubac-serials' )
 		);
 	}
 
@@ -135,10 +135,10 @@ class Dahu_Serial_Numbers_Order_Metabox {
 	private static function render_table( array $rows, WC_Order $order ) {
 
 		echo '<table class="widefat striped dahu-serial-numbers__table"><thead><tr>';
-		printf( '<th scope="col">%s</th>', esc_html__( 'Serial number', 'dahu-serial-numbers' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Line', 'dahu-serial-numbers' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Status', 'dahu-serial-numbers' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Supplier batch', 'dahu-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Serial number', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Line', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Status', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Supplier batch', 'ubac-serials' ) );
 		echo '</tr></thead><tbody>';
 
 		foreach ( $rows as $row ) {

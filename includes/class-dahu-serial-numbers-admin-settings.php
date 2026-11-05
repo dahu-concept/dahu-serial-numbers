@@ -30,12 +30,12 @@ class Dahu_Serial_Numbers_Admin_Settings {
 	public static function render() {
 
 		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to change these settings.', 'dahu-serial-numbers' ) );
+			wp_die( esc_html__( 'You do not have permission to change these settings.', 'ubac-serials' ) );
 		}
 
 		Dahu_Serial_Numbers_Admin::open(
-			__( 'Settings', 'dahu-serial-numbers' ),
-			__( 'Dahu Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find.', 'dahu-serial-numbers' )
+			__( 'Settings', 'ubac-serials' ),
+			__( 'Dahu Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find.', 'ubac-serials' )
 		);
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked immediately.
@@ -66,7 +66,7 @@ class Dahu_Serial_Numbers_Admin_Settings {
 
 		$stored = Dahu_Serial_Numbers_Settings::save( $submitted );
 
-		Dahu_Serial_Numbers_Admin::notice( 'success', __( 'Settings saved.', 'dahu-serial-numbers' ) );
+		Dahu_Serial_Numbers_Admin::notice( 'success', __( 'Settings saved.', 'ubac-serials' ) );
 
 		// Said out loud rather than silently corrected: a submission that
 		// selected nothing fell back to the default, and a screen that
@@ -75,7 +75,7 @@ class Dahu_Serial_Numbers_Admin_Settings {
 		if ( empty( $submitted['queue_statuses'] ) ) {
 			Dahu_Serial_Numbers_Admin::notice(
 				'warning',
-				__( 'No order status was selected, so the queue has gone back to watching orders being processed. A queue that watches nothing shows an empty screen with no explanation.', 'dahu-serial-numbers' )
+				__( 'No order status was selected, so the queue has gone back to watching orders being processed. A queue that watches nothing shows an empty screen with no explanation.', 'ubac-serials' )
 			);
 		}
 
@@ -97,14 +97,14 @@ class Dahu_Serial_Numbers_Admin_Settings {
 			<?php wp_nonce_field( self::NONCE ); ?>
 			<input type="hidden" name="dahu_action" value="save" />
 
-			<h2><?php esc_html_e( 'The packing queue', 'dahu-serial-numbers' ); ?></h2>
+			<h2><?php esc_html_e( 'The packing queue', 'ubac-serials' ); ?></h2>
 
 			<p class="dahu-serial-numbers__hint">
-				<?php esc_html_e( 'Which orders the packing screen lists. Completed orders are deliberately not the default: a completed order has left, and a queue that lists it invites somebody to open a parcel that is already on a van.', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Which orders the packing screen lists. Completed orders are deliberately not the default: a completed order has left, and a queue that lists it invites somebody to open a parcel that is already on a van.', 'ubac-serials' ); ?>
 			</p>
 
 			<fieldset class="dahu-serial-numbers__fieldset">
-				<legend class="screen-reader-text"><?php esc_html_e( 'Order statuses the queue watches', 'dahu-serial-numbers' ); ?></legend>
+				<legend class="screen-reader-text"><?php esc_html_e( 'Order statuses the queue watches', 'ubac-serials' ); ?></legend>
 				<?php foreach ( $statuses as $key => $name ) : ?>
 					<label class="dahu-serial-numbers__check">
 						<input
@@ -118,61 +118,61 @@ class Dahu_Serial_Numbers_Admin_Settings {
 				<?php endforeach; ?>
 			</fieldset>
 
-			<h2><?php esc_html_e( 'The packing screen', 'dahu-serial-numbers' ); ?></h2>
+			<h2><?php esc_html_e( 'The packing screen', 'ubac-serials' ); ?></h2>
 
 			<label class="dahu-serial-numbers__check">
 				<input type="checkbox" name="workshop_enabled" value="1" <?php checked( ! empty( $settings['workshop_enabled'] ) ); ?> />
-				<?php esc_html_e( 'Make the packing screen reachable', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Make the packing screen reachable', 'ubac-serials' ); ?>
 			</label>
 
 			<p class="dahu-serial-numbers__hint">
-				<?php esc_html_e( 'Off until you ask for it. The packing screen is a page that opens without a WordPress session — it signs in with a workshop post of its own — and a plugin that switched one on at activation would have opened a door the shop did not ask for.', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Off until you ask for it. The packing screen is a page that opens without a WordPress session — it signs in with a workshop post of its own — and a plugin that switched one on at activation would have opened a door the shop did not ask for.', 'ubac-serials' ); ?>
 			</p>
 
 			<?php if ( ! empty( $settings['workshop_enabled'] ) && ! Dahu_Serial_Numbers_Stations::all() ) : ?>
 				<p class="dahu-serial-numbers__caution">
-					<?php esc_html_e( 'The screen is on but no workshop post exists yet, so nobody can sign in to it.', 'dahu-serial-numbers' ); ?>
+					<?php esc_html_e( 'The screen is on but no workshop post exists yet, so nobody can sign in to it.', 'ubac-serials' ); ?>
 				</p>
 			<?php endif; ?>
 
-			<h2><?php esc_html_e( 'WooCommerce stock', 'dahu-serial-numbers' ); ?></h2>
+			<h2><?php esc_html_e( 'WooCommerce stock', 'ubac-serials' ); ?></h2>
 
 			<label class="dahu-serial-numbers__check">
 				<input type="checkbox" name="stock_push_enabled" value="1" <?php checked( ! empty( $settings['stock_push_enabled'] ) ); ?> />
-				<?php esc_html_e( 'Let the units on the shelf set the WooCommerce stock of serialised products', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Let the units on the shelf set the WooCommerce stock of serialised products', 'ubac-serials' ); ?>
 			</label>
 
 			<p class="dahu-serial-numbers__hint">
-				<?php esc_html_e( 'Off until you ask for it. With it on, the stock of a serialised product becomes the number of units in stock on no order, less the pieces orders being prepared have already reserved — written as a whole number, never as an increment. Products whose stock WooCommerce does not manage, and variable parents, are left alone and named on the Stock screen.', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Off until you ask for it. With it on, the stock of a serialised product becomes the number of units in stock on no order, less the pieces orders being prepared have already reserved — written as a whole number, never as an increment. Products whose stock WooCommerce does not manage, and variable parents, are left alone and named on the Stock screen.', 'ubac-serials' ); ?>
 			</p>
 
 			<p class="dahu-serial-numbers__caution">
-				<?php esc_html_e( 'This changes what customers can buy. The Stock screen shows every product and what would be written before anything is, and the manual resynchronisation works whether this is on or off.', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'This changes what customers can buy. The Stock screen shows every product and what would be written before anything is, and the manual resynchronisation works whether this is on or off.', 'ubac-serials' ); ?>
 			</p>
 
-			<h2><?php esc_html_e( 'Product corrections', 'dahu-serial-numbers' ); ?></h2>
+			<h2><?php esc_html_e( 'Product corrections', 'ubac-serials' ); ?></h2>
 
 			<label class="dahu-serial-numbers__check">
 				<input type="checkbox" name="product_fix_enabled" value="1" <?php checked( ! empty( $settings['product_fix_enabled'] ) ); ?> />
-				<?php esc_html_e( 'Allow units in stock to be re-filed under another product', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Allow units in stock to be re-filed under another product', 'ubac-serials' ); ?>
 			</label>
 
 			<p class="dahu-serial-numbers__hint">
-				<?php esc_html_e( 'For the box that went on the shelf under the wrong reference. Only units in stock and on no order can be re-filed, a reason is required, a run is all-or-nothing and can be put back. The dry run works with this off, so you can read what would happen before deciding.', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'For the box that went on the shelf under the wrong reference. Only units in stock and on no order can be re-filed, a reason is required, a run is all-or-nothing and can be put back. The dry run works with this off, so you can read what would happen before deciding.', 'ubac-serials' ); ?>
 			</p>
 
-			<h2><?php esc_html_e( 'Uninstalling', 'dahu-serial-numbers' ); ?></h2>
+			<h2><?php esc_html_e( 'Uninstalling', 'ubac-serials' ); ?></h2>
 
 			<label class="dahu-serial-numbers__check">
 				<input type="checkbox" name="delete_data_on_uninstall" value="1" <?php checked( ! empty( $settings['delete_data_on_uninstall'] ) ); ?> />
-				<?php esc_html_e( 'Delete the serial numbers and their history when the plugin is deleted', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Delete the serial numbers and their history when the plugin is deleted', 'ubac-serials' ); ?>
 			</label>
 
 			<p class="dahu-serial-numbers__caution">
-				<?php esc_html_e( 'Off, and worth leaving off. The serial numbers and their history are the only record of which unit went to which customer, going back as far as you have been serialising — and a warranty claim arrives two years later. Uninstalling is also, most of the time, a step in reinstalling.', 'dahu-serial-numbers' ); ?>
+				<?php esc_html_e( 'Off, and worth leaving off. The serial numbers and their history are the only record of which unit went to which customer, going back as far as you have been serialising — and a warranty claim arrives two years later. Uninstalling is also, most of the time, a step in reinstalling.', 'ubac-serials' ); ?>
 			</p>
 
-			<?php submit_button( __( 'Save changes', 'dahu-serial-numbers' ) ); ?>
+			<?php submit_button( __( 'Save changes', 'ubac-serials' ) ); ?>
 		</form>
 		<?php
 	}

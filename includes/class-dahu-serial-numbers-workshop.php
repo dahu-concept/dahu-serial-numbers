@@ -193,7 +193,7 @@ class Dahu_Serial_Numbers_Workshop {
 </head>
 <body class="dahu-packing">
 	<noscript>
-		<p class="dahu-packing__noscript"><?php esc_html_e( 'This screen needs JavaScript. Serial numbers are scanned into it one at a time, and every scan is checked against the shop as it happens.', 'dahu-serial-numbers' ); ?></p>
+		<p class="dahu-packing__noscript"><?php esc_html_e( 'This screen needs JavaScript. Serial numbers are scanned into it one at a time, and every scan is checked against the shop as it happens.', 'ubac-serials' ); ?></p>
 	</noscript>
 
 	<div id="dahu-packing-root" class="dahu-packing__root" aria-live="polite"></div>
@@ -219,7 +219,7 @@ class Dahu_Serial_Numbers_Workshop {
 
 		return sprintf(
 			/* translators: %s: shop name. */
-			__( 'Packing — %s', 'dahu-serial-numbers' ),
+			__( 'Packing — %s', 'ubac-serials' ),
 			get_bloginfo( 'name' )
 		);
 	}
@@ -239,55 +239,55 @@ class Dahu_Serial_Numbers_Workshop {
 			'root'    => esc_url_raw( rest_url( Dahu_Serial_Numbers_Rest::REST_NAMESPACE ) ),
 			'shop'    => get_bloginfo( 'name' ),
 			'strings' => array(
-				'signIn'          => __( 'Sign in', 'dahu-serial-numbers' ),
-				'login'           => __( 'Login', 'dahu-serial-numbers' ),
-				'password'        => __( 'Password', 'dahu-serial-numbers' ),
-				'signOut'         => __( 'Sign out', 'dahu-serial-numbers' ),
-				'queue'           => __( 'To pack', 'dahu-serial-numbers' ),
-				'refresh'         => __( 'Refresh', 'dahu-serial-numbers' ),
-				'back'            => __( 'Back to the list', 'dahu-serial-numbers' ),
-				'search'          => __( 'Search an order', 'dahu-serial-numbers' ),
-				'nothingToPack'   => __( 'Nothing waiting to be packed.', 'dahu-serial-numbers' ),
-				'noResults'       => __( 'No order matches that.', 'dahu-serial-numbers' ),
+				'signIn'          => __( 'Sign in', 'ubac-serials' ),
+				'login'           => __( 'Login', 'ubac-serials' ),
+				'password'        => __( 'Password', 'ubac-serials' ),
+				'signOut'         => __( 'Sign out', 'ubac-serials' ),
+				'queue'           => __( 'To pack', 'ubac-serials' ),
+				'refresh'         => __( 'Refresh', 'ubac-serials' ),
+				'back'            => __( 'Back to the list', 'ubac-serials' ),
+				'search'          => __( 'Search an order', 'ubac-serials' ),
+				'nothingToPack'   => __( 'Nothing waiting to be packed.', 'ubac-serials' ),
+				'noResults'       => __( 'No order matches that.', 'ubac-serials' ),
 				/* translators: %d: how many units are still to be scanned on the order */
-				'owed'            => __( '%d to scan', 'dahu-serial-numbers' ),
-				'ready'           => __( 'Ready', 'dahu-serial-numbers' ),
-				'scan'            => __( 'Scan or type a serial number', 'dahu-serial-numbers' ),
+				'owed'            => __( '%d to scan', 'ubac-serials' ),
+				'ready'           => __( 'Ready', 'ubac-serials' ),
+				'scan'            => __( 'Scan or type a serial number', 'ubac-serials' ),
 				// The label of the button that chooses a line, which is not
 				// the placeholder of the field you then scan into. Reusing
 				// the placeholder made a button as wide as the sentence, and
 				// pushed the line's name off the row. Seen on a screenshot.
-				'pickLine'        => __( 'Scan into this line', 'dahu-serial-numbers' ),
+				'pickLine'        => __( 'Scan into this line', 'ubac-serials' ),
 				/* translators: %s: the name of the order line being scanned into */
-				'scanInto'        => __( 'Scanning into: %s', 'dahu-serial-numbers' ),
-				'chooseLine'      => __( 'Choose which line you are packing.', 'dahu-serial-numbers' ),
-				'remove'          => __( 'Remove', 'dahu-serial-numbers' ),
+				'scanInto'        => __( 'Scanning into: %s', 'ubac-serials' ),
+				'chooseLine'      => __( 'Choose which line you are packing.', 'ubac-serials' ),
+				'remove'          => __( 'Remove', 'ubac-serials' ),
 				/* translators: %s: the serial number being taken off the order */
-				'removeConfirm'   => __( 'Take %s off this order?', 'dahu-serial-numbers' ),
+				'removeConfirm'   => __( 'Take %s off this order?', 'ubac-serials' ),
 				/* translators: %1$d: units scanned so far, %2$d: units on the line */
-				'ofQuantity'      => __( '%1$d of %2$d', 'dahu-serial-numbers' ),
-				'noSerialNeeded'  => __( 'No serial number needed', 'dahu-serial-numbers' ),
-				'allScanned'      => __( 'Every unit on this order has been scanned.', 'dahu-serial-numbers' ),
-				'ship'            => __( 'Mark as shipped', 'dahu-serial-numbers' ),
-				'carrier'         => __( 'Carrier', 'dahu-serial-numbers' ),
-				'tracking'        => __( 'Tracking number', 'dahu-serial-numbers' ),
-				'parcel'          => __( 'The parcel', 'dahu-serial-numbers' ),
+				'ofQuantity'      => __( '%1$d of %2$d', 'ubac-serials' ),
+				'noSerialNeeded'  => __( 'No serial number needed', 'ubac-serials' ),
+				'allScanned'      => __( 'Every unit on this order has been scanned.', 'ubac-serials' ),
+				'ship'            => __( 'Mark as shipped', 'ubac-serials' ),
+				'carrier'         => __( 'Carrier', 'ubac-serials' ),
+				'tracking'        => __( 'Tracking number', 'ubac-serials' ),
+				'parcel'          => __( 'The parcel', 'ubac-serials' ),
 				'weight'          => sprintf(
 					/* translators: %s: the shop's weight unit, e.g. kg. */
-					__( 'Weight (%s)', 'dahu-serial-numbers' ),
+					__( 'Weight (%s)', 'ubac-serials' ),
 					Dahu_Serial_Numbers_Consignments::weight_unit()
 				),
 				'dimensions'      => sprintf(
 					/* translators: %s: the shop's dimension unit, e.g. cm. */
-					__( 'Length × width × height (%s)', 'dahu-serial-numbers' ),
+					__( 'Length × width × height (%s)', 'ubac-serials' ),
 					Dahu_Serial_Numbers_Consignments::dimension_unit()
 				),
-				'shipping'        => __( 'Marking as shipped…', 'dahu-serial-numbers' ),
-				'shipped'         => __( 'Order marked as shipped.', 'dahu-serial-numbers' ),
-				'working'         => __( 'Working…', 'dahu-serial-numbers' ),
-				'offline'         => __( 'The shop did not answer. Nothing was recorded — scan it again.', 'dahu-serial-numbers' ),
-				'sessionOver'     => __( 'Session over. Sign in again.', 'dahu-serial-numbers' ),
-				'dismiss'         => __( 'Dismiss', 'dahu-serial-numbers' ),
+				'shipping'        => __( 'Marking as shipped…', 'ubac-serials' ),
+				'shipped'         => __( 'Order marked as shipped.', 'ubac-serials' ),
+				'working'         => __( 'Working…', 'ubac-serials' ),
+				'offline'         => __( 'The shop did not answer. Nothing was recorded — scan it again.', 'ubac-serials' ),
+				'sessionOver'     => __( 'Session over. Sign in again.', 'ubac-serials' ),
+				'dismiss'         => __( 'Dismiss', 'ubac-serials' ),
 			),
 		);
 	}

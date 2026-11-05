@@ -87,8 +87,8 @@ class Dahu_Serial_Numbers_Admin {
 			// H1 below is the same string again. Arriving somewhere whose
 			// name changed on the way in makes a reader doubt they are in the
 			// right place.
-			__( 'Serial numbers', 'dahu-serial-numbers' ),
-			__( 'Serial numbers', 'dahu-serial-numbers' ),
+			__( 'Serial numbers', 'ubac-serials' ),
+			__( 'Serial numbers', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG,
 			array( 'Dahu_Serial_Numbers_Admin_Serials', 'render' ),
@@ -98,8 +98,8 @@ class Dahu_Serial_Numbers_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Serial numbers', 'dahu-serial-numbers' ),
-			__( 'All serial numbers', 'dahu-serial-numbers' ),
+			__( 'Serial numbers', 'ubac-serials' ),
+			__( 'All serial numbers', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG,
 			array( 'Dahu_Serial_Numbers_Admin_Serials', 'render' )
@@ -107,8 +107,8 @@ class Dahu_Serial_Numbers_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Consignments', 'dahu-serial-numbers' ),
-			__( 'Consignments', 'dahu-serial-numbers' ),
+			__( 'Consignments', 'ubac-serials' ),
+			__( 'Consignments', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG . '-consignments',
 			array( 'Dahu_Serial_Numbers_Admin_Consignments', 'render' )
@@ -116,8 +116,8 @@ class Dahu_Serial_Numbers_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Stock', 'dahu-serial-numbers' ),
-			__( 'Stock', 'dahu-serial-numbers' ),
+			__( 'Stock', 'ubac-serials' ),
+			__( 'Stock', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG . '-stock',
 			array( 'Dahu_Serial_Numbers_Admin_Stock', 'render' )
@@ -125,8 +125,8 @@ class Dahu_Serial_Numbers_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Workshop posts', 'dahu-serial-numbers' ),
-			__( 'Workshop posts', 'dahu-serial-numbers' ),
+			__( 'Workshop posts', 'ubac-serials' ),
+			__( 'Workshop posts', 'ubac-serials' ),
 			// Higher than the rest, deliberately: a workshop post is a
 			// credential for a page reachable without a WordPress session,
 			// which is a different kind of thing from shop data.
@@ -137,8 +137,8 @@ class Dahu_Serial_Numbers_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Settings', 'dahu-serial-numbers' ),
-			__( 'Settings', 'dahu-serial-numbers' ),
+			__( 'Settings', 'ubac-serials' ),
+			__( 'Settings', 'ubac-serials' ),
 			'manage_options',
 			self::SLUG . '-settings',
 			array( 'Dahu_Serial_Numbers_Admin_Settings', 'render' )
@@ -260,7 +260,7 @@ class Dahu_Serial_Numbers_Admin {
 
 		self::notice(
 			'error',
-			__( 'The plugin’s database tables are missing. Deactivating and reactivating the plugin creates them.', 'dahu-serial-numbers' )
+			__( 'The plugin’s database tables are missing. Deactivating and reactivating the plugin creates them.', 'ubac-serials' )
 		);
 
 		return true;

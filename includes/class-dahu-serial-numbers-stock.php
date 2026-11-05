@@ -1112,12 +1112,12 @@ class Dahu_Serial_Numbers_Stock {
 	public static function refusal_label( $code ) {
 
 		$labels = array(
-			'unknown_product'    => __( 'No such product.', 'dahu-serial-numbers' ),
-			'not_published'      => __( 'Not on sale: the product, or its parent, is in the bin or unpublished.', 'dahu-serial-numbers' ),
-			'variable_parent'    => __( 'Variable product: stock belongs to its variations.', 'dahu-serial-numbers' ),
-			'stock_not_managed'  => __( 'WooCommerce stock management is off for this product.', 'dahu-serial-numbers' ),
-			'not_serialised'     => __( 'Not marked as carrying serial numbers.', 'dahu-serial-numbers' ),
-			'counts_unreadable'  => __( 'The units could not be counted: the database refused the query. Nothing was written — that way no stock figure is invented.', 'dahu-serial-numbers' ),
+			'unknown_product'    => __( 'No such product.', 'ubac-serials' ),
+			'not_published'      => __( 'Not on sale: the product, or its parent, is in the bin or unpublished.', 'ubac-serials' ),
+			'variable_parent'    => __( 'Variable product: stock belongs to its variations.', 'ubac-serials' ),
+			'stock_not_managed'  => __( 'WooCommerce stock management is off for this product.', 'ubac-serials' ),
+			'not_serialised'     => __( 'Not marked as carrying serial numbers.', 'ubac-serials' ),
+			'counts_unreadable'  => __( 'The units could not be counted: the database refused the query. Nothing was written — that way no stock figure is invented.', 'ubac-serials' ),
 		);
 
 		return isset( $labels[ $code ] ) ? $labels[ $code ] : (string) $code;
@@ -1383,14 +1383,14 @@ class Dahu_Serial_Numbers_Stock {
 		if ( isset( $plan['erreur'] ) ) {
 			return new WP_Error(
 				'dahu_serial_numbers_counts_unreadable',
-				__( 'The units could not be counted: the database refused the query. Nothing was written.', 'dahu-serial-numbers' )
+				__( 'The units could not be counted: the database refused the query. Nothing was written.', 'ubac-serials' )
 			);
 		}
 
 		if ( (string) $fingerprint !== $plan['fingerprint'] ) {
 			return new WP_Error(
 				'dahu_serial_numbers_stock_moved',
-				__( 'Stock changed since this list was drawn up. Here it is again — read it and run it once more.', 'dahu-serial-numbers' )
+				__( 'Stock changed since this list was drawn up. Here it is again — read it and run it once more.', 'ubac-serials' )
 			);
 		}
 
