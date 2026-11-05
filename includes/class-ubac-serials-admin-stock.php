@@ -367,6 +367,20 @@ class Ubac_Serials_Admin_Stock {
 				$notes[] = Ubac_Serials_Stock::refusal_label( $row['refusal'] );
 			}
 
+			/* "TICKED, AND NEVER ONE UNIT" IS SAID ON THE ROW ITSELF.
+			 *
+			 * This row and the row of a product whose units have all gone
+			 * look identical: the same `0` wanted, the same bold. Yet the two
+			 * zeros are not the same evidence -- one is measured on real
+			 * units, the other is the absence of a measurement on a product
+			 * the shop may still be preparing. Writing it takes the product
+			 * off sale either way, and that is intended; but whoever
+			 * approves must know which one they are approving. See
+			 * Ubac_Serials_Stock::plan_one(). */
+			if ( ! empty( $row['never_filed'] ) ) {
+				$notes[] = __( 'Marked as serialised, but no unit has ever been recorded against it. The zero is the absence of a count, not a count of zero — approving this takes the product off sale.', 'ubac-serials' );
+			}
+
 			if ( $row['gap'] > 0 ) {
 				$notes[] = sprintf(
 					/* translators: %d: number of pieces. */

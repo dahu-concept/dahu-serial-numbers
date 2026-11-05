@@ -1372,3 +1372,141 @@ correctif, et en porte onze après. Celle qui a verdi est
 § 12.6, écrite et en attente depuis la session précédente. Une assertion rouge
 laissée en place comme dette, et non supprimée, a donc fini par valider le
 correctif qu'elle réclamait.
+
+## 13. L'écran de resynchronisation cesse de mentir aux boutiques à variations (1.5.2)
+
+Cette section est en français alors que le code est désormais entièrement en
+anglais : c'est délibéré. Les commentaires du code expliquent le *comment* à
+celui qui le lit ; ce document explique le *pourquoi* en français, et il ne part
+pas dans le zip. Dupliquer les deux dans les fichiers livrés les ferait dériver,
+et un commentaire faux est plus dangereux qu'un commentaire absent.
+
+### 13.1 Le produit variable était examiné à la place de ses variations
+
+`is_serialised()` remonte au parent, et cocher la case sur le produit variable
+plutôt que sur chacune de ses variations est la façon normale de faire — son
+propre docblock le dit. Mais le stock, lui, appartient aux variations, et le
+plan refuse tout parent variable (`variable_parent`).
+
+La carte des produits connus gardait donc le parent : une ligne qui a l'air
+examinée et ne décide rien, pendant que les variations — absentes du plan —
+restaient vendables sans une seule unité en table. Sur une boutique à
+variations, c'est-à-dire la majorité, l'écran affichait exactement le mensonge
+qu'il existe pour supprimer : « rien ne change ».
+
+Le parent est maintenant **remplacé par ses enfants**, et non ajouté avec eux :
+il n'a pas de stock à réconcilier. Trouvé par une revue adverse, qui l'a mesuré
+sur un parent coché, deux variations publiées, stock 5, zéro unité en table.
+
+### 13.2 Le plafond de cinq cents, et pourquoi il était pire qu'un oubli
+
+La requête des produits cochés demandait cinq cents lignes. Deux conséquences,
+et la seconde est muette :
+
+- au-delà, les plus anciens tombaient du plan sans un mot — donc exactement
+  ceux qui ont eu le plus de temps pour dériver ;
+- la fenêtre était datée (`ORDER BY post_date DESC` par défaut), si bien que
+  créer un produit coché entre l'affichage de la liste et le clic décalait la
+  fenêtre et faisait répondre « Stock changed since this list was drawn up »
+  pour un produit étranger au plan. Sur une boutique grosse et active, le
+  bouton devenait inutilisable par intermittence.
+
+C'est une requête d'identifiants, pas une page : `posts_per_page => -1` avec
+`no_found_rows` et un tri par identifiant. L'écran ne tourne que sur demande,
+derrière une capacité.
+
+### 13.3 Les unités sans ligne de commande étaient perdues
+
+Une unité qui dit « commande 42, produit 7 » et rien de plus est une pièce déjà
+vendue : elle doit retirer de la réserve, sinon la pièce est offerte deux fois.
+Ce crédit « joker » était replié sur la première ligne du même produit. Deux
+défauts :
+
+- sur une commande à deux lignes du même produit, une de un et une de trois,
+  trois unités sans ligne tombaient sur la ligne de un : `max( 0, 1 - 3 )`
+  mangeait deux crédits au plancher, et la réserve retenait deux pièces de
+  trop ;
+- s'il n'existait **aucune** entrée de ligne pour ce produit — le cas normal
+  quand aucune unité ne porte de ligne — le repli ne trouvait rien et le lot
+  entier était perdu. La réserve restait pleine, le stock partait d'autant trop
+  bas, et le produit sortait de la vente sans qu'une ligne le dise.
+
+La réserve est désormais soustraite du **total engagé de la commande pour ce
+produit**, là où aucun plancher de ligne ne peut la manger.
+
+### 13.4 Les trois cartes du plan n'indexaient pas le même produit
+
+`reserved_map()` résout l'identifiant par le filtre `resolve`, `free_map()` ne
+le faisait pas. Une boutique qui se sert de ce filtre avait donc ses
+réservations sur l'identifiant cible et ses unités libres sur l'identifiant
+source : deux colonnes du même calcul qui ne parlaient pas du même produit, et
+un stock tiré de leur différence.
+
+Les deux cartes résolvent maintenant, **en cumulant** : `resolve()` peut
+rabattre plusieurs identifiants sources sur une seule cible, et une affectation
+simple aurait gardé la dernière ligne en jetant les autres.
+
+### 13.5 `defer_action` n'existait pas
+
+`Product_Fix::apply()` déplace tout un lot dans une transaction et passe ce
+drapeau pour que personne ne soit prévenu avant le `COMMIT`. Le gestionnaire
+l'ignorait : l'action partait quand même, et depuis l'intérieur de la
+transaction. Un écouteur qui agit sur un changement qui va être annulé agit sur
+un fait qui n'a pas eu lieu, et un écouteur qui écrit — stock WooCommerce, un
+post, son propre `COMMIT` — pouvait valider la moitié du lot sous les pieds de
+l'appelant.
+
+Le long commentaire d'`apply()` décrivait cette protection. **Elle n'existait
+pas.** C'est le défaut le plus sérieux de la série, parce que le commentaire
+rassurait.
+
+### 13.6 Le filtre d'extension est refusé s'il rend une liste
+
+`ubac_serials_stock_known_products` acceptait une liste plate d'identifiants.
+Les clefs devenaient alors 0, 1, 2 : le plan portait des lignes
+`unknown_product` sur des identifiants qui n'existent pas, et les vrais étaient
+perdus en silence — le symptôme même que cette carte existe pour tuer, reposé
+dans le chemin d'extension.
+
+Filtrer les clefs n'aurait pas suffi : seule la clef 0 est invalide, et 1, 2, 3
+passeraient pour des identifiants de produit. Ce qui se reconnaît, c'est la
+**forme** — des clefs entières consécutives depuis zéro. Aucune carte légitime
+ne peut l'avoir, puisque l'identifiant 0 n'est pas un produit. Le refus est donc
+sûr, et il est explicite plutôt que silencieux, comme pour
+`ubac_serials_stock_reserved_map`.
+
+### 13.7 La décision tranchée : cocher pousse le stock, et l'écran dit sur quoi
+
+Deux contrats s'opposaient, et les deux se défendaient :
+
+- **le code** : cocher « sérialisé » pousse le stock ;
+- **le banc (§ 18)** : cocher montre seulement l'écart, et c'est l'écran Stock
+  qui agit.
+
+Le choix est tranché en faveur du code. Cocher la case **est** une décision,
+prise sur le produit, et laisser en vente un produit déclaré sérialisé sans
+unité est le mensonge que cette famille existe pour supprimer.
+
+Ce qui accompagne le choix, et sans quoi il ne tient pas : **l'écran doit
+distinguer les deux zéros.** Deux lignes peuvent dire « stock visé : 0 » pour
+des raisons qui n'ont rien à voir :
+
+- un produit dont toutes les unités sont parties. La table porte ses lignes, le
+  zéro est **mesuré**, et l'écrire est le travail même de cet écran ;
+- un produit qu'on vient de cocher en le préparant, et dont aucune unité n'a
+  jamais été enregistrée. Le zéro n'est pas mesuré : il est **l'absence de
+  mesure**. L'écrire sort le produit de la vente, ce qui est voulu, mais c'est
+  une décision d'une autre nature — et elle se prend sur un produit que la
+  boutique est peut-être en train de préparer.
+
+Sans la distinction, l'opérateur approuve quatre lignes identiques à l'œil dont
+deux seulement reposent sur des unités réelles. La ligne de plan porte donc
+`never_filed`, et l'écran l'écrit en clair. `known_map()` est la seule source
+qui le sache : elle compte les lignes de la table tous statuts confondus, et
+zéro y signifie « jamais une unité ».
+
+Sans la carte, le champ vaut `false` plutôt que faussement vrai — un appelant
+qui ne la passe pas ne doit pas faire croire à l'écran que tous ses produits
+sont neufs.
+
+`t-serial-numbers-stock.php` : 133 passes / 11 échecs avant, **154 / 0** après.

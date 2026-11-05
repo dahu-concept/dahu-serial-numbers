@@ -150,27 +150,26 @@ class Ubac_Serials_Stock {
 		// out of sale, and nothing wrote a stock for it in the meantime.
 		add_action( 'transition_post_status', array( __CLASS__, 'on_back_on_sale' ), 10, 3 );
 
-		// Ce qu'un `flush()` en echec a laisse derriere lui. Sans ce crochet,
-		// la remise en place de la file ne servait a rien : voir reprendre().
+		// Whatever a failed `flush()` left behind. Without this hook, putting the
+		// queue back served no purpose: see reprendre().
 		add_action( 'init', array( __CLASS__, 'reprendre' ), 20 );
 	}
 
 	/**
 	 * Re-queues whatever a failed flush left behind.
 	 *
-	 * POURQUOI CE CROCHET EXISTE. flush() est accrochee a `shutdown`
-	 * priorite 5. Au moment ou elle abandonne un lot, `shutdown` est deja en
-	 * cours : plus rien dans la requete ne la rappellera, `self::$flush_hooked`
-	 * reste vrai, et `self::$queue` est une propriete statique que la requete
-	 * suivante ne voit pas. « La file est donc remise en place, et c'est ce
-	 * qui donne a la requete suivante une chance de faire le travail
-	 * proprement » : c'etait faux, et une assertion du banc certifiait cette
-	 * recuperation inexistante. Une revue adverse l'a mesure.
+	 * WHY THIS HOOK EXISTS. flush() is hooked on `shutdown` at priority 5. By
+	 * the time it abandons a batch, `shutdown` is already running: nothing left
+	 * in the request will call it again, `self::$flush_hooked` stays true, and
+	 * `self::$queue` is a static property the next request does not see. "The
+	 * queue is therefore put back, and that is what gives the next request a
+	 * chance to do the work properly" was false, and a bench assertion
+	 * certified that non-existent recovery. An adversarial review measured it.
 	 *
-	 * La file est donc ecrite en option, et c'est cette option que la requete
-	 * suivante reprend. Elle est supprimee AVANT la remise en file : si le
-	 * nouvel essai echoue a son tour, c'est flush() qui la reecrira, et un
-	 * echec permanent ne boucle donc pas sur une option qui grossit.
+	 * The queue is therefore written to an option, and it is that option the
+	 * next request picks up. It is deleted BEFORE the re-queue: if the new
+	 * attempt fails in turn, flush() is what writes it again, so a permanent
+	 * failure does not loop on an option that keeps growing.
 	 *
 	 * @return void
 	 */
@@ -204,8 +203,8 @@ class Ubac_Serials_Stock {
 		$deja = get_option( self::FILE_REPRISE, array() );
 		$deja = is_array( $deja ) ? $deja : array();
 
-		// L'origine la plus ancienne gagne : c'est celle qui dit pourquoi ce
-		// produit attend depuis le debut.
+		// The oldest origin wins: it is the one that says why this product has
+		// been waiting from the start.
 		update_option( self::FILE_REPRISE, $deja + $queue, true );
 	}
 
@@ -438,19 +437,19 @@ class Ubac_Serials_Stock {
 			return;
 		}
 
-		// Ecrire un stock fait tourner les crochets de WooCommerce, qui
-		// peuvent revenir jusqu'ici. Le produit en cours d'ecriture est
-		// justement celui dont le nombre est a jour : il n'y a rien a rejouer.
+		// Writing a stock figure runs WooCommerce's hooks, which can come back
+		// here. The product being written is precisely the one whose number is up
+		// to date: there is nothing to replay.
 		if ( self::$flushing ) {
 			return;
 		}
 
-		/* MIS EN FILE APRES LE PASSAGE DE `shutdown:5`.
+		/* QUEUED AFTER `shutdown:5` HAS GONE BY.
 		 *
-		 * Une extension branchee sur `shutdown` priorite 10 qui bouge un
-		 * numero arrive apres flush(). Le produit entrait alors dans une file
-		 * que plus rien ne videra, et rien ne le disait. Il est donc ecrit
-		 * directement pour la requete suivante. */
+		 * A plugin hooked on `shutdown` at priority 10 that moves a number
+		 * arrives after flush(). The product then entered a queue nothing will
+		 * ever empty, and nothing said so. It is therefore written straight out
+		 * for the next request. */
 		if ( did_action( 'shutdown' ) ) {
 			self::persister( array( $product_id => (string) $origin ) );
 
@@ -470,19 +469,18 @@ class Ubac_Serials_Stock {
 	/**
 	 * Pushes everything queued, one product at a time.
 	 *
-	 * DANS QUEL ETAT LA BOUTIQUE RESTE SI CELA S'ARRETE EN PLEIN MILIEU.
-	 * Ce n'est pas une transaction, pas plus que resync(), et cela se dit ici
-	 * parce que ce n'etait dit que la. Chaque produit atteint porte une
-	 * quantite juste et une ligne d'historique ; chaque produit non atteint
-	 * garde celle qu'il avait, et son tour reviendra par reprendre() si
-	 * l'arret est venu d'une lecture de carte. Si l'arret est une erreur
-	 * fatale que `catch ( Throwable )` ne rattrape pas -- depassement du temps
-	 * d'execution, memoire epuisee, erreur fatale d'une extension branchee sur
-	 * `woocommerce_product_set_stock` -- la file est perdue avec la requete et
-	 * les produits non atteints gardent un nombre qu'aucune unite ne
-	 * corrobore, sans trace : remember() n'ecrit que pour les produits
-	 * atteints. C'est le prix de la lecture groupee, et la resynchronisation
-	 * manuelle est ce qui le rattrape.
+	 * WHAT STATE THE SHOP IS LEFT IN IF THIS STOPS HALF WAY. This is not a
+	 * transaction, no more than resync() is, and it is said here because it
+	 * was said only there. Every product reached carries a correct quantity
+	 * and a line of history; every product not reached keeps the one it had,
+	 * and its turn comes back through reprendre() if the stop came from
+	 * reading a map. If the stop is a fatal error `catch ( Throwable )` does
+	 * not catch -- execution time exceeded, memory exhausted, a fatal error in
+	 * a plugin hooked on `woocommerce_product_set_stock` -- the queue is lost
+	 * with the request and the products not reached keep a number no unit
+	 * agrees with, with no trace: remember() only writes for products
+	 * reached. That is the price of reading the maps once, and the manual
+	 * resynchronisation is what makes up for it.
 	 *
 	 * @return array<int,array<string,mixed>> What was pushed, keyed by product.
 	 */
@@ -515,41 +513,40 @@ class Ubac_Serials_Stock {
 		// products that did not get their turn keep a stock number no unit
 		// agrees with. That is the very hole this queue exists to close, moved
 		// from the bin to the timeout.
-		/* LES CARTES LUES SOUS GARDE, ET UN ECHEC N'ECRIT RIEN.
+		/* THE MAPS ARE READ UNDER GUARD, AND A FAILURE WRITES NOTHING.
 		 *
-		 * reserved_map() finit sur un filtre que la BOUTIQUE possede, et une
-		 * boutique est libre d'y lever. Lu hors d'un try, cette exception
-		 * quittait flush() sur place -- apres que la file ait ete videe plus
-		 * haut. Chaque produit en attente gardait alors une quantite de stock
-		 * qu'aucune unite ne corrobore, rien n'etait rejoue, et aucune ligne ne
-		 * le disait : le trou meme que cette file existe pour fermer, deplace de
-		 * la corbeille vers le filtre.
+		 * reserved_map() ends on a filter the SHOP owns, and a shop is free to
+		 * throw there. Read outside a try, that exception left flush() on the
+		 * spot -- after the queue had been emptied above. Every product waiting
+		 * then kept a stock quantity no unit agrees with, nothing was replayed,
+		 * and no line said so: the very hole this queue exists to close, moved
+		 * from the bin to the filter.
 		 *
-		 * POURQUOI ABANDONNER LE LOT ET NON REESSAYER PRODUIT PAR PRODUIT. Une
-		 * revue adverse a mesure la seconde option : sans les cartes, push()
-		 * les relit par produit et releve au meme endroit, soit pour 120
-		 * produits environ 18 150 chargements de commande pour zero ecriture --
-		 * exactement le volume que la lecture groupee existe pour supprimer, et
-		 * assez pour depasser le temps d'execution. Or un depassement est une
-		 * erreur fatale que catch ( Throwable ) ne rattrape pas : la file serait
-		 * perdue quand meme, et cette fois sans meme un journal.
+		 * WHY THE BATCH IS ABANDONED RATHER THAN RETRIED PRODUCT BY PRODUCT. An
+		 * adversarial review measured the second option: without the maps, push()
+		 * reads them per product and throws in the same place, which for 120
+		 * products is some 18,150 order loads for zero writes -- exactly the
+		 * volume reading them once exists to remove, and enough to run past the
+		 * execution time. And exceeding it is a fatal error catch ( Throwable )
+		 * does not catch: the queue would be lost anyway, and this time without
+		 * even a log line.
 		 *
-		 * LA FILE EST ECRITE EN BASE, PAS REMISE DANS LA PROPRIETE STATIQUE.
-		 * `self::$queue = $queue` ne survivait pas a la requete, et `shutdown`
-		 * etant deja en cours, plus rien ne rappelait flush() : la phrase
-		 * « cela donne a la requete suivante une chance de faire le travail »
-		 * etait fausse, et une assertion du banc la certifiait. Une seconde
-		 * revue adverse l'a mesure. Voir reprendre(). */
+		 * THE QUEUE IS WRITTEN TO THE DATABASE, NOT PUT BACK IN THE STATIC
+		 * PROPERTY. `self::$queue = $queue` did not survive the request, and with
+		 * `shutdown` already running nothing called flush() again: the sentence
+		 * "that gives the next request a chance to do the work" was false, and a
+		 * bench assertion certified it. A second adversarial review measured it.
+		 * See reprendre(). */
 		try {
 			$free     = self::free_map();
 			$reserved = self::reserved_map();
 		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
 			self::persister( $queue );
 
-			/* error_log, et non le tableau de retour : flush() est accrochee a
-			 * `shutdown`, dont WordPress JETTE la valeur de retour. Une erreur
-			 * rangee dans $done ne serait lue par personne, ce qui laisserait
-			 * intact le reproche d'origine -- rien dans les journaux. */
+			/* error_log, and not the return array: flush() is hooked on
+			 * `shutdown`, whose return value WordPress THROWS AWAY. An error filed
+			 * in $done would be read by nobody, which would leave the original
+			 * complaint untouched -- nothing in the logs. */
 			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				sprintf(
 					'ubac-serials: stock maps unreadable, nothing written, %d product(s) carried over to the next request: %s',
@@ -621,14 +618,14 @@ class Ubac_Serials_Stock {
 			}
 		}
 
-		/* UNE LISTE VIDEE PAR FILTRE N'EST PAS « ZERO RESERVE ».
+		/* A LIST EMPTIED BY A FILTER IS NOT "NOTHING RESERVED".
 		 *
-		 * Le defaut n'est jamais vide : une liste vide ici veut dire qu'un
-		 * filtre l'a videe, ou que tous ses statuts ont ete rejetes par
-		 * sanitize_key(). Rendue telle quelle, elle faisait sortir
-		 * reserved_map() sur une carte vide, donc `wanted = libres - 0`, donc
-		 * un stock ecrit TROP HAUT et les unites deja payees remises en vente
-		 * -- le danger que le docblock de cette classe nomme en premier. */
+		 * The default is never empty: an empty list here means a filter emptied
+		 * it, or that every one of its statuses was rejected by sanitize_key().
+		 * Returned as it was, it made reserved_map() leave on an empty map, so
+		 * `wanted = free - 0`, so a stock figure written TOO HIGH and units
+		 * already paid for put back on sale -- the danger this class's docblock
+		 * names first. */
 		if ( ! $clean ) {
 			throw new RuntimeException(
 				'ubac-serials: no order status reserves stock, so reservations cannot be counted.'
@@ -641,14 +638,14 @@ class Ubac_Serials_Stock {
 	/**
 	 * How many pieces each product owes to orders being prepared.
 	 *
-	 * CE QUE CETTE METHODE NE SAIT PAS DISTINGUER, ET QUI RESTE OUVERT.
-	 * `wc_get_orders()` rend un tableau vide pour une boutique sans commande
-	 * ouverte comme pour une requete de commandes en echec -- HPOS compris.
-	 * Les deux se lisent pareil, et le second ferait ecrire un stock trop
-	 * haut. Ce qui est verifiable l'est : le type du retour, la liste des
-	 * statuts, et le type de ce que rend le filtre de sortie. Le cas du
-	 * tableau vide legitime, lui, n'est pas detectable d'ici, et il est dit
-	 * plutot que tu.
+	 * WHAT THIS METHOD CANNOT TELL APART, AND WHICH STAYS OPEN.
+	 * `wc_get_orders()` returns an empty array for a shop with no open order
+	 * and for an order query that failed alike -- HPOS included. The two read
+	 * the same, and the second would have a stock figure written too high.
+	 * What can be checked is checked: the return's type, the list of
+	 * statuses, and the type of what the output filter returns. The case of a
+	 * legitimately empty array is not detectable from here, and it is said
+	 * rather than left unsaid.
 	 *
 	 * @return array<int,int> Product id => pieces reserved.
 	 * @throws RuntimeException When reservations cannot be counted at all.
@@ -672,8 +669,8 @@ class Ubac_Serials_Stock {
 			)
 		);
 
-		// Un filtre tiers sur la requete de commandes peut rendre tout autre
-		// chose qu'une liste. Ce n'est pas « aucune commande ouverte ».
+		// A third-party filter on the order query can return anything at all
+		// rather than a list. That is not "no open order".
 		if ( ! is_array( $order_ids ) ) {
 			throw new RuntimeException(
 				'ubac-serials: the order query did not return a list of ids.'
@@ -756,11 +753,11 @@ class Ubac_Serials_Stock {
 		 */
 		$filtre = apply_filters( 'ubac_serials_stock_reserved_map', $map, $order_ids );
 
-		/* `(array) $scalaire` DONNE `array( 0 => $scalaire )`.
+		/* `(array) $scalar` GIVES `array( 0 => $scalar )`.
 		 *
-		 * Soit une carte d'un seul produit d'identifiant 0, c'est-a-dire aucun
-		 * produit reel : toutes les reservations disparaissaient, et le stock
-		 * partait trop haut. Un filtre qui ne rend pas une liste est refuse. */
+		 * That is, a map of one product with id 0, meaning no real product: every
+		 * reservation disappeared, and the stock went too high. A filter that
+		 * does not return a list is refused. */
 		if ( ! is_array( $filtre ) ) {
 			throw new RuntimeException(
 				'ubac-serials: the ubac_serials_stock_reserved_map filter did not return a list.'
@@ -887,43 +884,42 @@ class Ubac_Serials_Stock {
 
 		global $wpdb;
 
-		/* UN `prepare()` NUL N'ARRIVE JAMAIS JUSQU'A LA BASE.
+		/* A NULL `prepare()` NEVER REACHES THE DATABASE AT ALL.
 		 *
-		 * prepare() rend null quand le nombre d'arguments ne correspond pas a
-		 * celui des marqueurs, et get_results() rend alors null sans jamais
-		 * atteindre query() : donc sans poser last_error. La carte revenait
-		 * vide en jurant que tout allait bien, et c'est le cas plausible ici
-		 * puisque held_by_line() construit ses listes de marqueurs a la
-		 * volee. */
+		 * prepare() returns null when the number of arguments does not match the
+		 * number of placeholders, and get_results() then returns null without
+		 * ever reaching query(): so without setting last_error. The map came
+		 * back empty swearing all was well, and that is the plausible case here
+		 * since held_by_line() builds its placeholder lists on the fly. */
 		if ( ! is_string( $sql ) || '' === trim( $sql ) ) {
 			throw new RuntimeException( 'ubac-serials: the query was not prepared.' );
 		}
 
-		/* query() ET last_result, PLUTOT QUE get_results().
+		/* query() AND last_result, RATHER THAN get_results().
 		 *
-		 * get_results() ne consulte pas la valeur de retour de query() : il
-		 * rebatit son tableau depuis $wpdb->last_result. Or un filtre `query`
-		 * tiers -- mode maintenance, lecture seule, repartition -- qui vide la
-		 * requete fait sortir wpdb::query() par un `return false` place AVANT
-		 * flush() : last_error n'est pas pose et last_result garde LES LIGNES
-		 * DE LA REQUETE PRECEDENTE. get_results() rendait donc des lignes
-		 * etrangeres, (int) null valait 0, et une quantite inventee partait
-		 * sur chaque produit serialise sans une ligne de journal.
+		 * get_results() does not look at query()'s return value: it rebuilds its
+		 * array from $wpdb->last_result. But a third-party `query` filter --
+		 * maintenance mode, read-only, sharding -- that empties the query makes
+		 * wpdb::query() leave through a `return false` placed BEFORE flush():
+		 * last_error is not set and last_result keeps THE ROWS OF THE PREVIOUS
+		 * QUERY. get_results() therefore returned rows belonging to something
+		 * else, (int) null was 0, and an invented quantity went out on every
+		 * serialised product without a line of log.
 		 *
-		 * La valeur de retour de query() est le seul signal qui distingue ce
-		 * court-circuit d'un resultat legitimement vide. */
+		 * query()'s return value is the only signal that tells this
+		 * short-circuit apart from a legitimately empty result. */
 		$issue = $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL -- own table, prepared by the caller.
 
 		if ( false === $issue ) {
 			$raison = (string) $wpdb->last_error;
 
-			/* esc_html() SUR LA PART VARIABLE DU MESSAGE.
+			/* esc_html() ON THE VARIABLE PART OF THE MESSAGE.
 			 *
-			 * Le message d'une exception non rattrapee finit a l'ecran, et
-			 * `$wpdb->last_error` porte du contenu que la base a compose.
-			 * Plugin Check le refuse sous WordPress.Security.EscapeOutput —
-			 * mesure sur le zip, apres avoir estime a tort que ce correctif
-			 * n'ajoutait rien que des sniffs regardent. */
+			 * An uncaught exception's message ends up on screen, and
+			 * `$wpdb->last_error` carries content the database composed. Plugin
+			 * Check refuses it under WordPress.Security.EscapeOutput -- measured on
+			 * the zip, after wrongly assuming this fix added nothing any sniff
+			 * looks at. */
 			throw new RuntimeException(
 				esc_html( 'ubac-serials: ' . ( '' !== $raison ? $raison : 'the query was refused without an error message.' ) )
 			);
@@ -938,11 +934,11 @@ class Ubac_Serials_Stock {
 		foreach ( (array) $wpdb->last_result as $objet ) {
 			$ligne = is_object( $objet ) ? get_object_vars( $objet ) : (array) $objet;
 
-			/* SECOND FILET : DES LIGNES QUI NE SONT PAS LES NOTRES.
+			/* SECOND NET: ROWS THAT ARE NOT OURS.
 			 *
-			 * Si malgre tout last_result portait le resultat d'une autre
-			 * requete, ses colonnes ne sont pas celles-ci. Mieux vaut refuser
-			 * que lire null et ecrire zero. */
+			 * If last_result carried the result of another query despite all the
+			 * above, its columns are not these ones. Better to refuse than to read
+			 * null and write zero. */
 			foreach ( $colonnes as $colonne ) {
 				if ( ! array_key_exists( $colonne, $ligne ) ) {
 					throw new RuntimeException(
@@ -1083,13 +1079,13 @@ class Ubac_Serials_Stock {
 			$map[ $product_id ] += (int) $row['units'];
 		}
 
-		/* LE DEUXIEME CAS : SERIALISE, ET JAMAIS UNE SEULE UNITE.
+		/* THE SECOND CASE: SERIALISED, AND NEVER ONE SINGLE UNIT.
 		 *
-		 * La table ne sait rien de celui-la. Il porte pourtant la meta, donc
-		 * il est enumerable — et il doit l'etre : marquer un produit
-		 * « serialise » sans lui donner d'unite est precisement ce qu'on fait
-		 * en le preparant, et son stock WooCommerce doit tomber a zero plutot
-		 * que de rester vendable. */
+		 * The table knows nothing about this one. It does carry the meta,
+		 * though, so it is enumerable -- and it has to be: marking a product
+		 * "serialised" without giving it a unit is precisely what preparing it
+		 * looks like, and its WooCommerce stock must fall to zero rather than
+		 * stay sellable. */
 		/* NO CEILING, AND THAT IS DELIBERATE.
 		 *
 		 * A page of 500 would have two defects, and the second is worse than
@@ -1363,17 +1359,17 @@ class Ubac_Serials_Stock {
 	 * @param array<int,int> $reserved   Optional. Reserved map, same reason.
 	 * @return array<string,mixed>
 	 */
-	public static function plan_one( $product_id, array $free = null, array $reserved = null ) {
+	public static function plan_one( $product_id, array $free = null, array $reserved = null, array $known = null ) {
 
 		$product_id = (int) $product_id;
 
-		/* UNE CARTE ILLISIBLE EST UN REFUS, PAS UN ZERO.
+		/* AN UNREADABLE MAP IS A REFUSAL, NOT A ZERO.
 		 *
-		 * C'est le canal qui existe deja pour « il n'y a pas de nombre de
-		 * nous a ecrire sur cette ligne », et push() l'honore sans rien
-		 * ecrire. Le faire passer par la plutot que par une exception donne
-		 * en plus, gratuitement, la bonne phrase sur l'ecran de
-		 * resynchronisation : la ligne dit pourquoi elle ne bouge pas. */
+		 * This is the channel that already exists for "there is no number for us
+		 * to write on this row", and push() honours it without writing anything.
+		 * Sending it through there rather than through an exception also gives,
+		 * for free, the right sentence on the resynchronisation screen: the row
+		 * says why it is not moving. */
 		try {
 			$free     = null === $free ? self::free_map() : $free;
 			$reserved = null === $reserved ? self::reserved_map() : $reserved;
@@ -1387,8 +1383,9 @@ class Ubac_Serials_Stock {
 				'wanted'     => 0,
 				'before'     => null,
 				'gap'        => 0,
-				'refusal'    => 'counts_unreadable',
-				'changes'    => false,
+				'refusal'      => 'counts_unreadable',
+				'changes'      => false,
+				'never_filed'  => false,
 			);
 		}
 
@@ -1407,17 +1404,47 @@ class Ubac_Serials_Stock {
 		// shortfall is reported instead.
 		$wanted = max( 0, $wanted );
 
+		/* "TICKED, AND NEVER ONE SINGLE UNIT" IS NOT THE SAME EVIDENCE.
+		 *
+		 * Two rows can say `wanted = 0` for reasons that have nothing to do with
+		 * each other:
+		 *
+		 * - a product whose units have all gone. The table carries its rows, the
+		 *   zero is measured, and writing it is this screen's very job;
+		 * - a product just ticked "serialised" while being prepared, against
+		 *   which no unit has ever been recorded. The zero is not measured: it is
+		 *   the absence of a measurement. Writing it takes the product off sale,
+		 *   which is intended, but it is a decision of another kind -- and it is
+		 *   taken on a product the shop may still be preparing.
+		 *
+		 * The flag does push the stock in both cases: that is the contract that
+		 * was chosen. But the screen must be able to tell them apart, or whoever
+		 * approves is approving four rows that look identical, of which only two
+		 * rest on real units.
+		 *
+		 * `known_map()` counts the table's rows whatever their status (see that
+		 * method): zero there means "never one unit", and it is the only source
+		 * that knows. Without the map the field is `false` rather than falsely
+		 * true -- a caller that does not pass it must not make the screen believe
+		 * every one of its products is new. */
+		$jamais_fichee = null !== $known
+			&& isset( $known[ $product_id ] )
+			&& 0 === (int) $known[ $product_id ]
+			&& 0 === $in_stock
+			&& 0 === $held_back;
+
 		return array(
-			'product_id' => $product_id,
-			'name'       => $product ? $product->get_name() : '',
-			'sku'        => $product ? $product->get_sku() : '',
-			'in_stock'   => $in_stock,
-			'reserved'   => $held_back,
-			'wanted'     => $wanted,
-			'before'     => null === $before ? null : (int) $before,
-			'gap'        => $negative_gap,
-			'refusal'    => $refusal,
-			'changes'    => '' === $refusal && (int) $before !== (int) $wanted,
+			'product_id'  => $product_id,
+			'name'        => $product ? $product->get_name() : '',
+			'sku'         => $product ? $product->get_sku() : '',
+			'in_stock'    => $in_stock,
+			'reserved'    => $held_back,
+			'wanted'      => $wanted,
+			'before'      => null === $before ? null : (int) $before,
+			'gap'         => $negative_gap,
+			'refusal'     => $refusal,
+			'changes'     => '' === $refusal && (int) $before !== (int) $wanted,
+			'never_filed' => $jamais_fichee,
 		);
 	}
 
@@ -1492,22 +1519,23 @@ class Ubac_Serials_Stock {
 	 */
 	public static function resync_plan() {
 
-		/* L'ECRAN DOIT POUVOIR DIRE « JE N'AI PAS PU COMPTER ».
+		/* THE SCREEN MUST BE ABLE TO SAY "I COULD NOT COUNT".
 		 *
-		 * Sans ce troisieme etat, un plan vide fait afficher « aucun produit
-		 * serialise ne porte encore d'unite, il n'y a donc rien a comparer » —
-		 * la phrase la plus rassurante possible devant une base cassee. Le
-		 * message est donc remonte tel quel, et l'ecran le montre en erreur. */
+		 * Without this third state, an empty plan displays "no serialised
+		 * product carries a unit yet, so there is nothing to compare" -- the most
+		 * reassuring sentence possible in front of a broken database. The message
+		 * is therefore passed up as it is, and the screen shows it as an
+		 * error. */
 		try {
 			$free     = self::free_map();
 			$reserved = self::reserved_map();
 			$stuck    = self::stuck_map();
 			$connus   = self::known_map();
 		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
-			/* L'ECRAN DIT « THE ERROR IS IN THE SITE LOG » : IL FAUT QU'ELLE Y SOIT.
+			/* THE SCREEN SAYS "THE ERROR IS IN THE SITE LOG": IT HAD BETTER BE.
 			 *
-			 * Seule flush() journalisait. L'ecran de resynchronisation
-			 * envoyait donc le lecteur vers un journal vide. */
+			 * Only flush() logged. The resynchronisation screen therefore sent the
+			 * reader to an empty log. */
 			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				'ubac-serials: stock maps unreadable, resynchronisation plan empty: ' . $e->getMessage()
 			);
@@ -1522,10 +1550,10 @@ class Ubac_Serials_Stock {
 			);
 		}
 
-		/* known_map() ENTRE ICI, ET C'EST TOUT L'INTERET.
-		 * Sans elle, un produit dont la derniere unite est partie n'a de cle
-		 * dans aucune des deux premieres cartes, donc aucune ligne de plan,
-		 * donc aucun ecart affiche -- pendant que WooCommerce le vend encore. */
+		/* known_map() COMES IN HERE, AND THAT IS THE WHOLE POINT.
+		 * Without it, a product whose last unit has gone has a key in neither of
+		 * the first two maps, so no plan row, so no gap shown -- while
+		 * WooCommerce is still selling it. */
 		$ids = array_values( array_unique( array_merge( array_keys( $free ), array_keys( $reserved ), array_keys( $connus ) ) ) );
 		sort( $ids );
 
@@ -1534,7 +1562,7 @@ class Ubac_Serials_Stock {
 		$refused  = 0;
 
 		foreach ( $ids as $product_id ) {
-			$row          = self::plan_one( $product_id, $free, $reserved );
+			$row          = self::plan_one( $product_id, $free, $reserved, $connus );
 			$row['stuck'] = isset( $stuck[ $product_id ] ) ? (int) $stuck[ $product_id ] : 0;
 
 			if ( '' !== $row['refusal'] ) {
@@ -1606,13 +1634,13 @@ class Ubac_Serials_Stock {
 
 		$plan = self::resync_plan();
 
-		/* LA BASE CASSEE SE DIT AVANT L'EMPREINTE, ET NON APRES.
+		/* A BROKEN DATABASE IS SAID BEFORE THE FINGERPRINT, NOT AFTER.
 		 *
-		 * Dans l'autre ordre, un plan en echec rend une empreinte vide, donc
-		 * la comparaison tombait la premiere et repondait « Stock changed
-		 * since this list was drawn up » : la phrase rassurante, remontee d'un
-		 * etage. Et la branche ci-dessous n'etait atteignable qu'avec une
-		 * empreinte soumise vide, c'est-a-dire a peu pres jamais. */
+		 * The other way round, a failed plan returns an empty fingerprint, so the
+		 * comparison fell first and answered "Stock changed since this list was
+		 * drawn up": the reassuring sentence, moved up one floor. And the branch
+		 * below was reachable only with an empty submitted fingerprint, which is
+		 * to say almost never. */
 		if ( isset( $plan['erreur'] ) ) {
 			return new WP_Error(
 				'ubac_serials_counts_unreadable',
@@ -1627,14 +1655,14 @@ class Ubac_Serials_Stock {
 			);
 		}
 
-		/* LES CARTES DU PLAN, ET NON UNE SECONDE LECTURE.
+		/* THE PLAN'S OWN MAPS, NOT A SECOND READING.
 		 *
-		 * L'empreinte etait calculee sur une premiere lecture, puis les cartes
-		 * etaient RELUES et c'est la seconde lecture qui fournissait le nombre
-		 * ecrit. Une commande tombant entre les deux faisait ecrire un nombre
-		 * autre que celui montre et approuve -- l'inverse exact de ce que le
-		 * docblock de fingerprint() promet -- et c'etait en prime du travail en
-		 * double. */
+		 * The fingerprint was worked out on a first reading, then the maps were
+		 * READ AGAIN and it was the second reading that supplied the number
+		 * written. An order landing between the two had a number written other
+		 * than the one shown and approved -- the exact opposite of what
+		 * fingerprint()'s docblock promises -- and it was duplicated work into
+		 * the bargain. */
 		$free     = $plan['cartes']['free'];
 		$reserved = $plan['cartes']['reserved'];
 
