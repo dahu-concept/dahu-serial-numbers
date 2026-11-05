@@ -2,7 +2,7 @@
 # This file is distributed under the MIT licence.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dahu Serial Numbers\n"
+"Project-Id-Version: Ubac Serial Numbers\n"
 "Report-Msgid-Bugs-To: https://dahu-concept.fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -272,15 +272,15 @@ msgid "Created"
 msgstr ""
 
 #: includes/class-ubac-serials-admin-settings.php:38
-msgid "Dahu Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find."
+msgid "Ubac Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find."
 msgstr ""
 
 #: includes/class-ubac-serials-admin-serials.php:36
-msgid "Dahu Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been."
+msgid "Ubac Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been."
 msgstr ""
 
 #: includes/class-ubac-serials-admin-stations.php:39
-msgid "Dahu Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing."
+msgid "Ubac Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing."
 msgstr ""
 
 #: includes/class-ubac-serials-admin-settings.php:168

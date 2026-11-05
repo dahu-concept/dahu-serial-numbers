@@ -13,7 +13,7 @@
  * whether uninstalling should take the data with it. Everything else is a
  * filter, documented in README.md, for the shop that needs it.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,13 +21,13 @@ defined( 'ABSPATH' ) || exit;
 /**
  * One option, read through here.
  */
-class Dahu_Serial_Numbers_Settings {
+class Ubac_Serials_Settings {
 
 	/**
 	 * Option name. One option, not three: three options are three reads on
 	 * every page load and three chances for one of them to be missing.
 	 */
-	const OPTION = 'dahu_serial_numbers_settings';
+	const OPTION = 'ubac_serials_settings';
 
 	/**
 	 * The settings, with everything missing filled in.
@@ -156,7 +156,7 @@ class Dahu_Serial_Numbers_Settings {
 	public static function init() {
 
 		add_filter(
-			'dahu_serial_numbers_queue_statuses',
+			'ubac_serials_queue_statuses',
 			static function ( $statuses ) {
 				$stored = self::get( 'queue_statuses' );
 

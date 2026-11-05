@@ -21,7 +21,7 @@
  * `letter_year_month()`: a scheme a shop turns on with one line. It is not a
  * default, it is a worked example that happens to be in use.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -29,7 +29,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Normalising serials, and reading what can be read out of them.
  */
-class Dahu_Serial_Numbers_Format {
+class Ubac_Serials_Format {
 
 	/**
 	 * Longest serial the column can hold.
@@ -90,7 +90,7 @@ class Dahu_Serial_Numbers_Format {
 		 * @param string $serial Normalised serial.
 		 * @param string $input  Raw input, before normalising.
 		 */
-		$serial = (string) apply_filters( 'dahu_serial_numbers_normalise', $input, $raw );
+		$serial = (string) apply_filters( 'ubac_serials_normalise', $input, $raw );
 
 		return trim( $serial );
 	}
@@ -108,7 +108,7 @@ class Dahu_Serial_Numbers_Format {
 		 *
 		 * @param string[] $parameters Parameter names, compared case-insensitively.
 		 */
-		$parameters = (array) apply_filters( 'dahu_serial_numbers_url_parameters', array( 'series', 'serial', 'sn' ) );
+		$parameters = (array) apply_filters( 'ubac_serials_url_parameters', array( 'series', 'serial', 'sn' ) );
 
 		if ( ! $parameters ) {
 			return $input;
@@ -201,8 +201,8 @@ class Dahu_Serial_Numbers_Format {
 		 * one, shipped and tested:
 		 *
 		 *     add_filter(
-		 *         'dahu_serial_numbers_decode',
-		 *         array( 'Dahu_Serial_Numbers_Format', 'letter_year_month' ),
+		 *         'ubac_serials_decode',
+		 *         array( 'Ubac_Serials_Format', 'letter_year_month' ),
 		 *         10,
 		 *         2
 		 *     );
@@ -210,7 +210,7 @@ class Dahu_Serial_Numbers_Format {
 		 * @param array{year:int|null,month:int|null} $date   Both null by default.
 		 * @param string                              $serial Normalised serial.
 		 */
-		$date = (array) apply_filters( 'dahu_serial_numbers_decode', $none, $serial );
+		$date = (array) apply_filters( 'ubac_serials_decode', $none, $serial );
 
 		return self::sanitise_date( $date );
 	}

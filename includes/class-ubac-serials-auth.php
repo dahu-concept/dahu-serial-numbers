@@ -8,7 +8,7 @@
  * three static methods that did nothing but call this class. The permission
  * callback of every protected route was then handed around like this:
  *
- *     $v1   = 'Dahu_Serials_Rest_Controller';
+ *     $v1   = 'Ubac_Serials_Rest_Controller';
  *     $auth = array( $v1, 'check_auth' );
  *
  * and passed to fifteen routes. That is the shape that cost this port a
@@ -35,7 +35,7 @@
  * worse than useless here: every bench in a workshop shares one address, so
  * one person fumbling a password would lock out the whole floor.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -43,7 +43,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Authentication facade.
  */
-class Dahu_Serial_Numbers_Auth {
+class Ubac_Serials_Auth {
 
 	/**
 	 * Failures allowed on one login before it is locked.
@@ -62,12 +62,12 @@ class Dahu_Serial_Numbers_Auth {
 	 * token: the permission callback has already done it, and doing it twice
 	 * is how the two answers come to disagree.
 	 */
-	const REQUEST_PARAM = 'dahu_serial_numbers_station_id';
+	const REQUEST_PARAM = 'ubac_serials_station_id';
 
 	/**
 	 * Resolved provider.
 	 *
-	 * @var Dahu_Serial_Numbers_Auth_Provider|null
+	 * @var Ubac_Serials_Auth_Provider|null
 	 */
 	private static $provider = null;
 
@@ -83,7 +83,7 @@ class Dahu_Serial_Numbers_Auth {
 	 */
 	public static function init() {
 
-		add_action( 'dahu_serial_numbers_station_credentials_revoked', array( __CLASS__, 'on_credentials_revoked' ) );
+		add_action( 'ubac_serials_station_credentials_revoked', array( __CLASS__, 'on_credentials_revoked' ) );
 	}
 
 	/**
@@ -126,7 +126,7 @@ class Dahu_Serial_Numbers_Auth {
 	/**
 	 * The active provider.
 	 *
-	 * @return Dahu_Serial_Numbers_Auth_Provider
+	 * @return Ubac_Serials_Auth_Provider
 	 */
 	public static function get_provider() {
 
@@ -137,18 +137,18 @@ class Dahu_Serial_Numbers_Auth {
 		/**
 		 * Filters the authentication backend.
 		 *
-		 * @param Dahu_Serial_Numbers_Auth_Provider $provider Default backend.
+		 * @param Ubac_Serials_Auth_Provider $provider Default backend.
 		 */
 		$provider = apply_filters(
-			'dahu_serial_numbers_auth_provider',
-			new Dahu_Serial_Numbers_Station_Auth_Provider()
+			'ubac_serials_auth_provider',
+			new Ubac_Serials_Station_Auth_Provider()
 		);
 
 		// A filter that returns something that is not a provider gets ignored
 		// rather than obeyed. The alternative is a fatal error on a packing
 		// screen, from a one-line mistake in a child theme.
-		if ( ! $provider instanceof Dahu_Serial_Numbers_Auth_Provider ) {
-			$provider = new Dahu_Serial_Numbers_Station_Auth_Provider();
+		if ( ! $provider instanceof Ubac_Serials_Auth_Provider ) {
+			$provider = new Ubac_Serials_Station_Auth_Provider();
 		}
 
 		self::$provider = $provider;
@@ -182,7 +182,7 @@ class Dahu_Serial_Numbers_Auth {
 
 		if ( self::is_locked( $login ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_auth_locked',
+				'ubac_serials_auth_locked',
 				sprintf(
 					/* translators: %d: number of minutes. */
 					_n(
@@ -322,7 +322,7 @@ class Dahu_Serial_Numbers_Auth {
 			array(
 				'token'         => $result['token'],
 				'station_id'    => $result['station_id'],
-				'station_label' => Dahu_Serial_Numbers_Stations::label( $result['station_id'] ),
+				'station_label' => Ubac_Serials_Stations::label( $result['station_id'] ),
 			),
 			200
 		);
@@ -357,7 +357,7 @@ class Dahu_Serial_Numbers_Auth {
 		 *
 		 * @param int $attempts Attempts.
 		 */
-		$attempts = (int) apply_filters( 'dahu_serial_numbers_auth_max_attempts', self::MAX_ATTEMPTS );
+		$attempts = (int) apply_filters( 'ubac_serials_auth_max_attempts', self::MAX_ATTEMPTS );
 
 		// Nothing below one: a filter returning 0 would lock every login on
 		// its first failure, which reads from the outside exactly like the
@@ -377,7 +377,7 @@ class Dahu_Serial_Numbers_Auth {
 		 *
 		 * @param int $window Seconds.
 		 */
-		$window = (int) apply_filters( 'dahu_serial_numbers_auth_lockout_window', self::LOCKOUT_WINDOW );
+		$window = (int) apply_filters( 'ubac_serials_auth_lockout_window', self::LOCKOUT_WINDOW );
 
 		return max( 60, $window );
 	}
@@ -394,7 +394,7 @@ class Dahu_Serial_Numbers_Auth {
 	 */
 	private static function attempts_key( $login ) {
 
-		return 'dahu_sn_login_fail_' . md5( strtolower( $login ) );
+		return 'ubac_sn_login_fail_' . md5( strtolower( $login ) );
 	}
 
 	/**

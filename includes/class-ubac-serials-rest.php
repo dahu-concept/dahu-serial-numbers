@@ -18,11 +18,11 @@
  *
  * ## What guards them
  *
- * Every route but sign-in names `Dahu_Serial_Numbers_Auth::check_rest_request`
+ * Every route but sign-in names `Ubac_Serials_Auth::check_rest_request`
  * as its permission callback — the authentication class itself, not a wrapper
  * in this file. That is deliberate and it is the whole point of extraction
  * number one: in the source these routes were guarded by
- * `array( 'Dahu_Serials_Rest_Controller', 'check_auth' )`, a class name held
+ * `array( 'Ubac_Serials_Rest_Controller', 'check_auth' )`, a class name held
  * in a variable, which a dependency map reading code as code cannot see. The
  * map reported two references to the controller and no edge at all to the
  * authentication layer.
@@ -31,7 +31,7 @@
  * plugin where it is: an endpoint whose job is to issue the credential cannot
  * require the credential. What protects it is the lockout in the auth class.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -39,14 +39,14 @@ defined( 'ABSPATH' ) || exit;
 /**
  * REST routes for the workshop screen.
  */
-class Dahu_Serial_Numbers_Rest {
+class Ubac_Serials_Rest {
 
 	/**
 	 * Namespace. Versioned, because a screen in a browser cache outlives a
 	 * deploy and an API that changes shape under it fails in a way nobody
 	 * can read.
 	 */
-	const REST_NAMESPACE = 'dahu-serial-numbers/v1';
+	const REST_NAMESPACE = 'ubac-serials/v1';
 
 	/**
 	 * Orders per page when the caller does not say.
@@ -75,16 +75,16 @@ class Dahu_Serial_Numbers_Rest {
 	 */
 	public static function register_routes() {
 
-		$guard = array( 'Dahu_Serial_Numbers_Auth', 'check_rest_request' );
+		$guard = array( 'Ubac_Serials_Auth', 'check_rest_request' );
 
 		register_rest_route(
 			self::REST_NAMESPACE,
 			'/auth/login',
 			array(
 				'methods'  => WP_REST_Server::CREATABLE,
-				'callback' => array( 'Dahu_Serial_Numbers_Auth', 'rest_login' ),
+				'callback' => array( 'Ubac_Serials_Auth', 'rest_login' ),
 				// The one endpoint that cannot ask for the credential it
-				// issues. Rate-limited in Dahu_Serial_Numbers_Auth::login().
+				// issues. Rate-limited in Ubac_Serials_Auth::login().
 				'permission_callback' => '__return_true',
 				'args'                => array(
 					'login'    => array(
@@ -104,7 +104,7 @@ class Dahu_Serial_Numbers_Rest {
 			'/auth/logout',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => array( 'Dahu_Serial_Numbers_Auth', 'rest_logout' ),
+				'callback'            => array( 'Ubac_Serials_Auth', 'rest_logout' ),
 				'permission_callback' => $guard,
 			)
 		);
@@ -400,17 +400,17 @@ class Dahu_Serial_Numbers_Rest {
 		// and take the request down with a fatal rather than a 404.
 		if ( ! $item instanceof WC_Order_Item_Product ) {
 			return new WP_Error(
-				'dahu_serial_numbers_item_not_found',
+				'ubac_serials_item_not_found',
 				__( 'That order line cannot carry a serial number.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
 		}
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( (string) $request->get_param( 'serial' ) );
+		$serial = Ubac_Serials_Format::normalise( (string) $request->get_param( 'serial' ) );
 
 		if ( '' === $serial ) {
 			return new WP_Error(
-				'dahu_serial_numbers_empty_serial',
+				'ubac_serials_empty_serial',
 				__( 'The serial number is empty or unreadable.', 'ubac-serials' ),
 				array( 'status' => 400 )
 			);
@@ -432,7 +432,7 @@ class Dahu_Serial_Numbers_Rest {
 
 		if ( $full >= (int) $item->get_quantity() ) {
 			return new WP_Error(
-				'dahu_serial_numbers_line_full',
+				'ubac_serials_line_full',
 				sprintf(
 					/* translators: %d: quantity ordered on that line. */
 					_n(
@@ -447,11 +447,11 @@ class Dahu_Serial_Numbers_Rest {
 			);
 		}
 
-		$row = Dahu_Serial_Numbers_Manager::get( $serial );
+		$row = Ubac_Serials_Manager::get( $serial );
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_found',
+				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Unknown serial number: %s', 'ubac-serials' ),
@@ -465,11 +465,11 @@ class Dahu_Serial_Numbers_Rest {
 		// "wrong status": the person at the bench needs to know whether they
 		// have scanned a unit that belongs to somebody else's parcel, which
 		// is a mistake to undo, or one that is in repair, which is not.
-		if ( in_array( $row['status'], array( Dahu_Serial_Numbers_Statuses::ASSIGNED, Dahu_Serial_Numbers_Statuses::SHIPPED ), true ) ) {
+		if ( in_array( $row['status'], array( Ubac_Serials_Statuses::ASSIGNED, Ubac_Serials_Statuses::SHIPPED ), true ) ) {
 			$same_order = (int) $row['order_id'] === $order->get_id();
 
 			return new WP_Error(
-				'dahu_serial_numbers_already_assigned',
+				'ubac_serials_already_assigned',
 				$same_order
 					? sprintf(
 						/* translators: %s: serial number. */
@@ -488,14 +488,14 @@ class Dahu_Serial_Numbers_Rest {
 			);
 		}
 
-		if ( Dahu_Serial_Numbers_Statuses::IN_STOCK !== $row['status'] ) {
+		if ( Ubac_Serials_Statuses::IN_STOCK !== $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_wrong_status',
+				'ubac_serials_wrong_status',
 				sprintf(
 					/* translators: 1: serial number, 2: current status label. */
 					__( 'Serial number %1$s is not in stock — it is currently “%2$s”.', 'ubac-serials' ),
 					$serial,
-					Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] )
+					Ubac_Serials_Statuses::label( (string) $row['status'] )
 				),
 				array( 'status' => 409 )
 			);
@@ -508,24 +508,24 @@ class Dahu_Serial_Numbers_Rest {
 		// going in the box, and a plugin that refused on a product mismatch
 		// would be refusing a box that is correct and a mapping that is not.
 		// It says so, and lets the person decide.
-		if ( ! empty( $row['product_id'] ) && Dahu_Serial_Numbers_Products::resolve( (int) $row['product_id'] ) !== Dahu_Serial_Numbers_Products::resolve( (int) $line_product_id ) ) {
+		if ( ! empty( $row['product_id'] ) && Ubac_Serials_Products::resolve( (int) $row['product_id'] ) !== Ubac_Serials_Products::resolve( (int) $line_product_id ) ) {
 			$warning = __( 'This serial number is on file under a different product from this order line. Check before carrying on.', 'ubac-serials' );
 		}
 
-		$assigned = Dahu_Serial_Numbers_Manager::transition(
+		$assigned = Ubac_Serials_Manager::transition(
 			$serial,
-			Dahu_Serial_Numbers_Statuses::ASSIGNED,
+			Ubac_Serials_Statuses::ASSIGNED,
 			array(
 				'event'         => 'workshop_assign',
 				'order_id'      => $order->get_id(),
 				'order_item_id' => $order_item_id,
-				'station_id'    => Dahu_Serial_Numbers_Auth::station_id_from_request( $request ),
+				'station_id'    => Ubac_Serials_Auth::station_id_from_request( $request ),
 			)
 		);
 
 		if ( is_wp_error( $assigned ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_transition_failed',
+				'ubac_serials_transition_failed',
 				$assigned->get_error_message(),
 				array( 'status' => 409 )
 			);
@@ -534,7 +534,7 @@ class Dahu_Serial_Numbers_Rest {
 		$response = array(
 			'success' => true,
 			'serial'  => $serial,
-			'status'  => Dahu_Serial_Numbers_Statuses::ASSIGNED,
+			'status'  => Ubac_Serials_Statuses::ASSIGNED,
 			'order'   => self::order_detail( $order ),
 		);
 
@@ -558,10 +558,10 @@ class Dahu_Serial_Numbers_Rest {
 	 */
 	private static function assigned_count( WC_Order $order, $order_item_id ) {
 
-		$done  = array( Dahu_Serial_Numbers_Statuses::ASSIGNED, Dahu_Serial_Numbers_Statuses::SHIPPED );
+		$done  = array( Ubac_Serials_Statuses::ASSIGNED, Ubac_Serials_Statuses::SHIPPED );
 		$count = 0;
 
-		foreach ( Dahu_Serial_Numbers_Manager::get_by_order( $order->get_id() ) as $row ) {
+		foreach ( Ubac_Serials_Manager::get_by_order( $order->get_id() ) as $row ) {
 			if ( (int) $row['order_item_id'] === (int) $order_item_id && in_array( $row['status'], $done, true ) ) {
 				++$count;
 			}
@@ -584,15 +584,15 @@ class Dahu_Serial_Numbers_Rest {
 			return $order;
 		}
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( (string) $request->get_param( 'serial' ) );
-		$row    = Dahu_Serial_Numbers_Manager::get( $serial );
+		$serial = Ubac_Serials_Format::normalise( (string) $request->get_param( 'serial' ) );
+		$row    = Ubac_Serials_Manager::get( $serial );
 
 		// One refusal for "no such serial" and for "not on this order",
 		// because from this endpoint they are the same request: take this
 		// number off this order, and it was not on it.
 		if ( ! $row || (int) $row['order_id'] !== $order->get_id() ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_on_this_order',
+				'ubac_serials_not_on_this_order',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s is not on this order.', 'ubac-serials' ),
@@ -602,18 +602,18 @@ class Dahu_Serial_Numbers_Rest {
 			);
 		}
 
-		$freed = Dahu_Serial_Numbers_Manager::transition(
+		$freed = Ubac_Serials_Manager::transition(
 			$serial,
-			Dahu_Serial_Numbers_Statuses::IN_STOCK,
+			Ubac_Serials_Statuses::IN_STOCK,
 			array(
 				'event'      => 'workshop_unassign',
-				'station_id' => Dahu_Serial_Numbers_Auth::station_id_from_request( $request ),
+				'station_id' => Ubac_Serials_Auth::station_id_from_request( $request ),
 			)
 		);
 
 		if ( is_wp_error( $freed ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_transition_failed',
+				'ubac_serials_transition_failed',
 				$freed->get_error_message(),
 				array( 'status' => 409 )
 			);
@@ -645,7 +645,7 @@ class Dahu_Serial_Numbers_Rest {
 		$args = array(
 			'carrier'    => (string) $request->get_param( 'carrier' ),
 			'tracking'   => (string) $request->get_param( 'tracking' ),
-			'station_id' => Dahu_Serial_Numbers_Auth::station_id_from_request( $request ),
+			'station_id' => Ubac_Serials_Auth::station_id_from_request( $request ),
 			'source'     => 'workshop',
 		);
 
@@ -665,7 +665,7 @@ class Dahu_Serial_Numbers_Rest {
 			}
 		}
 
-		$result = Dahu_Serial_Numbers_Shipment::ship( $order, $args );
+		$result = Ubac_Serials_Shipment::ship( $order, $args );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
@@ -738,14 +738,14 @@ class Dahu_Serial_Numbers_Rest {
 		// it.
 		if ( ! $args['order_id'] && '' === $args['tracking'] && '' === $args['reference'] && '' === $args['serial'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignments_unscoped',
+				'ubac_serials_consignments_unscoped',
 				__( 'Say which parcel you are looking for: an order, a tracking number, a reference or a serial number.', 'ubac-serials' ),
 				array( 'status' => 400 )
 			);
 		}
 
-		$rows   = Dahu_Serial_Numbers_Consignments::query( $args );
-		$counts = Dahu_Serial_Numbers_Consignments::counts( wp_list_pluck( $rows, 'id' ) );
+		$rows   = Ubac_Serials_Consignments::query( $args );
+		$counts = Ubac_Serials_Consignments::counts( wp_list_pluck( $rows, 'id' ) );
 		$out    = array();
 
 		foreach ( $rows as $row ) {
@@ -755,8 +755,8 @@ class Dahu_Serial_Numbers_Rest {
 		return new WP_REST_Response(
 			array(
 				'consignments' => $out,
-				'total'        => Dahu_Serial_Numbers_Consignments::count( $args ),
-				'api_version'  => Dahu_Serial_Numbers_Consignments::API_VERSION,
+				'total'        => Ubac_Serials_Consignments::count( $args ),
+				'api_version'  => Ubac_Serials_Consignments::API_VERSION,
 			),
 			200
 		);
@@ -773,11 +773,11 @@ class Dahu_Serial_Numbers_Rest {
 		// By reference only. `get()` would take the same string as an id when
 		// it happens to be numeric, and this is user input on a published
 		// route.
-		$consignment = Dahu_Serial_Numbers_Consignments::get_by_reference( (string) $request->get_param( 'reference' ) );
+		$consignment = Ubac_Serials_Consignments::get_by_reference( (string) $request->get_param( 'reference' ) );
 
 		if ( ! $consignment ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_unknown',
+				'ubac_serials_consignment_unknown',
 				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -799,8 +799,8 @@ class Dahu_Serial_Numbers_Rest {
 	 */
 	private static function consignment_summary( array $row, $count ) {
 
-		$directions = Dahu_Serial_Numbers_Consignments::direction_labels();
-		$statuses   = Dahu_Serial_Numbers_Consignments::status_labels();
+		$directions = Ubac_Serials_Consignments::direction_labels();
+		$statuses   = Ubac_Serials_Consignments::status_labels();
 		$direction  = (string) $row['direction'];
 		$status     = (string) $row['status'];
 
@@ -813,7 +813,7 @@ class Dahu_Serial_Numbers_Rest {
 			'order_id'         => $row['order_id'],
 			'carrier'          => (string) $row['carrier'],
 			'tracking'         => (string) $row['tracking'],
-			'tracking_url'     => Dahu_Serial_Numbers_Shipment::tracking_url_for_row( $row ),
+			'tracking_url'     => Ubac_Serials_Shipment::tracking_url_for_row( $row ),
 			'source'           => (string) $row['source'],
 			'count'            => (int) $count,
 			'weight'           => isset( $row['weight'] ) ? $row['weight'] : null,
@@ -822,7 +822,7 @@ class Dahu_Serial_Numbers_Rest {
 			'width'            => isset( $row['width'] ) ? $row['width'] : null,
 			'height'           => isset( $row['height'] ) ? $row['height'] : null,
 			'dimension_unit'   => isset( $row['dimension_unit'] ) ? (string) $row['dimension_unit'] : '',
-			'parcel'           => Dahu_Serial_Numbers_Consignments::parcel_label( $row ),
+			'parcel'           => Ubac_Serials_Consignments::parcel_label( $row ),
 			'created_at'       => self::local( (string) $row['created_at'] ),
 			'closed_at'        => $row['closed_at'] ? self::local( (string) $row['closed_at'] ) : '',
 		);
@@ -842,12 +842,12 @@ class Dahu_Serial_Numbers_Rest {
 		// looking for, not the string as it arrived. A person reading
 		// "unknown serial number: ?series=zg an06001" learns something; one
 		// reading their own typo back learns nothing.
-		$serial = Dahu_Serial_Numbers_Format::normalise( (string) $request->get_param( 'serial' ) );
-		$row    = Dahu_Serial_Numbers_Manager::get( $serial );
+		$serial = Ubac_Serials_Format::normalise( (string) $request->get_param( 'serial' ) );
+		$row    = Ubac_Serials_Manager::get( $serial );
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_found',
+				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Unknown serial number: %s', 'ubac-serials' ),
@@ -860,7 +860,7 @@ class Dahu_Serial_Numbers_Rest {
 		// The round trip. A unit that went out, came back and went out again
 		// has three consignments, and this is the only place a bench can see
 		// that sequence without reading the history line by line.
-		$parcels = Dahu_Serial_Numbers_Consignments::for_serial( $serial );
+		$parcels = Ubac_Serials_Consignments::for_serial( $serial );
 		$travel  = array();
 
 		foreach ( $parcels as $parcel ) {
@@ -885,8 +885,8 @@ class Dahu_Serial_Numbers_Rest {
 	 */
 	public static function check( WP_REST_Request $request ) {
 
-		$serial  = Dahu_Serial_Numbers_Format::normalise( (string) $request->get_param( 'serial' ) );
-		$checked = Dahu_Serial_Numbers_Manager::mark_checked( $serial );
+		$serial  = Ubac_Serials_Format::normalise( (string) $request->get_param( 'serial' ) );
+		$checked = Ubac_Serials_Manager::mark_checked( $serial );
 
 		if ( is_wp_error( $checked ) ) {
 			$checked->add_data( array( 'status' => 404 ) );
@@ -894,7 +894,7 @@ class Dahu_Serial_Numbers_Rest {
 			return $checked;
 		}
 
-		$row = Dahu_Serial_Numbers_Manager::get( $serial );
+		$row = Ubac_Serials_Manager::get( $serial );
 
 		return new WP_REST_Response(
 			array(
@@ -945,7 +945,7 @@ class Dahu_Serial_Numbers_Rest {
 		 *
 		 * @param string[] $statuses WooCommerce status keys, with the wc- prefix.
 		 */
-		$statuses = (array) apply_filters( 'dahu_serial_numbers_queue_statuses', array( 'wc-processing' ) );
+		$statuses = (array) apply_filters( 'ubac_serials_queue_statuses', array( 'wc-processing' ) );
 
 		return $statuses ? $statuses : array( 'wc-processing' );
 	}
@@ -971,7 +971,7 @@ class Dahu_Serial_Numbers_Rest {
 
 		if ( ! array_key_exists( $prefixed, wc_get_order_statuses() ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_unknown_status',
+				'ubac_serials_unknown_status',
 				sprintf(
 					/* translators: %s: status key. */
 					__( 'Unknown order status: %s', 'ubac-serials' ),
@@ -996,7 +996,7 @@ class Dahu_Serial_Numbers_Rest {
 
 		if ( ! $order instanceof WC_Order ) {
 			return new WP_Error(
-				'dahu_serial_numbers_order_not_found',
+				'ubac_serials_order_not_found',
 				__( 'Order not found.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -1013,7 +1013,7 @@ class Dahu_Serial_Numbers_Rest {
 	 */
 	private static function order_summary( WC_Order $order ) {
 
-		$missing = Dahu_Serial_Numbers_Manager::missing_for_order( $order->get_id() );
+		$missing = Ubac_Serials_Manager::missing_for_order( $order->get_id() );
 		$owed    = 0;
 
 		foreach ( $missing as $line ) {
@@ -1031,8 +1031,8 @@ class Dahu_Serial_Numbers_Rest {
 			'serials_owed'  => $owed,
 			// The one thing the queue is for: is this parcel ready to close?
 			'serials_ready' => array() === $missing,
-			'carrier'       => Dahu_Serial_Numbers_Shipment::carrier( $order ),
-			'tracking'      => Dahu_Serial_Numbers_Shipment::tracking( $order ),
+			'carrier'       => Ubac_Serials_Shipment::carrier( $order ),
+			'tracking'      => Ubac_Serials_Shipment::tracking( $order ),
 		);
 	}
 
@@ -1045,13 +1045,13 @@ class Dahu_Serial_Numbers_Rest {
 	private static function order_detail( WC_Order $order ) {
 
 		$detail  = self::order_summary( $order );
-		$by_item = Dahu_Serial_Numbers_Manager::get_by_order_items( array_keys( $order->get_items() ), $order->get_id() );
+		$by_item = Ubac_Serials_Manager::get_by_order_items( array_keys( $order->get_items() ), $order->get_id() );
 
 		// Every parcel on the order, not just the last one. An order shipped
 		// in three goes out with three tracking numbers, and the screen that
 		// cannot show them is the screen that sends somebody to the phone.
-		$parcels          = Dahu_Serial_Numbers_Consignments::for_order( $order->get_id() );
-		$parcel_counts    = Dahu_Serial_Numbers_Consignments::counts( wp_list_pluck( $parcels, 'id' ) );
+		$parcels          = Ubac_Serials_Consignments::for_order( $order->get_id() );
+		$parcel_counts    = Ubac_Serials_Consignments::counts( wp_list_pluck( $parcels, 'id' ) );
 		$detail['consignments'] = array();
 
 		foreach ( $parcels as $parcel ) {
@@ -1070,14 +1070,14 @@ class Dahu_Serial_Numbers_Rest {
 
 			$product_id = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
 			$product    = $item->get_product();
-			$serialised = Dahu_Serial_Numbers_Products::is_serialised( $product_id );
+			$serialised = Ubac_Serials_Products::is_serialised( $product_id );
 			$serials    = array();
 
 			foreach ( (array) $by_item[ $item_id ] as $row ) {
 				$serials[] = array(
 					'serial' => (string) $row['serial'],
 					'status' => (string) $row['status'],
-					'label'  => Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] ),
+					'label'  => Ubac_Serials_Statuses::label( (string) $row['status'] ),
 				);
 			}
 
@@ -1113,7 +1113,7 @@ class Dahu_Serial_Numbers_Rest {
 		return array(
 			'serial'             => (string) $row['serial'],
 			'status'             => (string) $row['status'],
-			'status_label'       => Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] ),
+			'status_label'       => Ubac_Serials_Statuses::label( (string) $row['status'] ),
 			'batch'              => (string) $row['supplier_order'],
 			'supplier_name'      => (string) $row['supplier_name'],
 			'manufactured_year'  => $row['manufactured_year'] ? (int) $row['manufactured_year'] : null,
@@ -1124,7 +1124,7 @@ class Dahu_Serial_Numbers_Rest {
 			'received_at'        => self::local( $row['received_at'] ),
 			'checked_at'         => self::local( $row['checked_at'] ),
 			'updated_at'         => self::local( $row['updated_at'] ),
-			'next'               => Dahu_Serial_Numbers_Statuses::next( (string) $row['status'] ),
+			'next'               => Ubac_Serials_Statuses::next( (string) $row['status'] ),
 		);
 	}
 
@@ -1138,14 +1138,14 @@ class Dahu_Serial_Numbers_Rest {
 
 		$payload = array();
 
-		foreach ( Dahu_Serial_Numbers_Log::for_serial( $serial, 50 ) as $line ) {
+		foreach ( Ubac_Serials_Log::for_serial( $serial, 50 ) as $line ) {
 			$payload[] = array(
 				'event'      => (string) $line['event'],
 				'old_status' => $line['old_status'] ? (string) $line['old_status'] : null,
 				'new_status' => $line['new_status'] ? (string) $line['new_status'] : null,
 				'order_id'   => $line['order_id'] ? (int) $line['order_id'] : null,
 				'created_at' => self::local( $line['created_at'] ),
-				'context'    => Dahu_Serial_Numbers_Log::context( $line ),
+				'context'    => Ubac_Serials_Log::context( $line ),
 			);
 		}
 

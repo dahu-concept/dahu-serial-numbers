@@ -12,7 +12,7 @@
 ( function () {
 	'use strict';
 
-	var configNode = document.getElementById( 'dahu-packing-config' );
+	var configNode = document.getElementById( 'ubac-packing-config' );
 
 	if ( ! configNode ) {
 		return;
@@ -20,14 +20,14 @@
 
 	var config = JSON.parse( configNode.textContent );
 	var t = config.strings;
-	var root = document.getElementById( 'dahu-packing-root' );
+	var root = document.getElementById( 'ubac-packing-root' );
 
 	/*
 	 * sessionStorage, not localStorage. A bench tablet is shared, and a token
 	 * that survives the tab being closed is a token the next person inherits.
 	 * It survives a reload, which is what a shop floor actually needs.
 	 */
-	var STORE_KEY = 'dahu-packing-token';
+	var STORE_KEY = 'ubac-packing-token';
 
 	var state = {
 		token: null,
@@ -109,7 +109,7 @@
 	}
 
 	function handleError( error ) {
-		if ( error.status === 401 && error.code !== 'dahu_serial_numbers_auth_invalid' ) {
+		if ( error.status === 401 && error.code !== 'ubac_serials_auth_invalid' ) {
 			signOut( t.sessionOver );
 			return;
 		}
@@ -354,15 +354,15 @@
 	}
 
 	function renderHeader() {
-		var header = element( 'header', 'dahu-packing__header' );
+		var header = element( 'header', 'ubac-packing__header' );
 
-		header.appendChild( element( 'span', 'dahu-packing__shop', config.shop ) );
+		header.appendChild( element( 'span', 'ubac-packing__shop', config.shop ) );
 
 		if ( state.token ) {
-			var right = element( 'div', 'dahu-packing__header-actions' );
-			right.appendChild( element( 'span', 'dahu-packing__station', state.stationLabel ) );
+			var right = element( 'div', 'ubac-packing__header-actions' );
+			right.appendChild( element( 'span', 'ubac-packing__station', state.stationLabel ) );
 
-			var out = element( 'button', 'dahu-packing__button dahu-packing__button--quiet', t.signOut );
+			var out = element( 'button', 'ubac-packing__button ubac-packing__button--quiet', t.signOut );
 			out.type = 'button';
 			out.addEventListener( 'click', function () {
 				signOut( null );
@@ -376,10 +376,10 @@
 	}
 
 	function renderMessage() {
-		var box = element( 'div', 'dahu-packing__message dahu-packing__message--' + state.message.tone );
-		box.appendChild( element( 'span', 'dahu-packing__message-text', state.message.text ) );
+		var box = element( 'div', 'ubac-packing__message ubac-packing__message--' + state.message.tone );
+		box.appendChild( element( 'span', 'ubac-packing__message-text', state.message.text ) );
 
-		var close = element( 'button', 'dahu-packing__message-close', '×' );
+		var close = element( 'button', 'ubac-packing__message-close', '×' );
 		close.type = 'button';
 		close.setAttribute( 'aria-label', t.dismiss );
 		close.addEventListener( 'click', function () {
@@ -393,23 +393,23 @@
 	}
 
 	function renderSignIn() {
-		var form = element( 'form', 'dahu-packing__panel dahu-packing__signin' );
+		var form = element( 'form', 'ubac-packing__panel ubac-packing__signin' );
 
-		var loginLabel = element( 'label', 'dahu-packing__label', t.login );
-		var login = element( 'input', 'dahu-packing__field' );
+		var loginLabel = element( 'label', 'ubac-packing__label', t.login );
+		var login = element( 'input', 'ubac-packing__field' );
 		login.type = 'text';
 		login.autocomplete = 'username';
 		login.required = true;
 		loginLabel.appendChild( login );
 
-		var passLabel = element( 'label', 'dahu-packing__label', t.password );
-		var pass = element( 'input', 'dahu-packing__field' );
+		var passLabel = element( 'label', 'ubac-packing__label', t.password );
+		var pass = element( 'input', 'ubac-packing__field' );
 		pass.type = 'password';
 		pass.autocomplete = 'current-password';
 		pass.required = true;
 		passLabel.appendChild( pass );
 
-		var submit = element( 'button', 'dahu-packing__button', state.busy ? t.working : t.signIn );
+		var submit = element( 'button', 'ubac-packing__button', state.busy ? t.working : t.signIn );
 		submit.type = 'submit';
 		submit.disabled = state.busy;
 
@@ -426,18 +426,18 @@
 	}
 
 	function renderQueue() {
-		var panel = element( 'section', 'dahu-packing__panel' );
+		var panel = element( 'section', 'ubac-packing__panel' );
 
-		var bar = element( 'div', 'dahu-packing__bar' );
-		bar.appendChild( element( 'h1', 'dahu-packing__title', t.queue ) );
+		var bar = element( 'div', 'ubac-packing__bar' );
+		bar.appendChild( element( 'h1', 'ubac-packing__title', t.queue ) );
 
-		var searchForm = element( 'form', 'dahu-packing__search' );
-		var search = element( 'input', 'dahu-packing__field' );
+		var searchForm = element( 'form', 'ubac-packing__search' );
+		var search = element( 'input', 'ubac-packing__field' );
 		search.type = 'search';
 		search.placeholder = t.search;
 		searchForm.appendChild( search );
 
-		var go = element( 'button', 'dahu-packing__button dahu-packing__button--quiet', t.refresh );
+		var go = element( 'button', 'ubac-packing__button ubac-packing__button--quiet', t.refresh );
 		go.type = 'submit';
 		searchForm.appendChild( go );
 
@@ -450,24 +450,24 @@
 		panel.appendChild( bar );
 
 		if ( ! state.queue.length ) {
-			panel.appendChild( element( 'p', 'dahu-packing__empty', state.busy ? t.working : t.nothingToPack ) );
+			panel.appendChild( element( 'p', 'ubac-packing__empty', state.busy ? t.working : t.nothingToPack ) );
 
 			return panel;
 		}
 
-		var list = element( 'ul', 'dahu-packing__queue' );
+		var list = element( 'ul', 'ubac-packing__queue' );
 
 		state.queue.forEach( function ( order ) {
-			var item = element( 'li', 'dahu-packing__queue-item' );
-			var button = element( 'button', 'dahu-packing__order' );
+			var item = element( 'li', 'ubac-packing__queue-item' );
+			var button = element( 'button', 'ubac-packing__order' );
 			button.type = 'button';
 
-			button.appendChild( element( 'span', 'dahu-packing__order-number', '#' + order.number ) );
-			button.appendChild( element( 'span', 'dahu-packing__order-customer', order.customer ) );
+			button.appendChild( element( 'span', 'ubac-packing__order-number', '#' + order.number ) );
+			button.appendChild( element( 'span', 'ubac-packing__order-customer', order.customer ) );
 
 			var badge = order.serials_ready
-				? element( 'span', 'dahu-packing__badge dahu-packing__badge--ready', t.ready )
-				: element( 'span', 'dahu-packing__badge', fill( t.owed, '%d', order.serials_owed ) );
+				? element( 'span', 'ubac-packing__badge ubac-packing__badge--ready', t.ready )
+				: element( 'span', 'ubac-packing__badge', fill( t.owed, '%d', order.serials_owed ) );
 
 			button.appendChild( badge );
 
@@ -485,12 +485,12 @@
 	}
 
 	function renderOrder() {
-		var panel = element( 'section', 'dahu-packing__panel' );
+		var panel = element( 'section', 'ubac-packing__panel' );
 		var order = state.order;
 
-		var bar = element( 'div', 'dahu-packing__bar' );
+		var bar = element( 'div', 'ubac-packing__bar' );
 
-		var back = element( 'button', 'dahu-packing__button dahu-packing__button--quiet', t.back );
+		var back = element( 'button', 'ubac-packing__button ubac-packing__button--quiet', t.back );
 		back.type = 'button';
 		back.addEventListener( 'click', function () {
 			loadQueue();
@@ -501,7 +501,7 @@
 		// billing name showed "#6226 — " on the bench, which reads as a name
 		// that failed to load rather than as an order that has none.
 		var heading = order.customer ? '#' + order.number + ' — ' + order.customer : '#' + order.number;
-		bar.appendChild( element( 'h1', 'dahu-packing__title', heading ) );
+		bar.appendChild( element( 'h1', 'ubac-packing__title', heading ) );
 		panel.appendChild( bar );
 
 		( order.lines || [] ).forEach( function ( line ) {
@@ -518,23 +518,23 @@
 	}
 
 	function renderLine( line ) {
-		var block = element( 'div', 'dahu-packing__line' );
-		var head = element( 'div', 'dahu-packing__line-head' );
+		var block = element( 'div', 'ubac-packing__line' );
+		var head = element( 'div', 'ubac-packing__line-head' );
 
-		head.appendChild( element( 'span', 'dahu-packing__line-name', line.name ) );
+		head.appendChild( element( 'span', 'ubac-packing__line-name', line.name ) );
 
 		if ( ! line.serialised ) {
-			head.appendChild( element( 'span', 'dahu-packing__badge', t.noSerialNeeded ) );
+			head.appendChild( element( 'span', 'ubac-packing__badge', t.noSerialNeeded ) );
 			block.appendChild( head );
 
 			return block;
 		}
 
 		var count = fill( fill( t.ofQuantity, '%1$d', line.serials.length ), '%2$d', line.required );
-		head.appendChild( element( 'span', 'dahu-packing__badge' + ( line.serials.length >= line.required ? ' dahu-packing__badge--ready' : '' ), count ) );
+		head.appendChild( element( 'span', 'ubac-packing__badge' + ( line.serials.length >= line.required ? ' ubac-packing__badge--ready' : '' ), count ) );
 
 		if ( line.serials.length < line.required ) {
-			var pick = element( 'button', 'dahu-packing__button dahu-packing__button--quiet', t.pickLine );
+			var pick = element( 'button', 'ubac-packing__button ubac-packing__button--quiet', t.pickLine );
 			pick.type = 'button';
 			pick.setAttribute( 'aria-pressed', String( state.lineId === line.order_item_id ) );
 
@@ -553,13 +553,13 @@
 		block.appendChild( head );
 
 		if ( line.serials.length ) {
-			var list = element( 'ul', 'dahu-packing__serials' );
+			var list = element( 'ul', 'ubac-packing__serials' );
 
 			line.serials.forEach( function ( entry ) {
-				var item = element( 'li', 'dahu-packing__serial' );
-				item.appendChild( element( 'code', 'dahu-packing__serial-value', entry.serial ) );
+				var item = element( 'li', 'ubac-packing__serial' );
+				item.appendChild( element( 'code', 'ubac-packing__serial-value', entry.serial ) );
 
-				var remove = element( 'button', 'dahu-packing__remove', t.remove );
+				var remove = element( 'button', 'ubac-packing__remove', t.remove );
 				remove.type = 'button';
 				remove.addEventListener( 'click', function () {
 					unassign( entry.serial );
@@ -576,10 +576,10 @@
 	}
 
 	function renderScan() {
-		var form = element( 'form', 'dahu-packing__scanbox' );
+		var form = element( 'form', 'ubac-packing__scanbox' );
 
 		if ( ! state.lineId ) {
-			form.appendChild( element( 'p', 'dahu-packing__empty', t.chooseLine ) );
+			form.appendChild( element( 'p', 'ubac-packing__empty', t.chooseLine ) );
 
 			return form;
 		}
@@ -588,9 +588,9 @@
 			return candidate.order_item_id === state.lineId;
 		} )[0];
 
-		form.appendChild( element( 'p', 'dahu-packing__scanning', fill( t.scanInto, '%s', line ? line.name : '' ) ) );
+		form.appendChild( element( 'p', 'ubac-packing__scanning', fill( t.scanInto, '%s', line ? line.name : '' ) ) );
 
-		var field = element( 'input', 'dahu-packing__field dahu-packing__field--scan js-scan' );
+		var field = element( 'input', 'ubac-packing__field ubac-packing__field--scan js-scan' );
 		field.type = 'text';
 		field.placeholder = t.scan;
 		field.autocomplete = 'off';
@@ -618,25 +618,25 @@
 	}
 
 	function renderShip() {
-		var form = element( 'form', 'dahu-packing__shipbox' );
+		var form = element( 'form', 'ubac-packing__shipbox' );
 
-		form.appendChild( element( 'p', 'dahu-packing__ready', t.allScanned ) );
+		form.appendChild( element( 'p', 'ubac-packing__ready', t.allScanned ) );
 
-		var carrierLabel = element( 'label', 'dahu-packing__label', t.carrier );
-		var carrier = element( 'input', 'dahu-packing__field' );
+		var carrierLabel = element( 'label', 'ubac-packing__label', t.carrier );
+		var carrier = element( 'input', 'ubac-packing__field' );
 		carrier.type = 'text';
 		carrier.autocomplete = 'off';
 		carrier.value = state.order.carrier || '';
 		carrierLabel.appendChild( carrier );
 
-		var trackingLabel = element( 'label', 'dahu-packing__label', t.tracking );
-		var tracking = element( 'input', 'dahu-packing__field' );
+		var trackingLabel = element( 'label', 'ubac-packing__label', t.tracking );
+		var tracking = element( 'input', 'ubac-packing__field' );
 		tracking.type = 'text';
 		tracking.autocomplete = 'off';
 		tracking.value = state.order.tracking || '';
 		trackingLabel.appendChild( tracking );
 
-		var submit = element( 'button', 'dahu-packing__button dahu-packing__button--primary', state.busy ? t.working : t.ship );
+		var submit = element( 'button', 'ubac-packing__button ubac-packing__button--primary', state.busy ? t.working : t.ship );
 		submit.type = 'submit';
 		submit.disabled = state.busy;
 
@@ -647,7 +647,7 @@
 		 * spinner arrows that `number` alone draws over a thumb-sized field.
 		 */
 		function measure( label ) {
-			var input = element( 'input', 'dahu-packing__field' );
+			var input = element( 'input', 'ubac-packing__field' );
 			input.type = 'number';
 			input.min = '0';
 			input.step = 'any';
@@ -657,15 +657,15 @@
 			return input;
 		}
 
-		var parcelBox = element( 'fieldset', 'dahu-packing__parcel' );
-		parcelBox.appendChild( element( 'legend', 'dahu-packing__label', t.parcel ) );
+		var parcelBox = element( 'fieldset', 'ubac-packing__parcel' );
+		parcelBox.appendChild( element( 'legend', 'ubac-packing__label', t.parcel ) );
 
-		var weightLabel = element( 'label', 'dahu-packing__sublabel', t.weight );
+		var weightLabel = element( 'label', 'ubac-packing__sublabel', t.weight );
 		var weight = measure( t.weight );
 		weightLabel.appendChild( weight );
 
-		var dimensionsLabel = element( 'div', 'dahu-packing__sublabel', t.dimensions );
-		var sides = element( 'div', 'dahu-packing__sides' );
+		var dimensionsLabel = element( 'div', 'ubac-packing__sublabel', t.dimensions );
+		var sides = element( 'div', 'ubac-packing__sides' );
 		var length = measure( t.dimensions );
 		var width = measure( t.dimensions );
 		var height = measure( t.dimensions );

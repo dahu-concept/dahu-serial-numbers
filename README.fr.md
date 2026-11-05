@@ -1,4 +1,4 @@
-# Dahu Serial Numbers
+# Ubac Serial Numbers
 
 La traçabilité à l'unité pour WooCommerce. Une ligne par unité physique
 expédiée, un cycle de vie qui refuse les mouvements qui n'ont pas de sens, un
@@ -182,7 +182,7 @@ tant que quelqu'un n'a pas écrit une classe PHP.
 
 ### Greffer son transporteur
 
-> **Mise à jour depuis la 1.0.0 ?** `dahu_serial_numbers_before_shipment` a
+> **Mise à jour depuis la 1.0.0 ?** `ubac_serials_before_shipment` a
 > gagné un paramètre en **deuxième** position — `$consignment_id` — donc
 > `$order` passe en troisième. Un écouteur déclaré avec `10, 4` et l'ancien ordre
 > reçoit un entier là où il attend la commande, et échoue ; l'extension
@@ -198,14 +198,14 @@ jour.
 ```php
 <?php
 /**
- * Plugin Name: Mon transporteur pour Dahu Serial Numbers
+ * Plugin Name: Mon transporteur pour Ubac Serial Numbers
  */
 
 // 1. Créer l'étiquette quand le poste ferme le colis, et rendre le numéro de
 //    suivi. Ce que vous rendez est enregistré sur la commande et écrit dans
 //    l'historique de chaque unité.
 add_filter(
-    'dahu_serial_numbers_before_shipment',
+    'ubac_serials_before_shipment',
     function ( $tracking, $consignment_id, $order, $carrier, $station_id ) {
 
         // Il y en a déjà un — étiquette imprimée plus tôt, numéro saisi au
@@ -217,7 +217,7 @@ add_filter(
         // Le colis est déjà ouvert et contient déjà ses unités : vous pouvez
         // dire au transporteur exactement ce qu'il y a dans le carton — les
         // mettre sur la déclaration en douane, le bordereau, où il faut.
-        $envoi  = Dahu_Serial_Numbers_Consignments::get( $consignment_id );
+        $envoi  = Ubac_Serials_Consignments::get( $consignment_id );
         $series = $envoi ? $envoi['serials'] : array();
 
         $etiquette = mon_transporteur_api_creer_etiquette( array(
@@ -243,7 +243,7 @@ add_filter(
 //    défaut : il n'y a aucune liste d'URL de transporteurs dans cette
 //    extension, et un lien deviné qui tombe en 404 est pire que pas de lien.
 add_filter(
-    'dahu_serial_numbers_tracking_url',
+    'ubac_serials_tracking_url',
     function ( $url, $tracking, $carrier, $order, $consignment_id ) {
         // $order peut valoir null quand le lien est construit à partir d'un
         // envoi seul.
@@ -274,7 +274,7 @@ Une boutique où rien ne peut partir sans une vraie étiquette le dit, et alors
 rien ne bouge du tout :
 
 ```php
-add_filter( 'dahu_serial_numbers_block_on_label_failure', '__return_true' );
+add_filter( 'ubac_serials_block_on_label_failure', '__return_true' );
 ```
 
 ## Les envois (registre d'envois)
@@ -293,14 +293,14 @@ métas de commande (transporteur, numéro de suivi, référence) sont toujours
 l'export qui les lit.
 
 **C'est un livre de comptes, pas un acteur.** Le registre ne déplace aucune
-unité d'un statut à l'autre ; c'est `Dahu_Serial_Numbers_Shipment` qui le fait,
+unité d'un statut à l'autre ; c'est `Ubac_Serials_Shipment` qui le fait,
 et qui se sert du registre pour noter ce qu'il a fait. Toujours pas d'API
 transporteur, d'étiquette ni de manifeste : le transporteur est un nom que vous
 saisissez, le numéro de suivi une chaîne que vous collez.
 
 ### Expéditions partielles
 
-`Dahu_Serial_Numbers_Shipment::ship()` accepte `$args['serials']` pour n'expédier
+`Ubac_Serials_Shipment::ship()` accepte `$args['serials']` pour n'expédier
 qu'une partie d'une commande, et `POST /orders/{id}/shipment` accepte le même
 argument `serials`. Omis, toute la commande part, comme avant.
 
@@ -343,11 +343,11 @@ arbitraires.
 
 ### Les tables sont un contrat public
 
-`dahu_serial_numbers_consignments` et `dahu_serial_numbers_consignment_serials`
+`ubac_serials_consignments` et `ubac_serials_consignment_serials`
 (avec votre préfixe de tables) peuvent être lues par d'autres extensions. Leurs
 modifications sont **additives seulement**. La version du contrat est
-`Dahu_Serial_Numbers_Consignments::API_VERSION`, lisible sans charger la classe
-via l'option `dahu_serial_numbers_consignments_api`, et renvoyée par
+`Ubac_Serials_Consignments::API_VERSION`, lisible sans charger la classe
+via l'option `ubac_serials_consignments_api`, et renvoyée par
 `GET /consignments` dans `api_version`. Le schéma de base est en version 5 ; la
 dernière version a ajouté `label_error`, une colonne nullable qui porte le message
 du transporteur quand une étiquette a été refusée, de sorte que « les colis partis
@@ -359,12 +359,12 @@ sont additifs.
 
 Quand un transporteur ne répond pas, le colis est clos quand même et la note de
 commande dit d'ajouter le numéro de suivi à la main.
-`Dahu_Serial_Numbers_Shipment::amend_tracking( $consignment_id, array( 'carrier' => '…', 'tracking' => '…' ) )`
+`Ubac_Serials_Shipment::amend_tracking( $consignment_id, array( 'carrier' => '…', 'tracking' => '…' ) )`
 le fait sur un envoi **clos**, et déclenche
-`dahu_serial_numbers_consignment_tracking_amended( $id, $consignment, $previous )`.
+`ubac_serials_consignment_tracking_amended( $id, $consignment, $previous )`.
 Elle écrit le transporteur et le suivi, rien d'autre : toute autre clé (`status`,
 `serials`, `note`, les mesures…) est refusée par
-`dahu_serial_numbers_amend_only_tracking` et rien n'est écrit. Le miroir de métas
+`ubac_serials_amend_only_tracking` et rien n'est écrit. Le miroir de métas
 de la commande décrit un seul colis, le plus récent envoi sortant clos ; il est
 réécrit comme un ensemble quand on corrige celui-là, et laissé tel quel quand on
 corrige un plus ancien.
@@ -414,7 +414,7 @@ mis de numéro. Les deux moitiés sont nécessaires :
 Les commandes *en traitement* et *en attente* réservent ; les commandes
 terminées non, parce que WooCommerce garde `_reduced_stock` sur leurs lignes
 pour les remboursements et que les compter retiendrait du stock pour toujours.
-`dahu_serial_numbers_stock_reserving_statuses` change cette liste.
+`ubac_serials_stock_reserving_statuses` change cette liste.
 
 La valeur est **posée**, pas incrémentée. Un incrément doit être juste à chaque
 fois pour rester juste ; une valeur absolue est juste dès qu'elle passe.
@@ -491,7 +491,7 @@ cases :
 
 ```php
 add_filter(
-    'dahu_serial_numbers_is_serialised',
+    'ubac_serials_is_serialised',
     function ( $serialise, $product_id ) {
         return $serialise || has_term( 'moteurs', 'product_cat', $product_id );
     },
@@ -512,8 +512,8 @@ vingt-six ans — et on le branche plutôt que de le supposer :
 
 ```php
 add_filter(
-    'dahu_serial_numbers_decode',
-    array( 'Dahu_Serial_Numbers_Format', 'letter_year_month' ),
+    'ubac_serials_decode',
+    array( 'Ubac_Serials_Format', 'letter_year_month' ),
     10,
     2
 );
@@ -530,7 +530,7 @@ hors de 1-12 est écarté plutôt qu'écrit dans la colonne.
 
 ## L'API
 
-Onze routes sous `dahu-serial-numbers/v1`, employées par l'écran d'atelier.
+Onze routes sous `ubac-serials/v1`, employées par l'écran d'atelier.
 Toutes sauf la connexion exigent un jeton délivré à un poste atelier.
 
 | | |
@@ -570,39 +570,39 @@ n'est jamais le cas ici.
 
 | | |
 |---|---|
-| `dahu_serial_numbers_transitions` | élargir le cycle de vie |
-| `dahu_serial_numbers_columns_cleared` | quelles colonnes un mouvement efface |
-| `dahu_serial_numbers_is_serialised` | quels produits portent un numéro de série |
-| `dahu_serial_numbers_resolve_product` | rediriger un identifiant de produit |
-| `dahu_serial_numbers_normalise` | le dernier mot sur la forme d'un numéro |
-| `dahu_serial_numbers_url_parameters` | dans quels paramètres une URL scannée peut le porter |
-| `dahu_serial_numbers_decode` | lire une date de fabrication dans un numéro |
-| `dahu_serial_numbers_queue_statuses` | quelles commandes la file liste |
-| `dahu_serial_numbers_stock_reserving_statuses` | quels statuts de commande retiennent du stock — sans le préfixe `wc-` |
-| `dahu_serial_numbers_stock_reserved_map` | le dernier mot sur les pièces que chaque produit doit aux commandes — `( $map, $order_ids )` |
-| `dahu_serial_numbers_auth_provider` | remplacer le backend d'authentification |
-| `dahu_serial_numbers_token_ttl` | la durée d'une session |
-| `dahu_serial_numbers_auth_max_attempts` | les échecs avant verrouillage |
-| `dahu_serial_numbers_auth_lockout_window` | la durée du verrou |
-| `dahu_serial_numbers_before_shipment` | créer une étiquette, rendre un numéro de suivi — `( $tracking, $consignment_id, $order, $carrier, $station_id )` |
-| `dahu_serial_numbers_block_on_label_failure` | refuser le colis si le transporteur échoue, au lieu de l'enregistrer — 4e paramètre `$consignment_id` |
-| `dahu_serial_numbers_shipment_status` | où va la commande une fois expédiée — 3e paramètre `$consignment_id` ; le défaut est `completed` seulement quand il ne reste rien à envoyer, chaîne vide (statut inchangé) sinon |
-| `dahu_serial_numbers_tracking_url` | construire un lien de suivi — 5e paramètre `$consignment_id` ; `$order` (4e) peut valoir `null` |
-| `dahu_serial_numbers_label_failure_note` | reformuler la ligne de la note de commande écrite quand le transporteur a échoué — `( $text, $label_error, $consignment_id )` ; inchangée si personne n'écoute. Pour un appel non idempotent arrivé au délai, où « n'a pas pu créer l'étiquette » peut être faux |
-| `dahu_serial_numbers_consignment_row_actions` | ajouter des actions à une ligne de l'écran des envois, comme `plugin_action_links` — `( $actions, $row )` ; les fragments sont filtrés (liens et balises simples) |
+| `ubac_serials_transitions` | élargir le cycle de vie |
+| `ubac_serials_columns_cleared` | quelles colonnes un mouvement efface |
+| `ubac_serials_is_serialised` | quels produits portent un numéro de série |
+| `ubac_serials_resolve_product` | rediriger un identifiant de produit |
+| `ubac_serials_normalise` | le dernier mot sur la forme d'un numéro |
+| `ubac_serials_url_parameters` | dans quels paramètres une URL scannée peut le porter |
+| `ubac_serials_decode` | lire une date de fabrication dans un numéro |
+| `ubac_serials_queue_statuses` | quelles commandes la file liste |
+| `ubac_serials_stock_reserving_statuses` | quels statuts de commande retiennent du stock — sans le préfixe `wc-` |
+| `ubac_serials_stock_reserved_map` | le dernier mot sur les pièces que chaque produit doit aux commandes — `( $map, $order_ids )` |
+| `ubac_serials_auth_provider` | remplacer le backend d'authentification |
+| `ubac_serials_token_ttl` | la durée d'une session |
+| `ubac_serials_auth_max_attempts` | les échecs avant verrouillage |
+| `ubac_serials_auth_lockout_window` | la durée du verrou |
+| `ubac_serials_before_shipment` | créer une étiquette, rendre un numéro de suivi — `( $tracking, $consignment_id, $order, $carrier, $station_id )` |
+| `ubac_serials_block_on_label_failure` | refuser le colis si le transporteur échoue, au lieu de l'enregistrer — 4e paramètre `$consignment_id` |
+| `ubac_serials_shipment_status` | où va la commande une fois expédiée — 3e paramètre `$consignment_id` ; le défaut est `completed` seulement quand il ne reste rien à envoyer, chaîne vide (statut inchangé) sinon |
+| `ubac_serials_tracking_url` | construire un lien de suivi — 5e paramètre `$consignment_id` ; `$order` (4e) peut valoir `null` |
+| `ubac_serials_label_failure_note` | reformuler la ligne de la note de commande écrite quand le transporteur a échoué — `( $text, $label_error, $consignment_id )` ; inchangée si personne n'écoute. Pour un appel non idempotent arrivé au délai, où « n'a pas pu créer l'étiquette » peut être faux |
+| `ubac_serials_consignment_row_actions` | ajouter des actions à une ligne de l'écran des envois, comme `plugin_action_links` — `( $actions, $row )` ; les fragments sont filtrés (liens et balises simples) |
 
 **Actions**
 
 | | |
 |---|---|
-| `dahu_serial_numbers_created` | une unité a été enregistrée |
-| `dahu_serial_numbers_transitioned` | une unité a bougé |
-| `dahu_serial_numbers_shipped` | un colis a été fermé — 5e paramètre `$consignment_id` |
-| `dahu_serial_numbers_consignment_opened` | un envoi a été ouvert |
-| `dahu_serial_numbers_consignment_closed` | un envoi a été fermé |
-| `dahu_serial_numbers_consignment_cancelled` | un envoi a été annulé |
-| `dahu_serial_numbers_consignment_tracking_amended` | un envoi clos a reçu son transporteur ou son suivi après coup — `( $id, $consignment, $previous )` |
-| `dahu_serial_numbers_station_credentials_revoked` | un poste a été désactivé, ou son mot de passe changé |
+| `ubac_serials_created` | une unité a été enregistrée |
+| `ubac_serials_transitioned` | une unité a bougé |
+| `ubac_serials_shipped` | un colis a été fermé — 5e paramètre `$consignment_id` |
+| `ubac_serials_consignment_opened` | un envoi a été ouvert |
+| `ubac_serials_consignment_closed` | un envoi a été fermé |
+| `ubac_serials_consignment_cancelled` | un envoi a été annulé |
+| `ubac_serials_consignment_tracking_amended` | un envoi clos a reçu son transporteur ou son suivi après coup — `( $id, $consignment, $previous )` |
+| `ubac_serials_station_credentials_revoked` | un poste a été désactivé, ou son mot de passe changé |
 
 ## Les dates
 

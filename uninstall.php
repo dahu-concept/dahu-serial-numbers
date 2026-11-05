@@ -19,7 +19,7 @@
  *
  * What the box covers is counted, not remembered: the plugin creates six
  * tables and writes nine options, and the lists below hold six and nine.
- * Anything added to `Dahu_Serial_Numbers_Install` or to a new `OPTION_`
+ * Anything added to `Ubac_Serials_Install` or to a new `OPTION_`
  * constant belongs here the same day, or a "delete everything" quietly
  * becomes a "delete most of it".
  *
@@ -28,7 +28,7 @@
  * shop large enough for this to time out half way, that is the one order
  * that loses the irreplaceable table and keeps the tokens.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
@@ -38,23 +38,23 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
  *
  * @return void
  */
-function dahu_serial_numbers_uninstall_site() {
+function ubac_serials_uninstall_site() {
 
 	// The welcome screen's own three flags.
 	//
 	// They are interface state, not the shop's data, which is why they sit
 	// BEFORE any “remove data on uninstall” guard: whatever a shop chose to
-	// keep, a reinstall has to greet it again. `includes/dahu-welcome.php`
+	// keep, a reinstall has to greet it again. `includes/ubac-welcome.php`
 	// writes them with update_option(), so they outlive the plugin unless
 	// they are deleted here — and the welcome screen and the guided tour
 	// would then stay silent for good, with nothing on screen to explain why.
-	delete_option( 'dahu_welcome_seen_dahu-serial-numbers' );
-	delete_option( 'dahu_welcome_pending_dahu-serial-numbers' );
-	delete_option( 'dahu_welcome_tour_dahu-serial-numbers' );
+	delete_option( 'ubac_welcome_seen_ubac-serials' );
+	delete_option( 'ubac_welcome_pending_ubac-serials' );
+	delete_option( 'ubac_welcome_tour_ubac-serials' );
 
 	global $wpdb;
 
-	wp_clear_scheduled_hook( 'dahu_serial_numbers_purge_tokens' );
+	wp_clear_scheduled_hook( 'ubac_serials_purge_tokens' );
 
 	// The lockout counters are transients keyed on a hash of the login, so
 	// there is no list of them to walk. They expire on their own within ten
@@ -62,8 +62,8 @@ function dahu_serial_numbers_uninstall_site() {
 	$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- uninstall, options table, pattern prepared below.
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-			$wpdb->esc_like( '_transient_dahu_sn_login_fail_' ) . '%',
-			$wpdb->esc_like( '_transient_timeout_dahu_sn_login_fail_' ) . '%'
+			$wpdb->esc_like( '_transient_ubac_sn_login_fail_' ) . '%',
+			$wpdb->esc_like( '_transient_timeout_ubac_sn_login_fail_' ) . '%'
 		)
 	);
 
@@ -74,16 +74,16 @@ function dahu_serial_numbers_uninstall_site() {
 	// is the only thing standing between a reinstall and a flush of the
 	// workshop URL. Not one of them holds anything a shop would miss.
 	$markers = array(
-		'dahu_serial_numbers_schema',
-		'dahu_serial_numbers_consignments_api',
-		'dahu_serial_numbers_rewrite',
+		'ubac_serials_schema',
+		'ubac_serials_consignments_api',
+		'ubac_serials_rewrite',
 	);
 
 	foreach ( $markers as $marker ) {
 		delete_option( $marker );
 	}
 
-	$settings = get_option( 'dahu_serial_numbers_settings', array() );
+	$settings = get_option( 'ubac_serials_settings', array() );
 
 	if ( ! is_array( $settings ) || empty( $settings['delete_data_on_uninstall'] ) ) {
 		return;
@@ -92,8 +92,8 @@ function dahu_serial_numbers_uninstall_site() {
 	$suffixes = array(
 		// Credentials first: cheap to recreate, and the thing least worth
 		// keeping if this is interrupted.
-		'dahu_serial_numbers_tokens',
-		'dahu_serial_numbers_stations',
+		'ubac_serials_tokens',
+		'ubac_serials_stations',
 		// Then the consignment record. The contents go before the headers,
 		// and that order is a choice between two bad remnants rather than a
 		// derivation: interrupted here, what survives is the headers —
@@ -101,13 +101,13 @@ function dahu_serial_numbers_uninstall_site() {
 		// which is still a readable list of parcels. The other way round
 		// leaves rows holding a consignment id that no longer names
 		// anything, which is unreadable.
-		'dahu_serial_numbers_consignment_serials',
-		'dahu_serial_numbers_consignments',
+		'ubac_serials_consignment_serials',
+		'ubac_serials_consignments',
 		// The history and the units themselves last. If a timeout stops this
 		// part way, what is left behind is the answer to "where did this unit
 		// go", which is the only part nobody can rebuild.
-		'dahu_serial_numbers_log',
-		'dahu_serial_numbers',
+		'ubac_serials_log',
+		'ubac_serials',
 	);
 
 	foreach ( $suffixes as $suffix ) {
@@ -122,12 +122,12 @@ function dahu_serial_numbers_uninstall_site() {
 	// records, shop data — the stock pushes carry product names and the id of
 	// whoever asked for them, and the correction runs carry serial numbers.
 	$options = array(
-		'dahu_serial_numbers_settings',
+		'ubac_serials_settings',
 		// What the Stock screen shows as history, and what a correction run
 		// needs to be undone. Both are records of what was done, which is
 		// exactly what the box asks to be rid of.
-		'dahu_serial_numbers_stock_history',
-		'dahu_serial_numbers_product_fix_runs',
+		'ubac_serials_stock_history',
+		'ubac_serials_product_fix_runs',
 	);
 
 	foreach ( $options as $option ) {
@@ -140,20 +140,20 @@ function dahu_serial_numbers_uninstall_site() {
 }
 
 if ( is_multisite() ) {
-	$dahu_serial_numbers_sites = get_sites(
+	$ubac_serials_sites = get_sites(
 		array(
 			'fields' => 'ids',
 			'number' => 0,
 		)
 	);
 
-	foreach ( $dahu_serial_numbers_sites as $dahu_serial_numbers_site ) {
-		switch_to_blog( $dahu_serial_numbers_site );
-		dahu_serial_numbers_uninstall_site();
+	foreach ( $ubac_serials_sites as $ubac_serials_site ) {
+		switch_to_blog( $ubac_serials_site );
+		ubac_serials_uninstall_site();
 		restore_current_blog();
 	}
 
-	unset( $dahu_serial_numbers_sites, $dahu_serial_numbers_site );
+	unset( $ubac_serials_sites, $ubac_serials_site );
 } else {
-	dahu_serial_numbers_uninstall_site();
+	ubac_serials_uninstall_site();
 }

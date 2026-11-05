@@ -10,7 +10,7 @@
  * un-assignment, not deleting the order it was attached to. A history with
  * holes in it answers worse than no history, because it answers confidently.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Append-only history of everything that happened to a serial.
  */
-class Dahu_Serial_Numbers_Log {
+class Ubac_Serials_Log {
 
 	/**
 	 * Writes one line.
@@ -40,17 +40,17 @@ class Dahu_Serial_Numbers_Log {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 
 		if ( '' === $serial ) {
 			return new WP_Error(
-				'dahu_serial_numbers_log_empty_serial',
+				'ubac_serials_log_empty_serial',
 				__( 'Nothing to record: the serial number is empty.', 'ubac-serials' )
 			);
 		}
 
 		$inserted = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::log_table(),
+			Ubac_Serials_Install::log_table(),
 			array(
 				'serial'     => $serial,
 				'event'      => substr( (string) $event, 0, 64 ),
@@ -67,7 +67,7 @@ class Dahu_Serial_Numbers_Log {
 
 		if ( ! $inserted ) {
 			return new WP_Error(
-				'dahu_serial_numbers_log_failed',
+				'ubac_serials_log_failed',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'The history line for %s could not be written.', 'ubac-serials' ),
@@ -90,13 +90,13 @@ class Dahu_Serial_Numbers_Log {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 
 		if ( '' === $serial ) {
 			return array();
 		}
 
-		$table = Dahu_Serial_Numbers_Install::log_table();
+		$table = Ubac_Serials_Install::log_table();
 		$limit = max( 0, (int) $limit );
 
 		if ( 0 === $limit ) {
@@ -120,7 +120,7 @@ class Dahu_Serial_Numbers_Log {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::log_table();
+		$table = Ubac_Serials_Install::log_table();
 		$limit = max( 1, (int) $limit );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
@@ -139,13 +139,13 @@ class Dahu_Serial_Numbers_Log {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 
 		if ( '' === $serial ) {
 			return 0;
 		}
 
-		$table = Dahu_Serial_Numbers_Install::log_table();
+		$table = Ubac_Serials_Install::log_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE serial = %s", $serial ) );

@@ -7,7 +7,7 @@
  * for the shop with four hundred, where "everything in these two categories"
  * is the rule and ticking four hundred boxes is not.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -15,12 +15,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The serialised flag on a product.
  */
-class Dahu_Serial_Numbers_Products {
+class Ubac_Serials_Products {
 
 	/**
 	 * Meta key holding the flag.
 	 */
-	const META_KEY = '_dahu_serial_numbers_serialised';
+	const META_KEY = '_ubac_serials_serialised';
 
 	/**
 	 * Does this product ship with a serial number per unit?
@@ -57,7 +57,7 @@ class Dahu_Serial_Numbers_Products {
 		 * touching a flag on every product:
 		 *
 		 *     add_filter(
-		 *         'dahu_serial_numbers_is_serialised',
+		 *         'ubac_serials_is_serialised',
 		 *         function ( $serialised, $product_id ) {
 		 *             return $serialised || has_term( 'motors', 'product_cat', $product_id );
 		 *         },
@@ -68,7 +68,7 @@ class Dahu_Serial_Numbers_Products {
 		 * @param bool $serialised Whether the flag says yes.
 		 * @param int  $product_id Product or variation id.
 		 */
-		return (bool) apply_filters( 'dahu_serial_numbers_is_serialised', $serialised, $product_id );
+		return (bool) apply_filters( 'ubac_serials_is_serialised', $serialised, $product_id );
 	}
 
 	/**
@@ -123,7 +123,7 @@ class Dahu_Serial_Numbers_Products {
 		 *
 		 * @param int $product_id Id as the caller supplied it.
 		 */
-		$resolved = (int) apply_filters( 'dahu_serial_numbers_resolve_product', $product_id );
+		$resolved = (int) apply_filters( 'ubac_serials_resolve_product', $product_id );
 
 		return $resolved > 0 ? $resolved : $product_id;
 	}

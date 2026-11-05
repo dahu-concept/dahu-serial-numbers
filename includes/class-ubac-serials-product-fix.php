@@ -25,7 +25,7 @@
  *   writes nothing, and reading what would happen is how somebody decides
  *   whether to turn it on.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -33,12 +33,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Batch product corrections on units in stock.
  */
-class Dahu_Serial_Numbers_Product_Fix {
+class Ubac_Serials_Product_Fix {
 
 	/**
 	 * Option holding the runs, newest first.
 	 */
-	const OPTION_RUNS = 'dahu_serial_numbers_product_fix_runs';
+	const OPTION_RUNS = 'ubac_serials_product_fix_runs';
 
 	/**
 	 * How many runs are kept and can be undone.
@@ -62,7 +62,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 	 */
 	public static function enabled() {
 
-		return (bool) Dahu_Serial_Numbers_Settings::get( 'product_fix_enabled' );
+		return (bool) Ubac_Serials_Settings::get( 'product_fix_enabled' );
 	}
 
 	/* ---------------------------------------------------------------------
@@ -86,7 +86,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 		$out    = array();
 
 		foreach ( $chunks as $chunk ) {
-			$serial = Dahu_Serial_Numbers_Format::normalise( $chunk );
+			$serial = Ubac_Serials_Format::normalise( $chunk );
 
 			if ( '' !== $serial && ! in_array( $serial, $out, true ) ) {
 				$out[] = $serial;
@@ -129,7 +129,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 			return 'destination_variable';
 		}
 
-		if ( ! Dahu_Serial_Numbers_Products::is_serialised( $product_id ) ) {
+		if ( ! Ubac_Serials_Products::is_serialised( $product_id ) ) {
 			return 'destination_not_serialised';
 		}
 
@@ -173,7 +173,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 
 		$reason    = trim( (string) $reason );
 		$requested = (int) $to_product_id;
-		$to        = $requested > 0 ? Dahu_Serial_Numbers_Products::resolve( $requested ) : 0;
+		$to        = $requested > 0 ? Ubac_Serials_Products::resolve( $requested ) : 0;
 
 		$plan = array(
 			'to'          => $to,
@@ -207,7 +207,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 		}
 
 		foreach ( $serials as $serial ) {
-			$row     = Dahu_Serial_Numbers_Manager::get( $serial );
+			$row     = Ubac_Serials_Manager::get( $serial );
 			$refusal = '';
 			$from    = 0;
 
@@ -218,7 +218,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 			} else {
 				$from = (int) $row['product_id'];
 
-				if ( Dahu_Serial_Numbers_Statuses::IN_STOCK !== (string) $row['status'] ) {
+				if ( Ubac_Serials_Statuses::IN_STOCK !== (string) $row['status'] ) {
 					// A unit that left stock, filed under one product while
 					// the order line it went out on names another. That is
 					// not a judgement call: the line is the authority, and
@@ -226,7 +226,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 					// out of stock may receive here. The line is never
 					// touched, and no stock count moves -- the unit was not
 					// counted in either product's free stock to begin with.
-					$allowed = Dahu_Serial_Numbers_Manager::order_line_products( $row );
+					$allowed = Ubac_Serials_Manager::order_line_products( $row );
 
 					if ( ! $allowed ) {
 						$refusal = 'not_in_stock';
@@ -290,7 +290,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 	 */
 	private static function counts( array $rows, $to ) {
 
-		$free    = Dahu_Serial_Numbers_Stock::free_map();
+		$free    = Ubac_Serials_Stock::free_map();
 		$moving  = array();
 		$touched = array();
 
@@ -394,7 +394,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 
 		if ( ! self::enabled() ) {
 			return new WP_Error(
-				'dahu_serial_numbers_product_fix_off',
+				'ubac_serials_product_fix_off',
 				__( 'Product corrections are switched off. The Settings screen turns them on.', 'ubac-serials' )
 			);
 		}
@@ -403,7 +403,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 
 		if ( (string) $fingerprint !== $plan['fingerprint'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_product_fix_moved',
+				'ubac_serials_product_fix_moved',
 				__( 'Something moved since this summary was drawn up. Here it is again — read it and run it once more.', 'ubac-serials' ),
 				array( 'plan' => $plan )
 			);
@@ -411,7 +411,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 
 		if ( $plan['refusals'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_product_fix_refused',
+				'ubac_serials_product_fix_refused',
 				__( 'Nothing was changed: the list has at least one unit that cannot be re-filed.', 'ubac-serials' ),
 				array( 'plan' => $plan )
 			);
@@ -424,7 +424,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 		$wpdb->query( 'START TRANSACTION' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 		foreach ( $plan['rows'] as $row ) {
-			$done = Dahu_Serial_Numbers_Manager::change_product(
+			$done = Ubac_Serials_Manager::change_product(
 				$row['serial'],
 				$plan['to'],
 				array(
@@ -446,7 +446,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 				$wpdb->query( 'ROLLBACK' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 				return new WP_Error(
-					'dahu_serial_numbers_product_fix_failed',
+					'ubac_serials_product_fix_failed',
 					sprintf(
 						/* translators: 1: serial number, 2: error message. */
 						__( 'Nothing was changed. Serial number %1$s could not be re-filed: %2$s', 'ubac-serials' ),
@@ -468,7 +468,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 		// Now, and only now, the rest of the world hears about it.
 		foreach ( $moved as $entry ) {
 			do_action(
-				'dahu_serial_numbers_product_changed',
+				'ubac_serials_product_changed',
 				$entry['serial'],
 				(int) $entry['from'],
 				(int) $plan['to'],
@@ -525,14 +525,14 @@ class Dahu_Serial_Numbers_Product_Fix {
 
 		if ( ! $run ) {
 			return new WP_Error(
-				'dahu_serial_numbers_product_fix_no_run',
+				'ubac_serials_product_fix_no_run',
 				__( 'No such run — it may have aged out of the list.', 'ubac-serials' )
 			);
 		}
 
 		if ( ! empty( $run['undone_at'] ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_product_fix_undone',
+				'ubac_serials_product_fix_undone',
 				__( 'This run has already been put back.', 'ubac-serials' )
 			);
 		}
@@ -543,7 +543,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 		foreach ( (array) $run['moved'] as $entry ) {
 			$serial = (string) $entry['serial'];
 			$back   = (int) $entry['from'];
-			$row    = Dahu_Serial_Numbers_Manager::get( $serial );
+			$row    = Ubac_Serials_Manager::get( $serial );
 
 			if ( ! $row ) {
 				$skipped[] = array(
@@ -562,7 +562,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 			// and this run still the last word on it.
 			$undisturbed = $converge > 0
 				? (int) $row['order_item_id'] === $converge
-				: ( Dahu_Serial_Numbers_Statuses::IN_STOCK === (string) $row['status']
+				: ( Ubac_Serials_Statuses::IN_STOCK === (string) $row['status']
 					&& empty( $row['order_id'] )
 					&& empty( $row['order_item_id'] ) );
 
@@ -595,7 +595,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 				continue;
 			}
 
-			$done = Dahu_Serial_Numbers_Manager::change_product(
+			$done = Ubac_Serials_Manager::change_product(
 				$serial,
 				$back,
 				array(
@@ -652,7 +652,7 @@ class Dahu_Serial_Numbers_Product_Fix {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::log_table();
+		$table = Ubac_Serials_Install::log_table();
 
 		$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 			$wpdb->prepare(

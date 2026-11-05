@@ -16,9 +16,9 @@
  * the same family, when a unit is "pending replacement", what a reorder point
  * is — and a plugin that ships those decisions as code is a plugin that is
  * wrong everywhere else. Where the need generalises, what is left is a hook:
- * `dahu_serial_numbers_resolve_product` in place of the migration resolver,
- * `dahu_serial_numbers_decode` in place of the supplier's letter table,
- * `dahu_serial_numbers_transitions` in place of the extra lifecycle states.
+ * `ubac_serials_resolve_product` in place of the migration resolver,
+ * `ubac_serials_decode` in place of the supplier's letter table,
+ * `ubac_serials_transitions` in place of the extra lifecycle states.
  *
  * ## One thing that was deliberately not carried over
  *
@@ -30,7 +30,7 @@
  * widens the matrix with a filter, in one visible line, where the next reader
  * can see it.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -38,7 +38,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Serial numbers: create, read, move, record.
  */
-class Dahu_Serial_Numbers_Manager {
+class Ubac_Serials_Manager {
 
 	/**
 	 * Columns a caller's context is allowed to write during a transition.
@@ -74,13 +74,13 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 
 		if ( '' === $serial ) {
 			return null;
 		}
 
-		$table = Dahu_Serial_Numbers_Install::serials_table();
+		$table = Ubac_Serials_Install::serials_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE serial = %s", $serial ), ARRAY_A );
@@ -98,13 +98,13 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 
 		if ( '' === $serial ) {
 			return false;
 		}
 
-		$table = Dahu_Serial_Numbers_Install::serials_table();
+		$table = Ubac_Serials_Install::serials_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE serial = %s", $serial ) );
@@ -126,7 +126,7 @@ class Dahu_Serial_Numbers_Manager {
 			return array();
 		}
 
-		$table = Dahu_Serial_Numbers_Install::serials_table();
+		$table = Ubac_Serials_Install::serials_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE order_id = %d ORDER BY order_item_id ASC, serial ASC", $order_id ), ARRAY_A );
@@ -171,7 +171,7 @@ class Dahu_Serial_Numbers_Manager {
 			return $grouped;
 		}
 
-		$table        = Dahu_Serial_Numbers_Install::serials_table();
+		$table        = Ubac_Serials_Install::serials_table();
 		$placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
 		$params       = $ids;
 
@@ -219,13 +219,13 @@ class Dahu_Serial_Numbers_Manager {
 		}
 
 		$rows    = self::get_by_order( $order_id );
-		$done    = array( Dahu_Serial_Numbers_Statuses::ASSIGNED, Dahu_Serial_Numbers_Statuses::SHIPPED );
+		$done    = array( Ubac_Serials_Statuses::ASSIGNED, Ubac_Serials_Statuses::SHIPPED );
 		$missing = array();
 
 		foreach ( $order->get_items() as $item_id => $item ) {
 			$product_id = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
 
-			if ( ! Dahu_Serial_Numbers_Products::is_serialised( $product_id ) ) {
+			if ( ! Ubac_Serials_Products::is_serialised( $product_id ) ) {
 				continue;
 			}
 
@@ -307,7 +307,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$table    = Dahu_Serial_Numbers_Install::serials_table();
+		$table    = Ubac_Serials_Install::serials_table();
 		$where    = array( '1=1' );
 		$params   = array();
 		$per_page = self::page_size( isset( $args['per_page'] ) ? $args['per_page'] : 0 );
@@ -316,7 +316,7 @@ class Dahu_Serial_Numbers_Manager {
 		// Normalised before it is used as a pattern: somebody pasting a
 		// scanned URL into the search box is looking for the serial inside
 		// it, and somebody typing in lower case is looking for the same unit.
-		$search = isset( $args['search'] ) ? Dahu_Serial_Numbers_Format::normalise( $args['search'] ) : '';
+		$search = isset( $args['search'] ) ? Ubac_Serials_Format::normalise( $args['search'] ) : '';
 
 		if ( '' !== $search ) {
 			$where[]  = 'serial LIKE %s';
@@ -333,7 +333,7 @@ class Dahu_Serial_Numbers_Manager {
 			$params[] = $status;
 		}
 
-		$batch = isset( $args['batch'] ) ? Dahu_Serial_Numbers_Format::normalise_batch( $args['batch'] ) : '';
+		$batch = isset( $args['batch'] ) ? Ubac_Serials_Format::normalise_batch( $args['batch'] ) : '';
 
 		if ( '' !== $batch ) {
 			$where[]  = 'supplier_order LIKE %s';
@@ -386,11 +386,11 @@ class Dahu_Serial_Numbers_Manager {
 
 		$counts = array();
 
-		foreach ( Dahu_Serial_Numbers_Statuses::all() as $status ) {
+		foreach ( Ubac_Serials_Statuses::all() as $status ) {
 			$counts[ $status ] = 0;
 		}
 
-		$table = Dahu_Serial_Numbers_Install::serials_table();
+		$table = Ubac_Serials_Install::serials_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$rows = $wpdb->get_results( "SELECT status, COUNT(*) AS total FROM {$table} GROUP BY status", ARRAY_A );
@@ -431,22 +431,22 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( isset( $data['serial'] ) ? $data['serial'] : '' );
+		$serial = Ubac_Serials_Format::normalise( isset( $data['serial'] ) ? $data['serial'] : '' );
 
 		if ( '' === $serial ) {
 			return new WP_Error(
-				'dahu_serial_numbers_empty_serial',
+				'ubac_serials_empty_serial',
 				__( 'The serial number is empty or unreadable.', 'ubac-serials' )
 			);
 		}
 
-		if ( strlen( $serial ) > Dahu_Serial_Numbers_Format::MAX_LENGTH ) {
+		if ( strlen( $serial ) > Ubac_Serials_Format::MAX_LENGTH ) {
 			return new WP_Error(
-				'dahu_serial_numbers_too_long',
+				'ubac_serials_too_long',
 				sprintf(
 					/* translators: 1: maximum number of characters, 2: serial number. */
 					__( 'Serial number longer than %1$d characters: %2$s', 'ubac-serials' ),
-					Dahu_Serial_Numbers_Format::MAX_LENGTH,
+					Ubac_Serials_Format::MAX_LENGTH,
 					$serial
 				)
 			);
@@ -454,7 +454,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		if ( self::exists( $serial ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_duplicate',
+				'ubac_serials_duplicate',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s is already on file.', 'ubac-serials' ),
@@ -464,11 +464,11 @@ class Dahu_Serial_Numbers_Manager {
 			);
 		}
 
-		$status = isset( $data['status'] ) ? (string) $data['status'] : Dahu_Serial_Numbers_Statuses::IN_STOCK;
+		$status = isset( $data['status'] ) ? (string) $data['status'] : Ubac_Serials_Statuses::IN_STOCK;
 
-		if ( ! Dahu_Serial_Numbers_Statuses::is_valid( $status ) ) {
+		if ( ! Ubac_Serials_Statuses::is_valid( $status ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_invalid_status',
+				'ubac_serials_invalid_status',
 				sprintf(
 					/* translators: %s: status key. */
 					__( 'Unknown status: %s', 'ubac-serials' ),
@@ -479,8 +479,8 @@ class Dahu_Serial_Numbers_Manager {
 
 		$now        = gmdate( 'Y-m-d H:i:s' );
 		$requested  = isset( $data['product_id'] ) ? (int) $data['product_id'] : 0;
-		$product_id = $requested > 0 ? Dahu_Serial_Numbers_Products::resolve( $requested ) : 0;
-		$date       = Dahu_Serial_Numbers_Format::decode( $serial );
+		$product_id = $requested > 0 ? Ubac_Serials_Products::resolve( $requested ) : 0;
+		$date       = Ubac_Serials_Format::decode( $serial );
 
 		// An explicit year or month wins over the decoder: a supplier file
 		// that states the manufacturing date knows better than a scheme
@@ -491,7 +491,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		$row = array(
 			'serial'             => $serial,
-			'supplier_order'     => Dahu_Serial_Numbers_Format::normalise_batch( isset( $data['batch'] ) ? $data['batch'] : '' ),
+			'supplier_order'     => Ubac_Serials_Format::normalise_batch( isset( $data['batch'] ) ? $data['batch'] : '' ),
 			'supplier_name'      => isset( $data['supplier_name'] ) ? substr( (string) $data['supplier_name'], 0, 191 ) : '',
 			'supplier_spec'      => isset( $data['supplier_spec'] ) && '' !== $data['supplier_spec'] ? substr( (string) $data['supplier_spec'], 0, 191 ) : null,
 			'manufactured_year'  => $year ? (int) $year : null,
@@ -504,11 +504,11 @@ class Dahu_Serial_Numbers_Manager {
 			'updated_at'         => $now,
 		);
 
-		$inserted = $wpdb->insert( Dahu_Serial_Numbers_Install::serials_table(), $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$inserted = $wpdb->insert( Ubac_Serials_Install::serials_table(), $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( ! $inserted ) {
 			return new WP_Error(
-				'dahu_serial_numbers_insert_failed',
+				'ubac_serials_insert_failed',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s could not be filed.', 'ubac-serials' ),
@@ -519,7 +519,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		$id = (int) $wpdb->insert_id;
 
-		Dahu_Serial_Numbers_Log::record(
+		Ubac_Serials_Log::record(
 			$serial,
 			'create',
 			array(
@@ -545,7 +545,7 @@ class Dahu_Serial_Numbers_Manager {
 		 * @param string               $serial Normalised serial.
 		 * @param array<string,mixed>  $row    The row as inserted.
 		 */
-		do_action( 'dahu_serial_numbers_created', $serial, $row );
+		do_action( 'ubac_serials_created', $serial, $row );
 
 		return $id;
 	}
@@ -567,7 +567,7 @@ class Dahu_Serial_Numbers_Manager {
 	 * replaced, raises an Error, which `catch ( Exception )` lets straight
 	 * through. The unit would then already be in the table while create()
 	 * never returned its id — a row written and a fatal error on screen.
-	 * `Dahu_Serial_Numbers_Stock::push()` already catches Throwable for the
+	 * `Ubac_Serials_Stock::push()` already catches Throwable for the
 	 * same reason.
 	 *
 	 * @param string $serial     Normalised serial.
@@ -588,7 +588,7 @@ class Dahu_Serial_Numbers_Manager {
 				return;
 			}
 
-			Dahu_Serial_Numbers_Log::record(
+			Ubac_Serials_Log::record(
 				$serial,
 				'created_on_variable_parent',
 				array(
@@ -627,11 +627,11 @@ class Dahu_Serial_Numbers_Manager {
 
 		$cleared = array();
 
-		if ( Dahu_Serial_Numbers_Statuses::IN_STOCK === $to ) {
+		if ( Ubac_Serials_Statuses::IN_STOCK === $to ) {
 			$cleared = array( 'order_id', 'order_item_id', 'service_ticket', 'replaced_by' );
-		} elseif ( Dahu_Serial_Numbers_Statuses::SHIPPED === $from && Dahu_Serial_Numbers_Statuses::ASSIGNED === $to ) {
+		} elseif ( Ubac_Serials_Statuses::SHIPPED === $from && Ubac_Serials_Statuses::ASSIGNED === $to ) {
 			$cleared = array( 'replaced_by' );
-		} elseif ( Dahu_Serial_Numbers_Statuses::REPAIRED === $to ) {
+		} elseif ( Ubac_Serials_Statuses::REPAIRED === $to ) {
 			// A unit that was mended was not replaced, so a replacement
 			// pointer left on it is now a false statement rather than a
 			// stale one. Same reasoning as the clause above, applied to an
@@ -649,7 +649,7 @@ class Dahu_Serial_Numbers_Manager {
 		 * @param string   $from    Current status.
 		 * @param string   $to      Wanted status.
 		 */
-		return (array) apply_filters( 'dahu_serial_numbers_columns_cleared', $cleared, $from, $to );
+		return (array) apply_filters( 'ubac_serials_columns_cleared', $cleared, $from, $to );
 	}
 
 	/**
@@ -667,12 +667,12 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 		$row    = self::get( $serial );
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_found',
+				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Unknown serial number: %s', 'ubac-serials' ),
@@ -681,9 +681,9 @@ class Dahu_Serial_Numbers_Manager {
 			);
 		}
 
-		if ( ! Dahu_Serial_Numbers_Statuses::is_valid( $to ) ) {
+		if ( ! Ubac_Serials_Statuses::is_valid( $to ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_invalid_status',
+				'ubac_serials_invalid_status',
 				sprintf(
 					/* translators: %s: status key. */
 					__( 'Unknown status: %s', 'ubac-serials' ),
@@ -694,14 +694,14 @@ class Dahu_Serial_Numbers_Manager {
 
 		$from = (string) $row['status'];
 
-		if ( ! Dahu_Serial_Numbers_Statuses::is_transition_allowed( $from, $to ) ) {
+		if ( ! Ubac_Serials_Statuses::is_transition_allowed( $from, $to ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_illegal_transition',
+				'ubac_serials_illegal_transition',
 				sprintf(
 					/* translators: 1: current status label, 2: wanted status label. */
 					__( 'Moving from “%1$s” to “%2$s” is not allowed.', 'ubac-serials' ),
-					Dahu_Serial_Numbers_Statuses::label( $from ),
-					Dahu_Serial_Numbers_Statuses::label( $to )
+					Ubac_Serials_Statuses::label( $from ),
+					Ubac_Serials_Statuses::label( $to )
 				),
 				array(
 					'serial' => $serial,
@@ -739,7 +739,7 @@ class Dahu_Serial_Numbers_Manager {
 			}
 
 			if ( 'product_id' === $column ) {
-				$update[ $column ] = Dahu_Serial_Numbers_Products::resolve( (int) $value );
+				$update[ $column ] = Ubac_Serials_Products::resolve( (int) $value );
 			} elseif ( in_array( $column, array( 'order_id', 'order_item_id' ), true ) ) {
 				$update[ $column ] = (int) $value;
 			} else {
@@ -747,11 +747,11 @@ class Dahu_Serial_Numbers_Manager {
 			}
 		}
 
-		$updated = $wpdb->update( Dahu_Serial_Numbers_Install::serials_table(), $update, array( 'serial' => $serial ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$updated = $wpdb->update( Ubac_Serials_Install::serials_table(), $update, array( 'serial' => $serial ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( false === $updated ) {
 			return new WP_Error(
-				'dahu_serial_numbers_update_failed',
+				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s could not be updated.', 'ubac-serials' ),
@@ -775,7 +775,7 @@ class Dahu_Serial_Numbers_Manager {
 			? $update['order_id']
 			: $row['order_id'];
 
-		Dahu_Serial_Numbers_Log::record(
+		Ubac_Serials_Log::record(
 			$serial,
 			isset( $context['event'] ) ? (string) $context['event'] : 'transition',
 			array(
@@ -795,7 +795,7 @@ class Dahu_Serial_Numbers_Manager {
 		 * @param string $from    Previous status.
 		 * @param array  $context Caller context.
 		 */
-		do_action( 'dahu_serial_numbers_transitioned', $serial, $to, $from, $context );
+		do_action( 'ubac_serials_transitioned', $serial, $to, $from, $context );
 
 		return true;
 	}
@@ -839,12 +839,12 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 		$row    = self::get( $serial );
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_found',
+				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Unknown serial number: %s', 'ubac-serials' ),
@@ -854,11 +854,11 @@ class Dahu_Serial_Numbers_Manager {
 		}
 
 		$requested = (int) $to_product_id;
-		$to        = $requested > 0 ? Dahu_Serial_Numbers_Products::resolve( $requested ) : 0;
+		$to        = $requested > 0 ? Ubac_Serials_Products::resolve( $requested ) : 0;
 
 		if ( $to <= 0 ) {
 			return new WP_Error(
-				'dahu_serial_numbers_invalid_product',
+				'ubac_serials_invalid_product',
 				__( 'A destination product is required.', 'ubac-serials' )
 			);
 		}
@@ -867,7 +867,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		if ( $from <= 0 ) {
 			return new WP_Error(
-				'dahu_serial_numbers_no_product',
+				'ubac_serials_no_product',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s is filed under no product, so there is nothing to correct.', 'ubac-serials' ),
@@ -878,7 +878,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		if ( $from === $to ) {
 			return new WP_Error(
-				'dahu_serial_numbers_same_product',
+				'ubac_serials_same_product',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s is already filed under that product.', 'ubac-serials' ),
@@ -898,23 +898,23 @@ class Dahu_Serial_Numbers_Manager {
 		// this is the method that writes.
 		$converge = isset( $context['converge_order_item_id'] ) ? (int) $context['converge_order_item_id'] : 0;
 		$status    = (string) $row['status'];
-		$in_stock  = Dahu_Serial_Numbers_Statuses::IN_STOCK === $status;
+		$in_stock  = Ubac_Serials_Statuses::IN_STOCK === $status;
 
 		if ( ! $in_stock && $converge <= 0 ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_in_stock',
+				'ubac_serials_not_in_stock',
 				sprintf(
 					/* translators: 1: serial number, 2: status label. */
 					__( 'Serial number %1$s is “%2$s”, so its product is what an order or a case says it is. Only a unit in stock can be re-filed.', 'ubac-serials' ),
 					$serial,
-					Dahu_Serial_Numbers_Statuses::label( $status )
+					Ubac_Serials_Statuses::label( $status )
 				)
 			);
 		}
 
 		if ( $in_stock && ( ! empty( $row['order_id'] ) || ! empty( $row['order_item_id'] ) ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_attached',
+				'ubac_serials_attached',
 				sprintf(
 					/* translators: 1: serial number, 2: order number. */
 					__( 'Serial number %1$s still carries order #%2$d. Detach it before re-filing it.', 'ubac-serials' ),
@@ -927,7 +927,7 @@ class Dahu_Serial_Numbers_Manager {
 		if ( ! $in_stock ) {
 			if ( (int) $row['order_item_id'] !== $converge ) {
 				return new WP_Error(
-					'dahu_serial_numbers_converge_line',
+					'ubac_serials_converge_line',
 					sprintf(
 						/* translators: %s: serial number. */
 						__( 'Serial number %s does not belong to the order line this correction names.', 'ubac-serials' ),
@@ -947,7 +947,7 @@ class Dahu_Serial_Numbers_Manager {
 
 			if ( ! $revert && ( ! $allowed || ! in_array( $to, $allowed, true ) ) ) {
 				return new WP_Error(
-					'dahu_serial_numbers_converge_elsewhere',
+					'ubac_serials_converge_elsewhere',
 					sprintf(
 						/* translators: %s: serial number. */
 						__( 'Serial number %s has left stock: the only product it can be re-filed under is the one its own order line names.', 'ubac-serials' ),
@@ -958,7 +958,7 @@ class Dahu_Serial_Numbers_Manager {
 		}
 
 		$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::serials_table(),
+			Ubac_Serials_Install::serials_table(),
 			array(
 				'product_id' => $to,
 				'updated_at' => gmdate( 'Y-m-d H:i:s' ),
@@ -971,7 +971,7 @@ class Dahu_Serial_Numbers_Manager {
 					// report success while one of them wrote over the other.
 					// The second one finds no row and says so.
 					'product_id' => $from,
-					'status'     => Dahu_Serial_Numbers_Statuses::IN_STOCK,
+					'status'     => Ubac_Serials_Statuses::IN_STOCK,
 				)
 				// Converging on an order line: the status read a moment ago
 				// and the line itself are pinned instead, so a unit that
@@ -986,7 +986,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		if ( ! $updated ) {
 			return new WP_Error(
-				'dahu_serial_numbers_update_failed',
+				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s could not be re-filed — it changed while this was being prepared.', 'ubac-serials' ),
@@ -1014,7 +1014,7 @@ class Dahu_Serial_Numbers_Manager {
 			$log_context['requested_product_id'] = $requested;
 		}
 
-		Dahu_Serial_Numbers_Log::record(
+		Ubac_Serials_Log::record(
 			$serial,
 			isset( $context['event'] ) ? (string) $context['event'] : 'product_change',
 			array(
@@ -1036,7 +1036,7 @@ class Dahu_Serial_Numbers_Manager {
 		 * @param int    $to      Product it is under now.
 		 * @param array  $context Caller context.
 		 */
-		do_action( 'dahu_serial_numbers_product_changed', $serial, $from, $to, $context );
+		do_action( 'ubac_serials_product_changed', $serial, $from, $to, $context );
 
 		return true;
 	}
@@ -1076,7 +1076,7 @@ class Dahu_Serial_Numbers_Manager {
 		foreach ( array( (int) $item->get_variation_id(), (int) $item->get_product_id() ) as $id ) {
 			if ( $id > 0 ) {
 				$out[] = $id;
-				$out[] = Dahu_Serial_Numbers_Products::resolve( $id );
+				$out[] = Ubac_Serials_Products::resolve( $id );
 			}
 		}
 
@@ -1097,11 +1097,11 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial = Ubac_Serials_Format::normalise( $serial );
 
 		if ( ! self::exists( $serial ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_found',
+				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Unknown serial number: %s', 'ubac-serials' ),
@@ -1113,7 +1113,7 @@ class Dahu_Serial_Numbers_Manager {
 		$now = gmdate( 'Y-m-d H:i:s' );
 
 		$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::serials_table(),
+			Ubac_Serials_Install::serials_table(),
 			array(
 				'checked_at' => $now,
 				'updated_at' => $now,
@@ -1123,7 +1123,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		if ( false === $updated ) {
 			return new WP_Error(
-				'dahu_serial_numbers_update_failed',
+				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'The check on serial number %s could not be recorded.', 'ubac-serials' ),
@@ -1132,7 +1132,7 @@ class Dahu_Serial_Numbers_Manager {
 			);
 		}
 
-		Dahu_Serial_Numbers_Log::record( $serial, 'checked', array( 'context' => array( 'checked_at' => $now ) ) );
+		Ubac_Serials_Log::record( $serial, 'checked', array( 'context' => array( 'checked_at' => $now ) ) );
 
 		return true;
 	}
@@ -1155,13 +1155,13 @@ class Dahu_Serial_Numbers_Manager {
 
 		global $wpdb;
 
-		$serial        = Dahu_Serial_Numbers_Format::normalise( $serial );
+		$serial        = Ubac_Serials_Format::normalise( $serial );
 		$order_id      = (int) $order_id;
 		$order_item_id = (int) $order_item_id;
 
 		if ( '' === $serial || $order_id <= 0 ) {
 			return new WP_Error(
-				'dahu_serial_numbers_invalid_attach',
+				'ubac_serials_invalid_attach',
 				__( 'A serial number and an order are both required.', 'ubac-serials' )
 			);
 		}
@@ -1170,7 +1170,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_found',
+				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Unknown serial number: %s', 'ubac-serials' ),
@@ -1181,7 +1181,7 @@ class Dahu_Serial_Numbers_Manager {
 
 		if ( ! empty( $row['order_id'] ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_already_attached',
+				'ubac_serials_already_attached',
 				sprintf(
 					/* translators: %d: order number. */
 					__( 'Already attached to order #%d — left as it is.', 'ubac-serials' ),
@@ -1200,11 +1200,11 @@ class Dahu_Serial_Numbers_Manager {
 			$update['order_item_id'] = $order_item_id;
 		}
 
-		$updated = $wpdb->update( Dahu_Serial_Numbers_Install::serials_table(), $update, array( 'serial' => $serial ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$updated = $wpdb->update( Ubac_Serials_Install::serials_table(), $update, array( 'serial' => $serial ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( false === $updated ) {
 			return new WP_Error(
-				'dahu_serial_numbers_update_failed',
+				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
 					__( 'Serial number %s could not be attached.', 'ubac-serials' ),
@@ -1213,7 +1213,7 @@ class Dahu_Serial_Numbers_Manager {
 			);
 		}
 
-		Dahu_Serial_Numbers_Log::record(
+		Ubac_Serials_Log::record(
 			$serial,
 			'attach_order',
 			array(

@@ -10,7 +10,7 @@
  * only job is to sign a string for the site that issued it is a dependency
  * that will one day need updating for somebody else's advisory.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Login and password against the plugin's own posts table.
  */
-class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_Auth_Provider {
+class Ubac_Serials_Station_Auth_Provider implements Ubac_Serials_Auth_Provider {
 
 	/**
 	 * Default token lifetime, in seconds. Twelve hours: longer than a shift.
@@ -50,7 +50,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		 *
 		 * @param int $ttl Lifetime in seconds.
 		 */
-		$ttl = (int) apply_filters( 'dahu_serial_numbers_token_ttl', self::TOKEN_TTL );
+		$ttl = (int) apply_filters( 'ubac_serials_token_ttl', self::TOKEN_TTL );
 
 		return max( self::MIN_TOKEN_TTL, $ttl );
 	}
@@ -69,7 +69,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 	 * a throwaway value so both paths cost the same — would spend a bcrypt on
 	 * every request to an endpoint that needs no authentication to reach,
 	 * which hands an attacker a way to load the server for free. What does
-	 * protect this endpoint is the lockout in `Dahu_Serial_Numbers_Auth`,
+	 * protect this endpoint is the lockout in `Ubac_Serials_Auth`,
 	 * which also caps how much hashing an attacker can make the site do.
 	 *
 	 * The error message is deliberately the same either way: whatever the
@@ -88,7 +88,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 			return self::invalid_credentials();
 		}
 
-		$station = Dahu_Serial_Numbers_Stations::find_by_login( $login );
+		$station = Ubac_Serials_Stations::find_by_login( $login );
 
 		if ( ! $station || (int) $station['active'] !== 1 ) {
 			return self::invalid_credentials();
@@ -98,7 +98,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 			return self::invalid_credentials();
 		}
 
-		Dahu_Serial_Numbers_Stations::touch_login( (int) $station['id'] );
+		Ubac_Serials_Stations::touch_login( (int) $station['id'] );
 
 		return (int) $station['id'];
 	}
@@ -115,9 +115,9 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 
 		$station_id = (int) $station_id;
 
-		if ( ! Dahu_Serial_Numbers_Stations::is_active( $station_id ) ) {
+		if ( ! Ubac_Serials_Stations::is_active( $station_id ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_auth_unknown_station',
+				'ubac_serials_auth_unknown_station',
 				__( 'Unknown workshop post.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
@@ -126,7 +126,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		$token = wp_generate_password( 48, false, false );
 
 		$inserted = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::tokens_table(),
+			Ubac_Serials_Install::tokens_table(),
 			array(
 				'station_id' => $station_id,
 				'token_hash' => hash( 'sha256', $token ),
@@ -138,7 +138,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 
 		if ( ! $inserted ) {
 			return new WP_Error(
-				'dahu_serial_numbers_auth_token_failed',
+				'ubac_serials_auth_token_failed',
 				__( 'The sign-in token could not be issued.', 'ubac-serials' )
 			);
 		}
@@ -167,20 +167,20 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 
 		if ( '' === $token ) {
 			return new WP_Error(
-				'dahu_serial_numbers_auth_missing_token',
+				'ubac_serials_auth_missing_token',
 				__( 'Missing token.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
 		}
 
-		$table = Dahu_Serial_Numbers_Install::tokens_table();
+		$table = Ubac_Serials_Install::tokens_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE token_hash = %s", hash( 'sha256', $token ) ), ARRAY_A );
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_auth_invalid_token',
+				'ubac_serials_auth_invalid_token',
 				__( 'Invalid token.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
@@ -196,7 +196,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 			$wpdb->delete( $table, array( 'id' => (int) $row['id'] ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 			return new WP_Error(
-				'dahu_serial_numbers_auth_expired_token',
+				'ubac_serials_auth_expired_token',
 				__( 'Session expired, please sign in again.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
@@ -204,9 +204,9 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 
 		$station_id = (int) $row['station_id'];
 
-		if ( ! Dahu_Serial_Numbers_Stations::is_active( $station_id ) ) {
+		if ( ! Ubac_Serials_Stations::is_active( $station_id ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_auth_station_disabled',
+				'ubac_serials_auth_station_disabled',
 				__( 'This workshop post has been deactivated.', 'ubac-serials' ),
 				array( 'status' => 401 )
 			);
@@ -248,7 +248,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		}
 
 		$wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::tokens_table(),
+			Ubac_Serials_Install::tokens_table(),
 			array( 'token_hash' => hash( 'sha256', $token ) ),
 			array( '%s' )
 		);
@@ -270,7 +270,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::tokens_table();
+		$table = Ubac_Serials_Install::tokens_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$removed = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE expires_at < %s", gmdate( 'Y-m-d H:i:s' ) ) );
@@ -293,7 +293,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 		global $wpdb;
 
 		$removed = $wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::tokens_table(),
+			Ubac_Serials_Install::tokens_table(),
 			array( 'station_id' => (int) $station_id ),
 			array( '%d' )
 		);
@@ -327,7 +327,7 @@ class Dahu_Serial_Numbers_Station_Auth_Provider implements Dahu_Serial_Numbers_A
 	private static function invalid_credentials() {
 
 		return new WP_Error(
-			'dahu_serial_numbers_auth_invalid',
+			'ubac_serials_auth_invalid',
 			__( 'Invalid credentials.', 'ubac-serials' ),
 			array( 'status' => 401 )
 		);

@@ -2,7 +2,7 @@
 /**
  * The admin menu, and the pieces every screen of it shares.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -10,12 +10,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Menu, assets, and the header every screen opens with.
  */
-class Dahu_Serial_Numbers_Admin {
+class Ubac_Serials_Admin {
 
 	/**
 	 * Top-level menu slug.
 	 */
-	const SLUG = 'dahu-serial-numbers';
+	const SLUG = 'ubac-serials';
 
 	/**
 	 * Capability for every screen here.
@@ -91,7 +91,7 @@ class Dahu_Serial_Numbers_Admin {
 			__( 'Serial numbers', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG,
-			array( 'Dahu_Serial_Numbers_Admin_Serials', 'render' ),
+			array( 'Ubac_Serials_Admin_Serials', 'render' ),
 			self::menu_icon(),
 			56
 		);
@@ -102,7 +102,7 @@ class Dahu_Serial_Numbers_Admin {
 			__( 'All serial numbers', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG,
-			array( 'Dahu_Serial_Numbers_Admin_Serials', 'render' )
+			array( 'Ubac_Serials_Admin_Serials', 'render' )
 		);
 
 		add_submenu_page(
@@ -111,7 +111,7 @@ class Dahu_Serial_Numbers_Admin {
 			__( 'Consignments', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG . '-consignments',
-			array( 'Dahu_Serial_Numbers_Admin_Consignments', 'render' )
+			array( 'Ubac_Serials_Admin_Consignments', 'render' )
 		);
 
 		add_submenu_page(
@@ -120,7 +120,7 @@ class Dahu_Serial_Numbers_Admin {
 			__( 'Stock', 'ubac-serials' ),
 			self::CAPABILITY,
 			self::SLUG . '-stock',
-			array( 'Dahu_Serial_Numbers_Admin_Stock', 'render' )
+			array( 'Ubac_Serials_Admin_Stock', 'render' )
 		);
 
 		add_submenu_page(
@@ -132,7 +132,7 @@ class Dahu_Serial_Numbers_Admin {
 			// which is a different kind of thing from shop data.
 			'manage_options',
 			self::SLUG . '-stations',
-			array( 'Dahu_Serial_Numbers_Admin_Stations', 'render' )
+			array( 'Ubac_Serials_Admin_Stations', 'render' )
 		);
 
 		add_submenu_page(
@@ -141,7 +141,7 @@ class Dahu_Serial_Numbers_Admin {
 			__( 'Settings', 'ubac-serials' ),
 			'manage_options',
 			self::SLUG . '-settings',
-			array( 'Dahu_Serial_Numbers_Admin_Settings', 'render' )
+			array( 'Ubac_Serials_Admin_Settings', 'render' )
 		);
 	}
 
@@ -180,17 +180,17 @@ class Dahu_Serial_Numbers_Admin {
 		// first serves all of them, and a shop with six of these installed
 		// downloads one copy.
 		wp_enqueue_style(
-			'dahu-ui',
-			DAHU_SERIAL_NUMBERS_URL . 'assets/css/dahu-ui.css',
+			'ubac-ui',
+			UBAC_SERIALS_URL . 'assets/css/ubac-ui.css',
 			array(),
-			DAHU_SERIAL_NUMBERS_VERSION
+			UBAC_SERIALS_VERSION
 		);
 
 		wp_enqueue_style(
-			'dahu-serial-numbers-admin',
-			DAHU_SERIAL_NUMBERS_URL . 'assets/css/admin.css',
-			array( 'dahu-ui' ),
-			DAHU_SERIAL_NUMBERS_VERSION
+			'ubac-serials-admin',
+			UBAC_SERIALS_URL . 'assets/css/admin.css',
+			array( 'ubac-ui' ),
+			UBAC_SERIALS_VERSION
 		);
 	}
 
@@ -209,10 +209,10 @@ class Dahu_Serial_Numbers_Admin {
 	 */
 	public static function open( $title, $intro ) {
 
-		echo '<div class="wrap dahu-ui dahu-serial-numbers">';
-		echo '<div class="dahu-ui-head">';
-		printf( '<h1 class="dahu-ui-head__title">%s</h1>', esc_html( $title ) );
-		printf( '<p class="dahu-ui-head__sub">%s</p>', esc_html( $intro ) );
+		echo '<div class="wrap ubac-ui ubac-serials">';
+		echo '<div class="ubac-ui-head">';
+		printf( '<h1 class="ubac-ui-head__title">%s</h1>', esc_html( $title ) );
+		printf( '<p class="ubac-ui-head__sub">%s</p>', esc_html( $intro ) );
 		echo '</div>';
 		echo '<hr class="wp-header-end">';
 	}
@@ -254,7 +254,7 @@ class Dahu_Serial_Numbers_Admin {
 	 */
 	public static function warn_if_no_tables() {
 
-		if ( Dahu_Serial_Numbers_Install::tables_exist() ) {
+		if ( Ubac_Serials_Install::tables_exist() ) {
 			return false;
 		}
 

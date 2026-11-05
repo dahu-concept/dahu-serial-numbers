@@ -24,7 +24,7 @@
  * stop there, which allowed exactly one parcel per order and left the link
  * between a tracking number and its units to be guessed from the history. It
  * now opens a consignment, puts the units in it, and closes it —
- * `Dahu_Serial_Numbers_Consignments` holds the record, this class performs the
+ * `Ubac_Serials_Consignments` holds the record, this class performs the
  * movement. Two consequences worth stating:
  *
  *   - an order can ship in several parcels, each with its own units and its
@@ -36,14 +36,14 @@
  *
  * ## Where a carrier integration goes
  *
- * `dahu_serial_numbers_before_shipment` runs with the consignment already
+ * `ubac_serials_before_shipment` runs with the consignment already
  * open and already holding its units, so an integration can read the list,
  * put it on a customs declaration, and hand back a tracking number. That
  * ordering is the whole point of the hook: before this, the filter received
  * an order and a carrier name and had no way to know which units it was
  * labelling.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -51,22 +51,22 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Marking an order as shipped.
  */
-class Dahu_Serial_Numbers_Shipment {
+class Ubac_Serials_Shipment {
 
 	/**
 	 * Order meta holding the carrier of the most recent parcel.
 	 */
-	const META_CARRIER = '_dahu_serial_numbers_carrier';
+	const META_CARRIER = '_ubac_serials_carrier';
 
 	/**
 	 * Order meta holding the tracking number of the most recent parcel.
 	 */
-	const META_TRACKING = '_dahu_serial_numbers_tracking';
+	const META_TRACKING = '_ubac_serials_tracking';
 
 	/**
 	 * Order meta holding the reference of the most recent parcel.
 	 */
-	const META_CONSIGNMENT = '_dahu_serial_numbers_consignment';
+	const META_CONSIGNMENT = '_ubac_serials_consignment';
 
 	/**
 	 * Closes a parcel.
@@ -98,8 +98,8 @@ class Dahu_Serial_Numbers_Shipment {
 
 		$assigned = array();
 
-		foreach ( Dahu_Serial_Numbers_Manager::get_by_order( $order->get_id() ) as $row ) {
-			if ( Dahu_Serial_Numbers_Statuses::ASSIGNED === $row['status'] ) {
+		foreach ( Ubac_Serials_Manager::get_by_order( $order->get_id() ) as $row ) {
+			if ( Ubac_Serials_Statuses::ASSIGNED === $row['status'] ) {
 				$assigned[] = (string) $row['serial'];
 			}
 		}
@@ -122,7 +122,7 @@ class Dahu_Serial_Numbers_Shipment {
 			// by definition while the first one goes out, and refusing that
 			// would mean the only way to ship half an order is to lie about
 			// the other half.
-			$missing = Dahu_Serial_Numbers_Manager::missing_for_order( $order->get_id() );
+			$missing = Ubac_Serials_Manager::missing_for_order( $order->get_id() );
 
 			if ( $missing ) {
 				$owed = 0;
@@ -132,7 +132,7 @@ class Dahu_Serial_Numbers_Shipment {
 				}
 
 				return new WP_Error(
-					'dahu_serial_numbers_incomplete',
+					'ubac_serials_incomplete',
 					sprintf(
 						/* translators: %s: number of units. */
 						_n(
@@ -176,7 +176,7 @@ class Dahu_Serial_Numbers_Shipment {
 			$first = reset( $over );
 
 			return new WP_Error(
-				'dahu_serial_numbers_line_overshipped',
+				'ubac_serials_line_overshipped',
 				sprintf(
 					/* translators: 1: product name, 2: number of units already shipped, 3: number this parcel would add, 4: ordered quantity. */
 					_n(
@@ -212,10 +212,10 @@ class Dahu_Serial_Numbers_Shipment {
 			}
 		}
 
-		$consignment_id = Dahu_Serial_Numbers_Consignments::open(
+		$consignment_id = Ubac_Serials_Consignments::open(
 			array_merge(
 				array(
-					'direction'  => Dahu_Serial_Numbers_Consignments::OUT,
+					'direction'  => Ubac_Serials_Consignments::OUT,
 					'order_id'   => $order->get_id(),
 					'carrier'    => $carrier,
 					'tracking'   => $tracking,
@@ -237,10 +237,10 @@ class Dahu_Serial_Numbers_Shipment {
 		$unregistered = array();
 
 		if ( $to_ship ) {
-			$added = Dahu_Serial_Numbers_Consignments::add( $consignment_id, $to_ship );
+			$added = Ubac_Serials_Consignments::add( $consignment_id, $to_ship );
 
 			if ( is_wp_error( $added ) ) {
-				Dahu_Serial_Numbers_Consignments::cancel(
+				Ubac_Serials_Consignments::cancel(
 					$consignment_id,
 					$added->get_error_message()
 				);
@@ -260,13 +260,13 @@ class Dahu_Serial_Numbers_Shipment {
 				// Nothing could be written down. Nothing has moved yet
 				// either — the label has not been asked for — so this is the
 				// one moment where refusing costs nothing and is honest.
-				Dahu_Serial_Numbers_Consignments::cancel(
+				Ubac_Serials_Consignments::cancel(
 					$consignment_id,
 					__( 'No unit could be recorded in this consignment.', 'ubac-serials' )
 				);
 
 				return new WP_Error(
-					'dahu_serial_numbers_consignment_not_filled',
+					'ubac_serials_consignment_not_filled',
 					__( 'Not one unit could be recorded in the parcel, so nothing was shipped. Nothing has moved; try again.', 'ubac-serials' ),
 					array(
 						'status'       => 500,
@@ -284,7 +284,7 @@ class Dahu_Serial_Numbers_Shipment {
 			 *
 			 * Where a carrier integration creates its label. The consignment
 			 * is already open and already holds its units, so
-			 * `Dahu_Serial_Numbers_Consignments::get( $consignment_id )`
+			 * `Ubac_Serials_Consignments::get( $consignment_id )`
 			 * answers "which units is this label for". Returning a tracking
 			 * number is how it gets onto the order without this class
 			 * knowing anything about that carrier.
@@ -299,7 +299,7 @@ class Dahu_Serial_Numbers_Shipment {
 			 * @param string   $carrier        Carrier name.
 			 * @param int      $station_id     Workshop post doing it.
 			 */
-			$tracking = (string) apply_filters( 'dahu_serial_numbers_before_shipment', $tracking, $consignment_id, $order, $carrier, $station_id );
+			$tracking = (string) apply_filters( 'ubac_serials_before_shipment', $tracking, $consignment_id, $order, $carrier, $station_id );
 			$tracking = sanitize_text_field( $tracking );
 		} catch ( Throwable $e ) {
 			// A carrier's API is a third party over a network, and it will be
@@ -334,11 +334,11 @@ class Dahu_Serial_Numbers_Shipment {
 		 * @param string   $error          The carrier's message.
 		 * @param int      $consignment_id The consignment about to be cancelled.
 		 */
-		if ( '' !== $label_error && apply_filters( 'dahu_serial_numbers_block_on_label_failure', false, $order, $label_error, $consignment_id ) ) {
+		if ( '' !== $label_error && apply_filters( 'ubac_serials_block_on_label_failure', false, $order, $label_error, $consignment_id ) ) {
 			// Cancelled, not deleted: the reference may already have been
 			// quoted to the carrier's API before it failed, and it has to
 			// keep resolving to an explanation.
-			Dahu_Serial_Numbers_Consignments::cancel( $consignment_id, $label_error );
+			Ubac_Serials_Consignments::cancel( $consignment_id, $label_error );
 
 			// Recorded on the order, not in the serial history. Nothing
 			// happened to any unit — the parcel was refused — so a line in
@@ -354,7 +354,7 @@ class Dahu_Serial_Numbers_Shipment {
 			);
 
 			return new WP_Error(
-				'dahu_serial_numbers_label_failed',
+				'ubac_serials_label_failed',
 				sprintf(
 					/* translators: %s: the carrier's error message. */
 					__( 'The carrier could not create the label: %s', 'ubac-serials' ),
@@ -371,9 +371,9 @@ class Dahu_Serial_Numbers_Shipment {
 		$stuck   = array();
 
 		foreach ( $to_ship as $serial ) {
-			$moved = Dahu_Serial_Numbers_Manager::transition(
+			$moved = Ubac_Serials_Manager::transition(
 				$serial,
-				Dahu_Serial_Numbers_Statuses::SHIPPED,
+				Ubac_Serials_Statuses::SHIPPED,
 				array(
 					'event'          => 'shipment',
 					'station_id'     => $station_id ? $station_id : null,
@@ -394,7 +394,7 @@ class Dahu_Serial_Numbers_Shipment {
 			// for — leaving it listed would be the one lie this record is not
 			// allowed to tell.
 			if ( is_wp_error( $moved ) ) {
-				Dahu_Serial_Numbers_Log::record(
+				Ubac_Serials_Log::record(
 					$serial,
 					'shipment_failed',
 					array(
@@ -406,7 +406,7 @@ class Dahu_Serial_Numbers_Shipment {
 					)
 				);
 
-				Dahu_Serial_Numbers_Consignments::remove( $consignment_id, array( $serial ) );
+				Ubac_Serials_Consignments::remove( $consignment_id, array( $serial ) );
 
 				$stuck[] = $serial;
 
@@ -416,7 +416,7 @@ class Dahu_Serial_Numbers_Shipment {
 			$shipped[] = $serial;
 		}
 
-		$closed = Dahu_Serial_Numbers_Consignments::close(
+		$closed = Ubac_Serials_Consignments::close(
 			$consignment_id,
 			array(
 				'carrier'     => $carrier,
@@ -439,7 +439,7 @@ class Dahu_Serial_Numbers_Shipment {
 		$still_open = is_wp_error( $closed );
 
 		if ( $still_open ) {
-			$open_row  = Dahu_Serial_Numbers_Consignments::get( $consignment_id );
+			$open_row  = Ubac_Serials_Consignments::get( $consignment_id );
 			$reference = $open_row ? (string) $open_row['reference'] : '';
 
 			$order->add_order_note(
@@ -497,7 +497,7 @@ class Dahu_Serial_Numbers_Shipment {
 		 * @param WC_Order $order          Order.
 		 * @param int      $consignment_id The parcel just closed.
 		 */
-		$status = (string) apply_filters( 'dahu_serial_numbers_shipment_status', self::default_status( $order ), $order, $consignment_id );
+		$status = (string) apply_filters( 'ubac_serials_shipment_status', self::default_status( $order ), $order, $consignment_id );
 
 		if ( '' !== $status && $order->get_status() !== $status ) {
 			$order->update_status( $status, __( 'Packed and shipped.', 'ubac-serials' ) );
@@ -512,7 +512,7 @@ class Dahu_Serial_Numbers_Shipment {
 		 * @param string   $tracking       Tracking number.
 		 * @param int      $consignment_id The consignment holding them.
 		 */
-		do_action( 'dahu_serial_numbers_shipped', $order, $shipped, $carrier, $tracking, $consignment_id );
+		do_action( 'ubac_serials_shipped', $order, $shipped, $carrier, $tracking, $consignment_id );
 
 		return array(
 			'shipped'        => $shipped,
@@ -573,7 +573,7 @@ class Dahu_Serial_Numbers_Shipment {
 
 		if ( $rejects ) {
 			return new WP_Error(
-				'dahu_serial_numbers_not_assigned',
+				'ubac_serials_not_assigned',
 				sprintf(
 					/* translators: %s: comma-separated serial numbers. */
 					__( 'Not assigned to this order, so it cannot ship with it: %s', 'ubac-serials' ),
@@ -588,7 +588,7 @@ class Dahu_Serial_Numbers_Shipment {
 
 		if ( ! $to_ship ) {
 			return new WP_Error(
-				'dahu_serial_numbers_nothing_to_ship',
+				'ubac_serials_nothing_to_ship',
 				__( 'No unit was named, so there is nothing to put in the parcel.', 'ubac-serials' ),
 				array( 'status' => 400 )
 			);
@@ -609,12 +609,12 @@ class Dahu_Serial_Numbers_Shipment {
 	 */
 	private static function default_status( WC_Order $order ) {
 
-		if ( Dahu_Serial_Numbers_Manager::missing_for_order( $order->get_id() ) ) {
+		if ( Ubac_Serials_Manager::missing_for_order( $order->get_id() ) ) {
 			return '';
 		}
 
-		foreach ( Dahu_Serial_Numbers_Manager::get_by_order( $order->get_id() ) as $row ) {
-			if ( Dahu_Serial_Numbers_Statuses::ASSIGNED === $row['status'] ) {
+		foreach ( Ubac_Serials_Manager::get_by_order( $order->get_id() ) as $row ) {
+			if ( Ubac_Serials_Statuses::ASSIGNED === $row['status'] ) {
 				return '';
 			}
 		}
@@ -680,7 +680,7 @@ class Dahu_Serial_Numbers_Shipment {
 		$shipped = array();
 		$going   = array();
 
-		foreach ( Dahu_Serial_Numbers_Manager::get_by_order( $order->get_id() ) as $row ) {
+		foreach ( Ubac_Serials_Manager::get_by_order( $order->get_id() ) as $row ) {
 
 			$product_id = (int) $row['product_id'];
 
@@ -688,7 +688,7 @@ class Dahu_Serial_Numbers_Shipment {
 				continue;
 			}
 
-			if ( Dahu_Serial_Numbers_Statuses::SHIPPED === $row['status'] ) {
+			if ( Ubac_Serials_Statuses::SHIPPED === $row['status'] ) {
 				$shipped[ $product_id ] = isset( $shipped[ $product_id ] ) ? $shipped[ $product_id ] + 1 : 1;
 			}
 
@@ -848,7 +848,7 @@ class Dahu_Serial_Numbers_Shipment {
 			 * @param string $label_error    The carrier's message.
 			 * @param int    $consignment_id The consignment the label was for.
 			 */
-			$lines[] = (string) apply_filters( 'dahu_serial_numbers_label_failure_note', $text, $label_error, (int) $consignment_id );
+			$lines[] = (string) apply_filters( 'ubac_serials_label_failure_note', $text, $label_error, (int) $consignment_id );
 		}
 
 		// Last, and spelled out, because it is the one line on this note that
@@ -868,7 +868,7 @@ class Dahu_Serial_Numbers_Shipment {
 	/**
 	 * Adds a carrier and a tracking number to a parcel that has already gone.
 	 *
-	 * The ledger write is `Dahu_Serial_Numbers_Consignments::amend_tracking()`,
+	 * The ledger write is `Ubac_Serials_Consignments::amend_tracking()`,
 	 * which refuses everything but those two fields. This is the entry point
 	 * that also keeps the order meta mirror honest; the mirror follows the
 	 * action that call fires, so either route ends up in the same place.
@@ -882,7 +882,7 @@ class Dahu_Serial_Numbers_Shipment {
 	 */
 	public static function amend_tracking( $consignment_id, array $args ) {
 
-		return Dahu_Serial_Numbers_Consignments::amend_tracking( $consignment_id, $args );
+		return Ubac_Serials_Consignments::amend_tracking( $consignment_id, $args );
 	}
 
 	/**
@@ -906,14 +906,14 @@ class Dahu_Serial_Numbers_Shipment {
 	 */
 	public static function sync_mirror( $consignment_id, $amended ) {
 
-		if ( ! is_array( $amended ) || Dahu_Serial_Numbers_Consignments::OUT !== $amended['direction'] || empty( $amended['order_id'] ) ) {
+		if ( ! is_array( $amended ) || Ubac_Serials_Consignments::OUT !== $amended['direction'] || empty( $amended['order_id'] ) ) {
 			return;
 		}
 
 		$latest = 0;
 
-		foreach ( Dahu_Serial_Numbers_Consignments::for_order( (int) $amended['order_id'], Dahu_Serial_Numbers_Consignments::OUT ) as $parcel ) {
-			if ( Dahu_Serial_Numbers_Consignments::CLOSED === $parcel['status'] && (int) $parcel['id'] > $latest ) {
+		foreach ( Ubac_Serials_Consignments::for_order( (int) $amended['order_id'], Ubac_Serials_Consignments::OUT ) as $parcel ) {
+			if ( Ubac_Serials_Consignments::CLOSED === $parcel['status'] && (int) $parcel['id'] > $latest ) {
 				$latest = (int) $parcel['id'];
 			}
 		}
@@ -943,7 +943,7 @@ class Dahu_Serial_Numbers_Shipment {
 	 */
 	public static function consignments( WC_Order $order, $direction = '' ) {
 
-		return Dahu_Serial_Numbers_Consignments::for_order( $order->get_id(), $direction );
+		return Ubac_Serials_Consignments::for_order( $order->get_id(), $direction );
 	}
 
 	/**
@@ -1004,7 +1004,7 @@ class Dahu_Serial_Numbers_Shipment {
 	 */
 	public static function consignment_tracking_url( $consignment_id ) {
 
-		$consignment = Dahu_Serial_Numbers_Consignments::get( (int) $consignment_id );
+		$consignment = Ubac_Serials_Consignments::get( (int) $consignment_id );
 
 		return $consignment ? self::tracking_url_for_row( $consignment ) : '';
 	}
@@ -1032,7 +1032,7 @@ class Dahu_Serial_Numbers_Shipment {
 			return '';
 		}
 
-		if ( ! has_filter( 'dahu_serial_numbers_tracking_url' ) ) {
+		if ( ! has_filter( 'ubac_serials_tracking_url' ) ) {
 			return '';
 		}
 
@@ -1067,6 +1067,6 @@ class Dahu_Serial_Numbers_Shipment {
 		 * @param int           $consignment_id Consignment, or 0 when the
 		 *                                      caller only had an order.
 		 */
-		return esc_url_raw( (string) apply_filters( 'dahu_serial_numbers_tracking_url', '', $tracking, $carrier, $order, $consignment_id ) );
+		return esc_url_raw( (string) apply_filters( 'ubac_serials_tracking_url', '', $tracking, $carrier, $order, $consignment_id ) );
 	}
 }

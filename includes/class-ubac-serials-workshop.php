@@ -29,7 +29,7 @@
  * to eleven pixels is a mis-scan. This screen owes the shop's visitors
  * nothing, because it has none.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -37,12 +37,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The packing screen.
  */
-class Dahu_Serial_Numbers_Workshop {
+class Ubac_Serials_Workshop {
 
 	/**
 	 * The query variable the rewrite rule sets.
 	 */
-	const QUERY_VAR = 'dahu_serial_numbers_workshop';
+	const QUERY_VAR = 'ubac_serials_workshop';
 
 	/**
 	 * The path the screen lives at.
@@ -53,7 +53,7 @@ class Dahu_Serial_Numbers_Workshop {
 	 * Option holding the rewrite state, so the rules are flushed once rather
 	 * than on every load.
 	 */
-	const OPTION_REWRITE = 'dahu_serial_numbers_rewrite';
+	const OPTION_REWRITE = 'ubac_serials_rewrite';
 
 	/**
 	 * Registers the hooks.
@@ -74,7 +74,7 @@ class Dahu_Serial_Numbers_Workshop {
 	 */
 	public static function is_enabled() {
 
-		return (bool) Dahu_Serial_Numbers_Settings::get( 'workshop_enabled' );
+		return (bool) Ubac_Serials_Settings::get( 'workshop_enabled' );
 	}
 
 	/**
@@ -189,20 +189,20 @@ class Dahu_Serial_Numbers_Workshop {
 	<meta name="robots" content="noindex, nofollow" />
 	<title><?php echo esc_html( self::title() ); ?></title>
 	<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- standalone document built with ob_start(): it has its own <html> and <head> and never calls wp_head(), so an enqueued style would be printed nowhere. ?>
-	<link rel="stylesheet" href="<?php echo esc_url( DAHU_SERIAL_NUMBERS_URL . 'assets/css/workshop.css?ver=' . DAHU_SERIAL_NUMBERS_VERSION ); ?>" />
+	<link rel="stylesheet" href="<?php echo esc_url( UBAC_SERIALS_URL . 'assets/css/workshop.css?ver=' . UBAC_SERIALS_VERSION ); ?>" />
 </head>
-<body class="dahu-packing">
+<body class="ubac-packing">
 	<noscript>
-		<p class="dahu-packing__noscript"><?php esc_html_e( 'This screen needs JavaScript. Serial numbers are scanned into it one at a time, and every scan is checked against the shop as it happens.', 'ubac-serials' ); ?></p>
+		<p class="ubac-packing__noscript"><?php esc_html_e( 'This screen needs JavaScript. Serial numbers are scanned into it one at a time, and every scan is checked against the shop as it happens.', 'ubac-serials' ); ?></p>
 	</noscript>
 
-	<div id="dahu-packing-root" class="dahu-packing__root" aria-live="polite"></div>
+	<div id="ubac-packing-root" class="ubac-packing__root" aria-live="polite"></div>
 
-	<script type="application/json" id="dahu-packing-config">
+	<script type="application/json" id="ubac-packing-config">
 		<?php echo wp_json_encode( self::config() ); ?>
 	</script>
 	<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- same standalone document: no wp_footer(), so an enqueued script would be printed nowhere. ?>
-	<script src="<?php echo esc_url( DAHU_SERIAL_NUMBERS_URL . 'assets/js/workshop.js?ver=' . DAHU_SERIAL_NUMBERS_VERSION ); ?>"></script>
+	<script src="<?php echo esc_url( UBAC_SERIALS_URL . 'assets/js/workshop.js?ver=' . UBAC_SERIALS_VERSION ); ?>"></script>
 </body>
 </html>
 		<?php
@@ -236,7 +236,7 @@ class Dahu_Serial_Numbers_Workshop {
 	private static function config() {
 
 		return array(
-			'root'    => esc_url_raw( rest_url( Dahu_Serial_Numbers_Rest::REST_NAMESPACE ) ),
+			'root'    => esc_url_raw( rest_url( Ubac_Serials_Rest::REST_NAMESPACE ) ),
 			'shop'    => get_bloginfo( 'name' ),
 			'strings' => array(
 				'signIn'          => __( 'Sign in', 'ubac-serials' ),
@@ -275,12 +275,12 @@ class Dahu_Serial_Numbers_Workshop {
 				'weight'          => sprintf(
 					/* translators: %s: the shop's weight unit, e.g. kg. */
 					__( 'Weight (%s)', 'ubac-serials' ),
-					Dahu_Serial_Numbers_Consignments::weight_unit()
+					Ubac_Serials_Consignments::weight_unit()
 				),
 				'dimensions'      => sprintf(
 					/* translators: %s: the shop's dimension unit, e.g. cm. */
 					__( 'Length × width × height (%s)', 'ubac-serials' ),
-					Dahu_Serial_Numbers_Consignments::dimension_unit()
+					Ubac_Serials_Consignments::dimension_unit()
 				),
 				'shipping'        => __( 'Marking as shipped…', 'ubac-serials' ),
 				'shipped'         => __( 'Order marked as shipped.', 'ubac-serials' ),

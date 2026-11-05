@@ -2,7 +2,7 @@
 /**
  * The “this product carries a serial number” box, on the product screen.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * One checkbox, on a simple product and on each variation.
  */
-class Dahu_Serial_Numbers_Product_Field {
+class Ubac_Serials_Product_Field {
 
 	/**
 	 * Registers the hooks.
@@ -46,8 +46,8 @@ class Dahu_Serial_Numbers_Product_Field {
 
 		woocommerce_wp_checkbox(
 			array(
-				'id'          => '_dahu_serial_numbers_serialised',
-				'value'       => 'yes' === get_post_meta( $post->ID, Dahu_Serial_Numbers_Products::META_KEY, true ) ? 'yes' : 'no',
+				'id'          => '_ubac_serials_serialised',
+				'value'       => 'yes' === get_post_meta( $post->ID, Ubac_Serials_Products::META_KEY, true ) ? 'yes' : 'no',
 				'label'       => __( 'Serial numbers', 'ubac-serials' ),
 				'description' => __( 'Each unit of this product carries its own serial number', 'ubac-serials' ),
 				'desc_tip'    => false,
@@ -78,9 +78,9 @@ class Dahu_Serial_Numbers_Product_Field {
 		// this screen before firing this hook; re-checking here would be
 		// checking a nonce this code never issued.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$ticked = isset( $_POST['_dahu_serial_numbers_serialised'] );
+		$ticked = isset( $_POST['_ubac_serials_serialised'] );
 
-		Dahu_Serial_Numbers_Products::set_serialised( $product->get_id(), $ticked );
+		Ubac_Serials_Products::set_serialised( $product->get_id(), $ticked );
 	}
 
 	/**
@@ -95,15 +95,15 @@ class Dahu_Serial_Numbers_Product_Field {
 
 		unset( $variation_data );
 
-		$own = get_post_meta( $variation->ID, Dahu_Serial_Numbers_Products::META_KEY, true );
+		$own = get_post_meta( $variation->ID, Ubac_Serials_Products::META_KEY, true );
 
 		woocommerce_wp_checkbox(
 			array(
-				'id'            => 'dahu_serial_numbers_serialised_' . $loop,
-				'name'          => 'dahu_serial_numbers_serialised[' . $loop . ']',
+				'id'            => 'ubac_serials_serialised_' . $loop,
+				'name'          => 'ubac_serials_serialised[' . $loop . ']',
 				'value'         => 'yes' === $own ? 'yes' : 'no',
 				'label'         => __( 'Serial numbers', 'ubac-serials' ),
-				'description'   => Dahu_Serial_Numbers_Products::is_serialised( (int) $variation->post_parent )
+				'description'   => Ubac_Serials_Products::is_serialised( (int) $variation->post_parent )
 					// Said on the variation, because a reader looking at an
 					// unticked box on a variation of a ticked parent would
 					// otherwise conclude this variation is not serialised.
@@ -127,8 +127,8 @@ class Dahu_Serial_Numbers_Product_Field {
 		// Same reasoning as save_simple(): WooCommerce verified the request
 		// before firing this hook.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$submitted = isset( $_POST['dahu_serial_numbers_serialised'] ) ? (array) wp_unslash( $_POST['dahu_serial_numbers_serialised'] ) : array();
+		$submitted = isset( $_POST['ubac_serials_serialised'] ) ? (array) wp_unslash( $_POST['ubac_serials_serialised'] ) : array();
 
-		Dahu_Serial_Numbers_Products::set_serialised( $variation_id, ! empty( $submitted[ $loop ] ) );
+		Ubac_Serials_Products::set_serialised( $variation_id, ! empty( $submitted[ $loop ] ) );
 	}
 }

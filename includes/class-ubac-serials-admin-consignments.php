@@ -30,7 +30,7 @@
  * button the only remedy is SQL by hand, which on a client's shop means a
  * telephone call. A closed parcel can never be cancelled here: it has gone.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -38,7 +38,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The consignments list.
  */
-class Dahu_Serial_Numbers_Admin_Consignments {
+class Ubac_Serials_Admin_Consignments {
 
 	/**
 	 * Rows per page.
@@ -52,18 +52,18 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 	 */
 	public static function render() {
 
-		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
+		if ( ! current_user_can( Ubac_Serials_Admin::CAPABILITY ) ) {
 			wp_die( esc_html__( 'You do not have permission to view consignments.', 'ubac-serials' ) );
 		}
 
 		self::maybe_cancel();
 
-		Dahu_Serial_Numbers_Admin::open(
+		Ubac_Serials_Admin::open(
 			__( 'Consignments', 'ubac-serials' ),
 			__( 'Every set of units that left or came back together. Search by consignment reference, tracking number or serial number.', 'ubac-serials' )
 		);
 
-		Dahu_Serial_Numbers_Admin::warn_if_no_tables();
+		Ubac_Serials_Admin::warn_if_no_tables();
 
 		// Nonce-free, and that is correct rather than an omission: this
 		// screen reads, it does not act. A nonce on a GET search form buys
@@ -81,14 +81,14 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 		$args['paged']     = $paged;
 		$args['per_page']  = self::PER_PAGE;
 
-		$rows  = Dahu_Serial_Numbers_Consignments::query( $args );
-		$total = Dahu_Serial_Numbers_Consignments::count( $args );
+		$rows  = Ubac_Serials_Consignments::query( $args );
+		$total = Ubac_Serials_Consignments::count( $args );
 
 		self::filters( $search, $direction, $status );
 		self::table( $rows, $search );
 		self::pagination( $total, $paged );
 
-		Dahu_Serial_Numbers_Admin::close();
+		Ubac_Serials_Admin::close();
 	}
 
 	/**
@@ -101,29 +101,29 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 	 */
 	private static function maybe_cancel() {
 
-		if ( empty( $_POST['dahu_consignment_cancel'] ) ) {
+		if ( empty( $_POST['ubac_consignment_cancel'] ) ) {
 			return;
 		}
 
-		check_admin_referer( 'dahu-serial-numbers-cancel-consignment' );
+		check_admin_referer( 'ubac-serials-cancel-consignment' );
 
-		if ( ! current_user_can( Dahu_Serial_Numbers_Admin::CAPABILITY ) ) {
+		if ( ! current_user_can( Ubac_Serials_Admin::CAPABILITY ) ) {
 			wp_die( esc_html__( 'You do not have permission to cancel a consignment.', 'ubac-serials' ) );
 		}
 
-		$id        = (int) $_POST['dahu_consignment_cancel'];
-		$cancelled = Dahu_Serial_Numbers_Consignments::cancel(
+		$id        = (int) $_POST['ubac_consignment_cancel'];
+		$cancelled = Ubac_Serials_Consignments::cancel(
 			$id,
 			__( 'Cancelled by hand from the consignments screen.', 'ubac-serials' )
 		);
 
 		if ( is_wp_error( $cancelled ) ) {
-			Dahu_Serial_Numbers_Admin::notice( 'error', $cancelled->get_error_message() );
+			Ubac_Serials_Admin::notice( 'error', $cancelled->get_error_message() );
 
 			return;
 		}
 
-		Dahu_Serial_Numbers_Admin::notice(
+		Ubac_Serials_Admin::notice(
 			'success',
 			__( 'The consignment is cancelled. Its units are free to go in another parcel.', 'ubac-serials' )
 		);
@@ -148,7 +148,7 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 			return array();
 		}
 
-		$prefixes = array_values( Dahu_Serial_Numbers_Consignments::prefixes() );
+		$prefixes = array_values( Ubac_Serials_Consignments::prefixes() );
 
 		foreach ( $prefixes as $prefix ) {
 			if ( 0 === stripos( $search, $prefix . '-' ) ) {
@@ -156,13 +156,13 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 			}
 		}
 
-		if ( Dahu_Serial_Numbers_Consignments::count( array( 'tracking' => $search ) ) ) {
+		if ( Ubac_Serials_Consignments::count( array( 'tracking' => $search ) ) ) {
 			return array( 'tracking' => $search );
 		}
 
-		$serial = Dahu_Serial_Numbers_Format::normalise( $search );
+		$serial = Ubac_Serials_Format::normalise( $search );
 
-		if ( Dahu_Serial_Numbers_Consignments::count( array( 'serial' => $serial ) ) ) {
+		if ( Ubac_Serials_Consignments::count( array( 'serial' => $serial ) ) ) {
 			return array( 'serial' => $serial );
 		}
 
@@ -183,19 +183,19 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 	 */
 	private static function filters( $search, $direction, $status ) {
 
-		$directions = Dahu_Serial_Numbers_Consignments::direction_labels();
-		$statuses    = Dahu_Serial_Numbers_Consignments::status_labels();
+		$directions = Ubac_Serials_Consignments::direction_labels();
+		$statuses    = Ubac_Serials_Consignments::status_labels();
 
-		echo '<form method="get" class="dahu-serial-numbers__filters">';
-		printf( '<input type="hidden" name="page" value="%s" />', esc_attr( Dahu_Serial_Numbers_Admin::SLUG . '-consignments' ) );
+		echo '<form method="get" class="ubac-serials__filters">';
+		printf( '<input type="hidden" name="page" value="%s" />', esc_attr( Ubac_Serials_Admin::SLUG . '-consignments' ) );
 
 		printf(
-			'<label class="screen-reader-text" for="dahu-consignment-search">%s</label>',
+			'<label class="screen-reader-text" for="ubac-consignment-search">%s</label>',
 			esc_html__( 'Search consignments', 'ubac-serials' )
 		);
 
 		printf(
-			'<input type="search" id="dahu-consignment-search" name="s" value="%s" placeholder="%s" />',
+			'<input type="search" id="ubac-consignment-search" name="s" value="%s" placeholder="%s" />',
 			esc_attr( $search ),
 			esc_attr__( 'Reference, tracking or serial', 'ubac-serials' )
 		);
@@ -228,7 +228,7 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 
 		echo '</select>';
 
-		printf( '<button type="submit" class="dahu-ui-btn">%s</button>', esc_html__( 'Search', 'ubac-serials' ) );
+		printf( '<button type="submit" class="ubac-ui-btn">%s</button>', esc_html__( 'Search', 'ubac-serials' ) );
 		echo '</form>';
 	}
 
@@ -249,9 +249,9 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 		// One query for every line's units, rather than one per line. The
 		// count comes out of the same result, so the grouped count query
 		// that used to sit here is gone too.
-		$units = Dahu_Serial_Numbers_Consignments::serials_for( wp_list_pluck( $rows, 'id' ) );
+		$units = Ubac_Serials_Consignments::serials_for( wp_list_pluck( $rows, 'id' ) );
 
-		echo '<table class="widefat striped dahu-serial-numbers__table">';
+		echo '<table class="widefat striped ubac-serials__table">';
 		echo '<thead><tr>';
 		printf( '<th scope="col">%s</th>', esc_html__( 'Reference', 'ubac-serials' ) );
 		printf( '<th scope="col">%s</th>', esc_html__( 'Direction', 'ubac-serials' ) );
@@ -274,8 +274,8 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 			);
 		}
 
-		$directions = Dahu_Serial_Numbers_Consignments::direction_labels();
-		$statuses   = Dahu_Serial_Numbers_Consignments::status_labels();
+		$directions = Ubac_Serials_Consignments::direction_labels();
+		$statuses   = Ubac_Serials_Consignments::status_labels();
 
 		foreach ( $rows as $row ) {
 			$id        = (int) $row['id'];
@@ -283,7 +283,7 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 			$status    = (string) $row['status'];
 			$serials   = isset( $units[ $id ] ) ? $units[ $id ] : array();
 			$count     = count( $serials );
-			$url       = Dahu_Serial_Numbers_Shipment::tracking_url_for_row( $row );
+			$url       = Ubac_Serials_Shipment::tracking_url_for_row( $row );
 
 			echo '<tr>';
 
@@ -319,19 +319,19 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 
 			// Empty rather than a dash: a parcel nobody measured and a parcel
 			// weighing nothing are not the same statement.
-			$parcel = Dahu_Serial_Numbers_Consignments::parcel_label( $row );
+			$parcel = Ubac_Serials_Consignments::parcel_label( $row );
 			printf( '<td>%s</td>', '' !== $parcel ? esc_html( $parcel ) : '' );
-			printf( '<td>%s</td>', esc_html( Dahu_Serial_Numbers_Admin::local( (string) $row['created_at'] ) ) );
+			printf( '<td>%s</td>', esc_html( Ubac_Serials_Admin::local( (string) $row['created_at'] ) ) );
 
 			// The way out of the dead end described at the top of this file,
 			// and only for a parcel that has not gone.
 			echo '<td>';
 
-			if ( Dahu_Serial_Numbers_Consignments::OPEN === $status ) {
+			if ( Ubac_Serials_Consignments::OPEN === $status ) {
 				echo '<form method="post">';
-				wp_nonce_field( 'dahu-serial-numbers-cancel-consignment' );
+				wp_nonce_field( 'ubac-serials-cancel-consignment' );
 				printf(
-					'<button type="submit" name="dahu_consignment_cancel" value="%d" class="button button-small">%s</button>',
+					'<button type="submit" name="ubac_consignment_cancel" value="%d" class="button button-small">%s</button>',
 					(int) $id,
 					esc_html__( 'Cancel', 'ubac-serials' )
 				);
@@ -345,8 +345,8 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 			echo '</tr>';
 
 			if ( $serials ) {
-				echo '<tr class="dahu-serial-numbers__subrow">';
-				printf( '<td colspan="10"><span class="dahu-serial-numbers__hint">%s</span> %s</td>',
+				echo '<tr class="ubac-serials__subrow">';
+				printf( '<td colspan="10"><span class="ubac-serials__hint">%s</span> %s</td>',
 					esc_html__( 'Units:', 'ubac-serials' ),
 					esc_html( implode( ', ', $serials ) )
 				);
@@ -381,7 +381,7 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 		 * @param array    $row     The consignment: id, reference, status, order_id,
 		 *                          carrier, tracking, label_error, and the rest of the row.
 		 */
-		$actions = apply_filters( 'dahu_serial_numbers_consignment_row_actions', array(), $row );
+		$actions = apply_filters( 'ubac_serials_consignment_row_actions', array(), $row );
 
 		if ( ! is_array( $actions ) || ! $actions ) {
 			return '';
@@ -414,7 +414,7 @@ class Dahu_Serial_Numbers_Admin_Consignments {
 			);
 		}
 
-		return $out ? '<div class="dahu-serial-numbers__actions">' . implode( ' | ', $out ) . '</div>' : '';
+		return $out ? '<div class="ubac-serials__actions">' . implode( ' | ', $out ) . '</div>' : '';
 	}
 
 	/**

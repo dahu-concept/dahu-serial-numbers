@@ -17,7 +17,7 @@
  * `en_stock`, `affecte`…), which works perfectly on one site and makes the
  * plugin unreadable to everyone else.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Statuses and legal transitions.
  */
-class Dahu_Serial_Numbers_Statuses {
+class Ubac_Serials_Statuses {
 
 	const RECEIVED        = 'received';
 	const IN_STOCK        = 'in_stock';
@@ -249,7 +249,7 @@ class Dahu_Serial_Numbers_Statuses {
 		 *
 		 * @param array<string,string[]> $transitions from => allowed targets.
 		 */
-		$transitions = (array) apply_filters( 'dahu_serial_numbers_transitions', $transitions );
+		$transitions = (array) apply_filters( 'ubac_serials_transitions', $transitions );
 
 		return self::sanitize_matrix( $transitions );
 	}

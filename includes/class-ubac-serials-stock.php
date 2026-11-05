@@ -45,7 +45,7 @@
  * import, the packing screen or the order that triggered it down with it. A
  * stock number is worth less than the operation that produced it.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -53,7 +53,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Pushes the serial count into WooCommerce stock.
  */
-class Dahu_Serial_Numbers_Stock {
+class Ubac_Serials_Stock {
 
 	/**
 	 * The statuses a product has to carry for its stock to be written.
@@ -75,7 +75,7 @@ class Dahu_Serial_Numbers_Stock {
 	/**
 	 * Option holding the last pushes, newest first.
 	 */
-	const OPTION_HISTORY = 'dahu_serial_numbers_stock_history';
+	const OPTION_HISTORY = 'ubac_serials_stock_history';
 
 	/**
 	 * How many pushes are kept.
@@ -123,7 +123,7 @@ class Dahu_Serial_Numbers_Stock {
 	 * with the options WordPress already loads, and reading it therefore
 	 * costs no query. It is deleted as soon as it has been drained.
 	 */
-	const FILE_REPRISE = 'dahu_serial_numbers_stock_a_reprendre';
+	const FILE_REPRISE = 'ubac_serials_stock_a_reprendre';
 
 	/**
 	 * Registers the triggers.
@@ -132,9 +132,9 @@ class Dahu_Serial_Numbers_Stock {
 	 */
 	public static function init() {
 
-		add_action( 'dahu_serial_numbers_transitioned', array( __CLASS__, 'on_transition' ), 10, 4 );
-		add_action( 'dahu_serial_numbers_created', array( __CLASS__, 'on_created' ), 10, 2 );
-		add_action( 'dahu_serial_numbers_product_changed', array( __CLASS__, 'on_product_changed' ), 10, 4 );
+		add_action( 'ubac_serials_transitioned', array( __CLASS__, 'on_transition' ), 10, 4 );
+		add_action( 'ubac_serials_created', array( __CLASS__, 'on_created' ), 10, 2 );
+		add_action( 'ubac_serials_product_changed', array( __CLASS__, 'on_product_changed' ), 10, 4 );
 
 		// The serialised flag, in all the shapes WordPress writes a meta in.
 		// A product that has just been marked serialised has a WooCommerce
@@ -216,7 +216,7 @@ class Dahu_Serial_Numbers_Stock {
 	 */
 	public static function enabled() {
 
-		return (bool) Dahu_Serial_Numbers_Settings::get( 'stock_push_enabled' );
+		return (bool) Ubac_Serials_Settings::get( 'stock_push_enabled' );
 	}
 
 	/* ---------------------------------------------------------------------
@@ -241,11 +241,11 @@ class Dahu_Serial_Numbers_Stock {
 
 		unset( $context );
 
-		if ( Dahu_Serial_Numbers_Statuses::IN_STOCK !== $to && Dahu_Serial_Numbers_Statuses::IN_STOCK !== $from ) {
+		if ( Ubac_Serials_Statuses::IN_STOCK !== $to && Ubac_Serials_Statuses::IN_STOCK !== $from ) {
 			return;
 		}
 
-		$row = Dahu_Serial_Numbers_Manager::get( $serial );
+		$row = Ubac_Serials_Manager::get( $serial );
 
 		if ( $row && ! empty( $row['product_id'] ) ) {
 			self::queue( (int) $row['product_id'], 'transition' );
@@ -263,7 +263,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		unset( $serial );
 
-		if ( empty( $row['product_id'] ) || Dahu_Serial_Numbers_Statuses::IN_STOCK !== (string) $row['status'] ) {
+		if ( empty( $row['product_id'] ) || Ubac_Serials_Statuses::IN_STOCK !== (string) $row['status'] ) {
 			return;
 		}
 
@@ -300,7 +300,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		unset( $meta_id );
 
-		if ( Dahu_Serial_Numbers_Products::META_KEY !== $meta_key || 'yes' !== $meta_value ) {
+		if ( Ubac_Serials_Products::META_KEY !== $meta_key || 'yes' !== $meta_value ) {
 			return;
 		}
 
@@ -325,7 +325,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		unset( $meta_ids, $meta_value );
 
-		if ( Dahu_Serial_Numbers_Products::META_KEY !== $meta_key ) {
+		if ( Ubac_Serials_Products::META_KEY !== $meta_key ) {
 			return;
 		}
 
@@ -552,7 +552,7 @@ class Dahu_Serial_Numbers_Stock {
 			 * intact le reproche d'origine -- rien dans les journaux. */
 			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				sprintf(
-					'dahu-serial-numbers: stock maps unreadable, nothing written, %d product(s) carried over to the next request: %s',
+					'ubac-serials: stock maps unreadable, nothing written, %d product(s) carried over to the next request: %s',
 					count( $queue ),
 					$e->getMessage()
 				)
@@ -606,7 +606,7 @@ class Dahu_Serial_Numbers_Stock {
 		 * @param string[] $statuses Statuses, without the `wc-` prefix.
 		 */
 		$statuses = (array) apply_filters(
-			'dahu_serial_numbers_stock_reserving_statuses',
+			'ubac_serials_stock_reserving_statuses',
 			array( 'processing', 'on-hold' )
 		);
 
@@ -631,7 +631,7 @@ class Dahu_Serial_Numbers_Stock {
 		 * -- le danger que le docblock de cette classe nomme en premier. */
 		if ( ! $clean ) {
 			throw new RuntimeException(
-				'dahu-serial-numbers: no order status reserves stock, so reservations cannot be counted.'
+				'ubac-serials: no order status reserves stock, so reservations cannot be counted.'
 			);
 		}
 
@@ -660,7 +660,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			throw new RuntimeException(
-				'dahu-serial-numbers: WooCommerce is not loaded, so reservations cannot be counted.'
+				'ubac-serials: WooCommerce is not loaded, so reservations cannot be counted.'
 			);
 		}
 
@@ -676,7 +676,7 @@ class Dahu_Serial_Numbers_Stock {
 		// chose qu'une liste. Ce n'est pas « aucune commande ouverte ».
 		if ( ! is_array( $order_ids ) ) {
 			throw new RuntimeException(
-				'dahu-serial-numbers: the order query did not return a list of ids.'
+				'ubac-serials: the order query did not return a list of ids.'
 			);
 		}
 
@@ -705,7 +705,7 @@ class Dahu_Serial_Numbers_Stock {
 				}
 
 				$product_id = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
-				$product_id = Dahu_Serial_Numbers_Products::resolve( (int) $product_id );
+				$product_id = Ubac_Serials_Products::resolve( (int) $product_id );
 
 				if ( $product_id <= 0 ) {
 					continue;
@@ -727,7 +727,7 @@ class Dahu_Serial_Numbers_Stock {
 		 * @param array<int,int> $map       Product id => pieces reserved.
 		 * @param int[]          $order_ids Orders that were counted.
 		 */
-		$filtre = apply_filters( 'dahu_serial_numbers_stock_reserved_map', $map, $order_ids );
+		$filtre = apply_filters( 'ubac_serials_stock_reserved_map', $map, $order_ids );
 
 		/* `(array) $scalaire` DONNE `array( 0 => $scalaire )`.
 		 *
@@ -736,7 +736,7 @@ class Dahu_Serial_Numbers_Stock {
 		 * partait trop haut. Un filtre qui ne rend pas une liste est refuse. */
 		if ( ! is_array( $filtre ) ) {
 			throw new RuntimeException(
-				'dahu-serial-numbers: the dahu_serial_numbers_stock_reserved_map filter did not return a list.'
+				'ubac-serials: the ubac_serials_stock_reserved_map filter did not return a list.'
 			);
 		}
 
@@ -766,12 +766,12 @@ class Dahu_Serial_Numbers_Stock {
 			return $held;
 		}
 
-		$table        = Dahu_Serial_Numbers_Install::serials_table();
+		$table        = Ubac_Serials_Install::serials_table();
 		$in_orders    = implode( ',', array_fill( 0, count( $order_ids ), '%d' ) );
 		$in_statuses  = implode( ',', array_fill( 0, 2, '%s' ) );
 		$placeholders = array_merge(
 			$order_ids,
-			array( Dahu_Serial_Numbers_Statuses::ASSIGNED, Dahu_Serial_Numbers_Statuses::SHIPPED )
+			array( Ubac_Serials_Statuses::ASSIGNED, Ubac_Serials_Statuses::SHIPPED )
 		);
 
 		$rows = self::lignes(
@@ -881,7 +881,7 @@ class Dahu_Serial_Numbers_Stock {
 		 * puisque held_by_line() construit ses listes de marqueurs a la
 		 * volee. */
 		if ( ! is_string( $sql ) || '' === trim( $sql ) ) {
-			throw new RuntimeException( 'dahu-serial-numbers: the query was not prepared.' );
+			throw new RuntimeException( 'ubac-serials: the query was not prepared.' );
 		}
 
 		/* query() ET last_result, PLUTOT QUE get_results().
@@ -910,12 +910,12 @@ class Dahu_Serial_Numbers_Stock {
 			 * mesure sur le zip, apres avoir estime a tort que ce correctif
 			 * n'ajoutait rien que des sniffs regardent. */
 			throw new RuntimeException(
-				esc_html( 'dahu-serial-numbers: ' . ( '' !== $raison ? $raison : 'the query was refused without an error message.' ) )
+				esc_html( 'ubac-serials: ' . ( '' !== $raison ? $raison : 'the query was refused without an error message.' ) )
 			);
 		}
 
 		if ( '' !== (string) $wpdb->last_error ) {
-			throw new RuntimeException( esc_html( 'dahu-serial-numbers: ' . $wpdb->last_error ) );
+			throw new RuntimeException( esc_html( 'ubac-serials: ' . $wpdb->last_error ) );
 		}
 
 		$rows = array();
@@ -931,7 +931,7 @@ class Dahu_Serial_Numbers_Stock {
 			foreach ( $colonnes as $colonne ) {
 				if ( ! array_key_exists( $colonne, $ligne ) ) {
 					throw new RuntimeException(
-						esc_html( 'dahu-serial-numbers: the result carries no column named ' . $colonne . '.' )
+						esc_html( 'ubac-serials: the result carries no column named ' . $colonne . '.' )
 					);
 				}
 			}
@@ -957,7 +957,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::serials_table();
+		$table = Ubac_Serials_Install::serials_table();
 
 		$rows = self::lignes(
 			$wpdb->prepare(
@@ -968,7 +968,7 @@ class Dahu_Serial_Numbers_Stock {
 				   AND ( order_id IS NULL OR order_id = 0 )
 				   AND ( order_item_id IS NULL OR order_item_id = 0 )
 				 GROUP BY product_id",
-				Dahu_Serial_Numbers_Statuses::IN_STOCK
+				Ubac_Serials_Statuses::IN_STOCK
 			),
 			array( 'product_id', 'free' )
 		);
@@ -995,7 +995,7 @@ class Dahu_Serial_Numbers_Stock {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::serials_table();
+		$table = Ubac_Serials_Install::serials_table();
 
 		$rows = self::lignes(
 			$wpdb->prepare(
@@ -1005,7 +1005,7 @@ class Dahu_Serial_Numbers_Stock {
 				   AND product_id IS NOT NULL
 				   AND ( ( order_id IS NOT NULL AND order_id <> 0 ) OR ( order_item_id IS NOT NULL AND order_item_id <> 0 ) )
 				 GROUP BY product_id",
-				Dahu_Serial_Numbers_Statuses::IN_STOCK
+				Ubac_Serials_Statuses::IN_STOCK
 			),
 			array( 'product_id', 'stuck' )
 		);
@@ -1067,7 +1067,7 @@ class Dahu_Serial_Numbers_Stock {
 			return 'stock_not_managed';
 		}
 
-		if ( ! Dahu_Serial_Numbers_Products::is_serialised( $product_id ) ) {
+		if ( ! Ubac_Serials_Products::is_serialised( $product_id ) ) {
 			return 'not_serialised';
 		}
 
@@ -1240,7 +1240,7 @@ class Dahu_Serial_Numbers_Stock {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 					sprintf(
-						'dahu-serial-numbers: stock push failed for product %d: %s',
+						'ubac-serials: stock push failed for product %d: %s',
 						$plan['product_id'],
 						$e->getMessage()
 					)
@@ -1280,7 +1280,7 @@ class Dahu_Serial_Numbers_Stock {
 			 * Seule flush() journalisait. L'ecran de resynchronisation
 			 * envoyait donc le lecteur vers un journal vide. */
 			error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				'dahu-serial-numbers: stock maps unreadable, resynchronisation plan empty: ' . $e->getMessage()
+				'ubac-serials: stock maps unreadable, resynchronisation plan empty: ' . $e->getMessage()
 			);
 
 			return array(
@@ -1382,14 +1382,14 @@ class Dahu_Serial_Numbers_Stock {
 		 * empreinte soumise vide, c'est-a-dire a peu pres jamais. */
 		if ( isset( $plan['erreur'] ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_counts_unreadable',
+				'ubac_serials_counts_unreadable',
 				__( 'The units could not be counted: the database refused the query. Nothing was written.', 'ubac-serials' )
 			);
 		}
 
 		if ( (string) $fingerprint !== $plan['fingerprint'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_stock_moved',
+				'ubac_serials_stock_moved',
 				__( 'Stock changed since this list was drawn up. Here it is again — read it and run it once more.', 'ubac-serials' )
 			);
 		}

@@ -37,7 +37,7 @@
  * ## It is a ledger, not an actor
  *
  * Nothing here moves a unit between statuses. Opening a consignment and
- * adding a serial to it records an intention; `Dahu_Serial_Numbers_Shipment`
+ * adding a serial to it records an intention; `Ubac_Serials_Shipment`
  * is what actually transitions the units, and it uses this class to write
  * down what it did. Keeping the two apart is what lets a consignment mean the
  * same thing whether a parcel was closed by the packing screen, by a carrier
@@ -89,7 +89,7 @@
  * narrowing or removing one is not, whatever a future release would gain by
  * it.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -97,7 +97,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Consignments.
  */
-class Dahu_Serial_Numbers_Consignments {
+class Ubac_Serials_Consignments {
 
 	/**
 	 * The version of the contract described in this file's header.
@@ -220,7 +220,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::OUT !== $direction && self::IN !== $direction ) {
 			return new WP_Error(
-				'dahu_serial_numbers_bad_direction',
+				'ubac_serials_bad_direction',
 				__( 'A consignment is either outbound or inbound.', 'ubac-serials' ),
 				array( 'status' => 400 )
 			);
@@ -244,11 +244,11 @@ class Dahu_Serial_Numbers_Consignments {
 
 		$row = array_merge( $row, self::parcel_columns( $args ) );
 
-		$inserted = $wpdb->insert( Dahu_Serial_Numbers_Install::consignments_table(), $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$inserted = $wpdb->insert( Ubac_Serials_Install::consignments_table(), $row ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( ! $inserted ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_not_opened',
+				'ubac_serials_consignment_not_opened',
 				__( 'The consignment could not be opened.', 'ubac-serials' ),
 				array( 'status' => 500 )
 			);
@@ -266,16 +266,16 @@ class Dahu_Serial_Numbers_Consignments {
 		// A consignment with no reference is of no use to anybody, so the
 		// row goes rather than staying as a puzzle.
 		$named = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::consignments_table(),
+			Ubac_Serials_Install::consignments_table(),
 			array( 'reference' => self::build_reference( $direction, $id, $now ) ),
 			array( 'id' => $id )
 		);
 
 		if ( ! $named ) {
-			$wpdb->delete( Dahu_Serial_Numbers_Install::consignments_table(), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+			$wpdb->delete( Ubac_Serials_Install::consignments_table(), array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_not_named',
+				'ubac_serials_consignment_not_named',
 				__( 'The consignment could not be given a reference, so it was not opened.', 'ubac-serials' ),
 				array( 'status' => 500 )
 			);
@@ -285,13 +285,13 @@ class Dahu_Serial_Numbers_Consignments {
 		 * Fires once a consignment has been opened.
 		 *
 		 * It holds no units yet. A carrier integration that needs the list
-		 * wants `dahu_serial_numbers_before_shipment` instead, which runs
+		 * wants `ubac_serials_before_shipment` instead, which runs
 		 * after the units are in.
 		 *
 		 * @param int   $id   Consignment id.
 		 * @param array $args The arguments it was opened with.
 		 */
-		do_action( 'dahu_serial_numbers_consignment_opened', $id, $args );
+		do_action( 'ubac_serials_consignment_opened', $id, $args );
 
 		return $id;
 	}
@@ -356,7 +356,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_unknown',
+				'ubac_serials_consignment_unknown',
 				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -364,7 +364,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::OPEN !== $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_closed',
+				'ubac_serials_consignment_closed',
 				__( 'This consignment is no longer open, so nothing can be added to it.', 'ubac-serials' ),
 				array( 'status' => 409 )
 			);
@@ -391,7 +391,7 @@ class Dahu_Serial_Numbers_Consignments {
 				continue;
 			}
 
-			if ( ! Dahu_Serial_Numbers_Manager::exists( $serial ) ) {
+			if ( ! Ubac_Serials_Manager::exists( $serial ) ) {
 				$unknown[] = $serial;
 
 				continue;
@@ -410,7 +410,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( $unknown ) {
 			return new WP_Error(
-				'dahu_serial_numbers_serial_unknown',
+				'ubac_serials_serial_unknown',
 				sprintf(
 					/* translators: %s: comma-separated serial numbers. */
 					__( 'Not a serial number on this site: %s', 'ubac-serials' ),
@@ -425,7 +425,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( $taken ) {
 			return new WP_Error(
-				'dahu_serial_numbers_serial_in_open_consignment',
+				'ubac_serials_serial_in_open_consignment',
 				sprintf(
 					/* translators: 1: serial number, 2: consignment reference. */
 					__( '%1$s is already in open consignment %2$s.', 'ubac-serials' ),
@@ -443,7 +443,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		foreach ( $known as $serial ) {
 			$ok = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-				Dahu_Serial_Numbers_Install::consignment_serials_table(),
+				Ubac_Serials_Install::consignment_serials_table(),
 				array(
 					'consignment_id' => $id,
 					'serial'         => $serial,
@@ -460,7 +460,7 @@ class Dahu_Serial_Numbers_Consignments {
 				// is told, but the caller is a screen somebody has already
 				// walked away from, and this is the kind of failure whose
 				// trace has to outlive the request.
-				Dahu_Serial_Numbers_Log::record(
+				Ubac_Serials_Log::record(
 					$serial,
 					'consignment_add_failed',
 					array(
@@ -496,7 +496,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_unknown',
+				'ubac_serials_consignment_unknown',
 				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -504,7 +504,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::OPEN !== $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_closed',
+				'ubac_serials_consignment_closed',
 				__( 'This consignment is no longer open, so nothing can be taken out of it.', 'ubac-serials' ),
 				array( 'status' => 409 )
 			);
@@ -520,7 +520,7 @@ class Dahu_Serial_Numbers_Consignments {
 			}
 
 			$removed += (int) $wpdb->delete( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-				Dahu_Serial_Numbers_Install::consignment_serials_table(),
+				Ubac_Serials_Install::consignment_serials_table(),
 				array(
 					'consignment_id' => $id,
 					'serial'         => $serial,
@@ -566,7 +566,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_unknown',
+				'ubac_serials_consignment_unknown',
 				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -574,7 +574,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::CLOSED === $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_already_closed',
+				'ubac_serials_consignment_already_closed',
 				sprintf(
 					/* translators: %s: consignment reference. */
 					__( 'Consignment %s is already closed.', 'ubac-serials' ),
@@ -586,7 +586,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::CANCELLED === $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_cancelled',
+				'ubac_serials_consignment_cancelled',
 				sprintf(
 					/* translators: %s: consignment reference. */
 					__( 'Consignment %s was cancelled and cannot be closed.', 'ubac-serials' ),
@@ -643,11 +643,11 @@ class Dahu_Serial_Numbers_Consignments {
 		//
 		// `false` only. An update that matches the row and changes nothing
 		// returns 0, and that is not a failure.
-		$updated = $wpdb->update( Dahu_Serial_Numbers_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$updated = $wpdb->update( Ubac_Serials_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( false === $updated ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_not_closed',
+				'ubac_serials_consignment_not_closed',
 				sprintf(
 					/* translators: %s: consignment reference. */
 					__( 'Consignment %s could not be closed.', 'ubac-serials' ),
@@ -665,7 +665,7 @@ class Dahu_Serial_Numbers_Consignments {
 		 * @param int   $id     Consignment id.
 		 * @param array $closed The closed row, with its serials.
 		 */
-		do_action( 'dahu_serial_numbers_consignment_closed', $id, $closed );
+		do_action( 'ubac_serials_consignment_closed', $id, $closed );
 
 		return $closed;
 	}
@@ -688,7 +688,7 @@ class Dahu_Serial_Numbers_Consignments {
 	 * not wipe the tracking number, and the reverse.
 	 *
 	 * The order meta mirror is not touched here, because this class never
-	 * touches an order. It is kept in step by `Dahu_Serial_Numbers_Shipment`,
+	 * touches an order. It is kept in step by `Ubac_Serials_Shipment`,
 	 * listening to the action below.
 	 *
 	 * @param int   $id   Consignment id.
@@ -707,7 +707,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_unknown',
+				'ubac_serials_consignment_unknown',
 				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -715,7 +715,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::CLOSED !== $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_not_closed_yet',
+				'ubac_serials_consignment_not_closed_yet',
 				sprintf(
 					/* translators: %s: consignment reference. */
 					__( 'Consignment %s is not closed. Add the tracking number when closing it.', 'ubac-serials' ),
@@ -730,7 +730,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( $foreign ) {
 			return new WP_Error(
-				'dahu_serial_numbers_amend_only_tracking',
+				'ubac_serials_amend_only_tracking',
 				__( 'Only the carrier and the tracking number can be changed on a closed consignment.', 'ubac-serials' ),
 				array(
 					'status' => 400,
@@ -749,7 +749,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( ! $update ) {
 			return new WP_Error(
-				'dahu_serial_numbers_amend_nothing',
+				'ubac_serials_amend_nothing',
 				__( 'Give a carrier, a tracking number, or both.', 'ubac-serials' ),
 				array( 'status' => 400 )
 			);
@@ -760,11 +760,11 @@ class Dahu_Serial_Numbers_Consignments {
 			'tracking' => (string) $row['tracking'],
 		);
 
-		$written = $wpdb->update( Dahu_Serial_Numbers_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$written = $wpdb->update( Ubac_Serials_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( false === $written ) {
 			return new WP_Error(
-				'dahu_serial_numbers_tracking_not_written',
+				'ubac_serials_tracking_not_written',
 				__( 'The tracking number could not be recorded.', 'ubac-serials' ),
 				array( 'status' => 500 )
 			);
@@ -782,7 +782,7 @@ class Dahu_Serial_Numbers_Consignments {
 		 * @param array $amended  The consignment as it now stands, with its serials.
 		 * @param array $previous The carrier and tracking number it had before.
 		 */
-		do_action( 'dahu_serial_numbers_consignment_tracking_amended', $id, $amended, $previous );
+		do_action( 'ubac_serials_consignment_tracking_amended', $id, $amended, $previous );
 
 		return $amended;
 	}
@@ -813,7 +813,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_unknown',
+				'ubac_serials_consignment_unknown',
 				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -821,7 +821,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::OPEN !== $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_closed',
+				'ubac_serials_consignment_closed',
 				__( 'This consignment is no longer open, so its parcel cannot be measured.', 'ubac-serials' ),
 				array( 'status' => 409 )
 			);
@@ -839,11 +839,11 @@ class Dahu_Serial_Numbers_Consignments {
 			return true;
 		}
 
-		$written = $wpdb->update( Dahu_Serial_Numbers_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$written = $wpdb->update( Ubac_Serials_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( false === $written ) {
 			return new WP_Error(
-				'dahu_serial_numbers_parcel_not_written',
+				'ubac_serials_parcel_not_written',
 				__( 'The parcel’s measurements could not be recorded.', 'ubac-serials' ),
 				array( 'status' => 500 )
 			);
@@ -895,7 +895,7 @@ class Dahu_Serial_Numbers_Consignments {
 			}
 
 			return new WP_Error(
-				'dahu_serial_numbers_unit_changed',
+				'ubac_serials_unit_changed',
 				sprintf(
 					/* translators: 1: unit already on file, 2: the shop's current unit. */
 					__( 'This parcel was already measured in %1$s and the shop now uses %2$s. Set the shop back, or clear the measurements already recorded, rather than mixing two units on one parcel.', 'ubac-serials' ),
@@ -918,7 +918,7 @@ class Dahu_Serial_Numbers_Consignments {
 	 * measurement nobody took, and zero would read as one.
 	 *
 	 * The unit is read from the shop and written beside the figure. See the
-	 * header of class-dahu-serial-numbers-install.php for why it is stored
+	 * header of class-ubac-serials-install.php for why it is stored
 	 * rather than looked up again at reading time.
 	 *
 	 * @param array $args Arguments.
@@ -1034,7 +1034,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( ! $row ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_unknown',
+				'ubac_serials_consignment_unknown',
 				__( 'No such consignment.', 'ubac-serials' ),
 				array( 'status' => 404 )
 			);
@@ -1042,7 +1042,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		if ( self::CLOSED === $row['status'] ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_already_closed',
+				'ubac_serials_consignment_already_closed',
 				__( 'A closed consignment cannot be cancelled: the parcel has gone.', 'ubac-serials' ),
 				array( 'status' => 409 )
 			);
@@ -1066,11 +1066,11 @@ class Dahu_Serial_Numbers_Consignments {
 			$update['note'] = trim( (string) $row['note'] . "\n" . sanitize_textarea_field( (string) $reason ) );
 		}
 
-		$updated = $wpdb->update( Dahu_Serial_Numbers_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
+		$updated = $wpdb->update( Ubac_Serials_Install::consignments_table(), $update, array( 'id' => $id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 
 		if ( false === $updated ) {
 			return new WP_Error(
-				'dahu_serial_numbers_consignment_not_cancelled',
+				'ubac_serials_consignment_not_cancelled',
 				sprintf(
 					/* translators: %s: consignment reference. */
 					__( 'Consignment %s could not be cancelled.', 'ubac-serials' ),
@@ -1086,7 +1086,7 @@ class Dahu_Serial_Numbers_Consignments {
 		 * @param int    $id     Consignment id.
 		 * @param string $reason Why.
 		 */
-		do_action( 'dahu_serial_numbers_consignment_cancelled', $id, (string) $reason );
+		do_action( 'ubac_serials_consignment_cancelled', $id, (string) $reason );
 
 		return true;
 	}
@@ -1101,7 +1101,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::consignments_table();
+		$table = Ubac_Serials_Install::consignments_table();
 
 		$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, value prepared.
 			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", (int) $id ),
@@ -1125,7 +1125,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::consignments_table();
+		$table = Ubac_Serials_Install::consignments_table();
 
 		if ( is_numeric( $id_or_reference ) ) {
 			$row = self::row( (int) $id_or_reference );
@@ -1163,7 +1163,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::consignment_serials_table();
+		$table = Ubac_Serials_Install::consignment_serials_table();
 
 		return array_map(
 			'strval',
@@ -1195,7 +1195,7 @@ class Dahu_Serial_Numbers_Consignments {
 			return array();
 		}
 
-		$table        = Dahu_Serial_Numbers_Install::consignment_serials_table();
+		$table        = Ubac_Serials_Install::consignment_serials_table();
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
 		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, values prepared.
@@ -1228,7 +1228,7 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::consignments_table();
+		$table = Ubac_Serials_Install::consignments_table();
 
 		$id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, value prepared.
 			$wpdb->prepare( "SELECT id FROM {$table} WHERE reference = %s", (string) $reference )
@@ -1248,8 +1248,8 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$consignments = Dahu_Serial_Numbers_Install::consignments_table();
-		$pivot        = Dahu_Serial_Numbers_Install::consignment_serials_table();
+		$consignments = Ubac_Serials_Install::consignments_table();
+		$pivot        = Ubac_Serials_Install::consignment_serials_table();
 
 		$reference = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own tables, values prepared.
 			$wpdb->prepare(
@@ -1306,8 +1306,8 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$consignments = Dahu_Serial_Numbers_Install::consignments_table();
-		$pivot        = Dahu_Serial_Numbers_Install::consignment_serials_table();
+		$consignments = Ubac_Serials_Install::consignments_table();
+		$pivot        = Ubac_Serials_Install::consignment_serials_table();
 
 		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own tables, value prepared.
 			$wpdb->prepare(
@@ -1349,11 +1349,11 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$consignments = Dahu_Serial_Numbers_Install::consignments_table();
-		$pivot        = Dahu_Serial_Numbers_Install::consignment_serials_table();
+		$consignments = Ubac_Serials_Install::consignments_table();
+		$pivot        = Ubac_Serials_Install::consignment_serials_table();
 
-		$per_page = Dahu_Serial_Numbers_Manager::page_size( isset( $args['per_page'] ) ? $args['per_page'] : 0 );
-		$paged    = Dahu_Serial_Numbers_Manager::page_number( isset( $args['paged'] ) ? $args['paged'] : 0 );
+		$per_page = Ubac_Serials_Manager::page_size( isset( $args['per_page'] ) ? $args['per_page'] : 0 );
+		$paged    = Ubac_Serials_Manager::page_number( isset( $args['paged'] ) ? $args['paged'] : 0 );
 
 		$where  = array( '1=1' );
 		$params = array();
@@ -1421,8 +1421,8 @@ class Dahu_Serial_Numbers_Consignments {
 
 		global $wpdb;
 
-		$consignments = Dahu_Serial_Numbers_Install::consignments_table();
-		$pivot        = Dahu_Serial_Numbers_Install::consignment_serials_table();
+		$consignments = Ubac_Serials_Install::consignments_table();
+		$pivot        = Ubac_Serials_Install::consignment_serials_table();
 
 		$where  = array( '1=1' );
 		$params = array();
@@ -1496,7 +1496,7 @@ class Dahu_Serial_Numbers_Consignments {
 			return array();
 		}
 
-		$pivot        = Dahu_Serial_Numbers_Install::consignment_serials_table();
+		$pivot        = Ubac_Serials_Install::consignment_serials_table();
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
 		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, values prepared.

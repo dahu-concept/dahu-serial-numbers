@@ -14,15 +14,15 @@
  * WC requires at least: 7.0
  * WC tested up to:   11.2
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'DAHU_SERIAL_NUMBERS_VERSION', '1.5.1' );
-define( 'DAHU_SERIAL_NUMBERS_FILE', __FILE__ );
-define( 'DAHU_SERIAL_NUMBERS_PATH', plugin_dir_path( __FILE__ ) );
-define( 'DAHU_SERIAL_NUMBERS_URL', plugin_dir_url( __FILE__ ) );
+define( 'UBAC_SERIALS_VERSION', '1.5.1' );
+define( 'UBAC_SERIALS_FILE', __FILE__ );
+define( 'UBAC_SERIALS_PATH', plugin_dir_path( __FILE__ ) );
+define( 'UBAC_SERIALS_URL', plugin_dir_url( __FILE__ ) );
 
 /* -------------------------------------------------------------------------
  * Translations
@@ -37,7 +37,7 @@ define( 'DAHU_SERIAL_NUMBERS_URL', plugin_dir_url( __FILE__ ) );
 /* -------------------------------------------------------------------------
  * Autoloader
  *
- * Dahu_Serial_Numbers_Foo_Bar => includes/class-dahu-serial-numbers-foo-bar.php
+ * Ubac_Serials_Foo_Bar => includes/class-ubac-serials-foo-bar.php
  *
  * No Composer: a plugin whose whole job is to be installed on somebody else's
  * site has no business shipping a vendor directory.
@@ -46,11 +46,11 @@ define( 'DAHU_SERIAL_NUMBERS_URL', plugin_dir_url( __FILE__ ) );
 spl_autoload_register(
 	static function ( $class ) {
 
-		if ( 0 !== strpos( $class, 'Dahu_Serial_Numbers' ) ) {
+		if ( 0 !== strpos( $class, 'Ubac_Serials' ) ) {
 			return;
 		}
 
-		$file = DAHU_SERIAL_NUMBERS_PATH . 'includes/class-' . strtolower( str_replace( '_', '-', $class ) ) . '.php';
+		$file = UBAC_SERIALS_PATH . 'includes/class-' . strtolower( str_replace( '_', '-', $class ) ) . '.php';
 
 		if ( is_readable( $file ) ) {
 			require_once $file;
@@ -85,7 +85,7 @@ add_action(
 register_activation_hook(
 	__FILE__,
 	static function () {
-		Dahu_Serial_Numbers_Install::install();
+		Ubac_Serials_Install::install();
 	}
 );
 
@@ -97,7 +97,7 @@ register_activation_hook(
  * stored version number on every load costs one option read and is the only
  * way a schema change actually lands.
  */
-add_action( 'plugins_loaded', array( 'Dahu_Serial_Numbers_Install', 'maybe_upgrade' ), 5 );
+add_action( 'plugins_loaded', array( 'Ubac_Serials_Install', 'maybe_upgrade' ), 5 );
 
 /* -------------------------------------------------------------------------
  * Bootstrap
@@ -120,23 +120,23 @@ add_action(
 			return;
 		}
 
-		add_action( 'dahu_serial_numbers_consignment_tracking_amended', array( 'Dahu_Serial_Numbers_Shipment', 'sync_mirror' ), 10, 2 );
+		add_action( 'ubac_serials_consignment_tracking_amended', array( 'Ubac_Serials_Shipment', 'sync_mirror' ), 10, 2 );
 
-		Dahu_Serial_Numbers_Settings::init();
+		Ubac_Serials_Settings::init();
 
 		// Before the screens: the stock push listens to the register's own
 		// hooks, and a unit moved by the REST route or by the packing screen
 		// has to count the same as one moved by hand in the admin.
-		Dahu_Serial_Numbers_Stock::init();
+		Ubac_Serials_Stock::init();
 
-		Dahu_Serial_Numbers_Auth::init();
-		Dahu_Serial_Numbers_Rest::init();
-		Dahu_Serial_Numbers_Workshop::init();
+		Ubac_Serials_Auth::init();
+		Ubac_Serials_Rest::init();
+		Ubac_Serials_Workshop::init();
 
 		if ( is_admin() ) {
-			Dahu_Serial_Numbers_Admin::init();
-			Dahu_Serial_Numbers_Product_Field::init();
-			Dahu_Serial_Numbers_Order_Metabox::init();
+			Ubac_Serials_Admin::init();
+			Ubac_Serials_Product_Field::init();
+			Ubac_Serials_Order_Metabox::init();
 		}
 	},
 	20
@@ -151,12 +151,12 @@ add_action(
  * is the one thing that should keep working when the rest does not.
  * ---------------------------------------------------------------------- */
 
-define( 'DAHU_SERIAL_NUMBERS_CRON', 'dahu_serial_numbers_purge_tokens' );
+define( 'UBAC_SERIALS_CRON', 'ubac_serials_purge_tokens' );
 
 add_action(
-	DAHU_SERIAL_NUMBERS_CRON,
+	UBAC_SERIALS_CRON,
 	static function () {
-		Dahu_Serial_Numbers_Auth::purge_expired_tokens();
+		Ubac_Serials_Auth::purge_expired_tokens();
 	}
 );
 
@@ -171,9 +171,9 @@ add_action(
  *
  * @return void
  */
-function dahu_serial_numbers_schedule() {
+function ubac_serials_schedule() {
 
-	if ( wp_next_scheduled( DAHU_SERIAL_NUMBERS_CRON ) ) {
+	if ( wp_next_scheduled( UBAC_SERIALS_CRON ) ) {
 		return;
 	}
 
@@ -183,17 +183,17 @@ function dahu_serial_numbers_schedule() {
 	$at    = (int) strtotime( 'tomorrow 04:30', $now );
 	$delay = max( HOUR_IN_SECONDS, $at - $now );
 
-	wp_schedule_event( time() + $delay, 'daily', DAHU_SERIAL_NUMBERS_CRON );
+	wp_schedule_event( time() + $delay, 'daily', UBAC_SERIALS_CRON );
 }
 
-add_action( 'admin_init', 'dahu_serial_numbers_schedule' );
+add_action( 'admin_init', 'ubac_serials_schedule' );
 
-register_activation_hook( __FILE__, 'dahu_serial_numbers_schedule' );
+register_activation_hook( __FILE__, 'ubac_serials_schedule' );
 
 register_deactivation_hook(
 	__FILE__,
 	static function () {
-		wp_clear_scheduled_hook( DAHU_SERIAL_NUMBERS_CRON );
+		wp_clear_scheduled_hook( UBAC_SERIALS_CRON );
 	}
 );
 
@@ -227,7 +227,7 @@ add_filter(
  * Registered here rather than inside the admin include, because the
  * activation flag has to be set whatever else is loaded.
  */
-require_once DAHU_SERIAL_NUMBERS_PATH . 'includes/dahu-welcome.php';
+require_once UBAC_SERIALS_PATH . 'includes/ubac-welcome.php';
 
 /*
  * The flag, not a redirect: an activation hook that redirects breaks bulk
@@ -238,21 +238,21 @@ require_once DAHU_SERIAL_NUMBERS_PATH . 'includes/dahu-welcome.php';
 register_activation_hook(
 	__FILE__,
 	static function () {
-		Dahu_Welcome::mark_activated( 'dahu-serial-numbers' );
+		Ubac_Welcome::mark_activated( 'ubac-serials' );
 	}
 );
 
 add_action(
 	'init',
 	static function () {
-		Dahu_Welcome::register(
+		Ubac_Welcome::register(
 			array(
-				'slug'       => 'dahu-serial-numbers',
+				'slug'       => 'ubac-serials',
 				'name'       => __( 'Serial numbers', 'ubac-serials' ),
 				'tagline'    => __( 'Follows every unit you hold, from goods-in to the customer.', 'ubac-serials' ),
-				'file'       => DAHU_SERIAL_NUMBERS_FILE,
-				'version'    => DAHU_SERIAL_NUMBERS_VERSION,
-				'textdomain' => 'dahu-serial-numbers',
+				'file'       => UBAC_SERIALS_FILE,
+				'version'    => UBAC_SERIALS_VERSION,
+				'textdomain' => 'ubac-serials',
 				'mark'       => array(
 					'view'  => '0 0 112 112',
 					'paths' => array(
@@ -299,20 +299,20 @@ add_action(
 				 * form and the table (with its header and its empty-state row) are
 				 * rendered either way.
 				 */
-				'tour_screen' => 'toplevel_page_dahu-serial-numbers',
+				'tour_screen' => 'toplevel_page_ubac-serials',
 				'tour'        => array(
 					array(
-						'selector' => '#dahu-sn-search',
+						'selector' => '#ubac-sn-search',
 						'title'    => __( 'Find any unit', 'ubac-serials' ),
 						'text'     => __( 'Type a serial number to open that unit.', 'ubac-serials' ),
 					),
 					array(
-						'selector' => '#dahu-sn-status',
+						'selector' => '#ubac-sn-status',
 						'title'    => __( 'Narrow by state', 'ubac-serials' ),
 						'text'     => __( 'Show only the units in one state, such as shipped or in repair.', 'ubac-serials' ),
 					),
 					array(
-						'selector' => '.dahu-serial-numbers__table',
+						'selector' => '.ubac-serials__table',
 						'title'    => __( 'One row per unit', 'ubac-serials' ),
 						'text'     => __( 'Open a row to read that unit’s full history.', 'ubac-serials' ),
 					),

@@ -9,18 +9,18 @@
  * and they are not this plugin — a table that no shipped code reads is a table
  * somebody has to migrate anyway.
  *
- *   dahu_serial_numbers              one row per physical unit
- *   dahu_serial_numbers_log          append-only history of every status change
- *   dahu_serial_numbers_stations     one row per workshop post
- *   dahu_serial_numbers_tokens       bearer tokens issued to those posts
- *   dahu_serial_numbers_consignments one row per set of units that travelled
+ *   ubac_serials              one row per physical unit
+ *   ubac_serials_log          append-only history of every status change
+ *   ubac_serials_stations     one row per workshop post
+ *   ubac_serials_tokens       bearer tokens issued to those posts
+ *   ubac_serials_consignments one row per set of units that travelled
  *                                    together, out or back
- *   dahu_serial_numbers_consignment_serials
+ *   ubac_serials_consignment_serials
  *                                    which units were in which consignment
  *
  * The last two are a published contract: another plugin reads them, so
  * changes to them are additive only. The reasoning, and the version constant
- * that goes with it, are in class-dahu-serial-numbers-consignments.php.
+ * that goes with it, are in class-ubac-serials-consignments.php.
  *
  * A join table rather than a column on the serials table, because a unit
  * ships, comes back and ships again: a column holds the last of those and
@@ -63,7 +63,7 @@
  * holds everywhere costs one conversion on screens and removes a class of
  * bug that only shows up when the clocks change.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -71,7 +71,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Creates and upgrades the tables.
  */
-class Dahu_Serial_Numbers_Install {
+class Ubac_Serials_Install {
 
 	/**
 	 * Schema version. Bumped whenever a CREATE TABLE below changes.
@@ -81,12 +81,12 @@ class Dahu_Serial_Numbers_Install {
 	/**
 	 * Option holding the installed schema version.
 	 */
-	const OPTION_SCHEMA = 'dahu_serial_numbers_schema';
+	const OPTION_SCHEMA = 'ubac_serials_schema';
 
 	/**
 	 * Option holding the consignment contract version.
 	 */
-	const OPTION_CONSIGNMENTS_API = 'dahu_serial_numbers_consignments_api';
+	const OPTION_CONSIGNMENTS_API = 'ubac_serials_consignments_api';
 
 	/**
 	 * One row per physical unit.
@@ -97,7 +97,7 @@ class Dahu_Serial_Numbers_Install {
 
 		global $wpdb;
 
-		return $wpdb->prefix . 'dahu_serial_numbers';
+		return $wpdb->prefix . 'ubac_serials';
 	}
 
 	/**
@@ -109,7 +109,7 @@ class Dahu_Serial_Numbers_Install {
 
 		global $wpdb;
 
-		return $wpdb->prefix . 'dahu_serial_numbers_log';
+		return $wpdb->prefix . 'ubac_serials_log';
 	}
 
 	/**
@@ -121,7 +121,7 @@ class Dahu_Serial_Numbers_Install {
 
 		global $wpdb;
 
-		return $wpdb->prefix . 'dahu_serial_numbers_stations';
+		return $wpdb->prefix . 'ubac_serials_stations';
 	}
 
 	/**
@@ -133,7 +133,7 @@ class Dahu_Serial_Numbers_Install {
 
 		global $wpdb;
 
-		return $wpdb->prefix . 'dahu_serial_numbers_tokens';
+		return $wpdb->prefix . 'ubac_serials_tokens';
 	}
 
 	/**
@@ -145,7 +145,7 @@ class Dahu_Serial_Numbers_Install {
 
 		global $wpdb;
 
-		return $wpdb->prefix . 'dahu_serial_numbers_consignments';
+		return $wpdb->prefix . 'ubac_serials_consignments';
 	}
 
 	/**
@@ -157,7 +157,7 @@ class Dahu_Serial_Numbers_Install {
 
 		global $wpdb;
 
-		return $wpdb->prefix . 'dahu_serial_numbers_consignment_serials';
+		return $wpdb->prefix . 'ubac_serials_consignment_serials';
 	}
 
 	/**
@@ -369,7 +369,7 @@ class Dahu_Serial_Numbers_Install {
 		// reading without loading a class out of somebody else's plugin
 		// directory — which is a file path, and file paths are the thing that
 		// differs between installations.
-		update_option( self::OPTION_CONSIGNMENTS_API, Dahu_Serial_Numbers_Consignments::API_VERSION, false );
+		update_option( self::OPTION_CONSIGNMENTS_API, Ubac_Serials_Consignments::API_VERSION, false );
 	}
 
 	/**

@@ -19,7 +19,7 @@
  *
  * Nothing in this class hooks anything. It is a store.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Create, read and deactivate workshop posts.
  */
-class Dahu_Serial_Numbers_Stations {
+class Ubac_Serials_Stations {
 
 	/**
 	 * Shortest password accepted for a post.
@@ -60,14 +60,14 @@ class Dahu_Serial_Numbers_Stations {
 
 		if ( '' === $login ) {
 			return new WP_Error(
-				'dahu_serial_numbers_station_no_login',
+				'ubac_serials_station_no_login',
 				__( 'A login is required.', 'ubac-serials' )
 			);
 		}
 
 		if ( strlen( $password ) < self::MIN_PASSWORD_LENGTH ) {
 			return new WP_Error(
-				'dahu_serial_numbers_station_weak_password',
+				'ubac_serials_station_weak_password',
 				sprintf(
 					/* translators: %d: minimum number of characters. */
 					__( 'The password must be at least %d characters long.', 'ubac-serials' ),
@@ -78,7 +78,7 @@ class Dahu_Serial_Numbers_Stations {
 
 		if ( self::find_by_login( $login ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_station_exists',
+				'ubac_serials_station_exists',
 				sprintf(
 					/* translators: %s: login. */
 					__( 'The login “%s” is already taken.', 'ubac-serials' ),
@@ -88,7 +88,7 @@ class Dahu_Serial_Numbers_Stations {
 		}
 
 		$inserted = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::stations_table(),
+			Ubac_Serials_Install::stations_table(),
 			array(
 				'login'         => $login,
 				'password_hash' => wp_hash_password( $password ),
@@ -101,7 +101,7 @@ class Dahu_Serial_Numbers_Stations {
 
 		if ( ! $inserted ) {
 			return new WP_Error(
-				'dahu_serial_numbers_station_insert_failed',
+				'ubac_serials_station_insert_failed',
 				__( 'The workshop post could not be created.', 'ubac-serials' )
 			);
 		}
@@ -131,14 +131,14 @@ class Dahu_Serial_Numbers_Stations {
 
 		if ( ! self::get( $station_id ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_station_unknown',
+				'ubac_serials_station_unknown',
 				__( 'Unknown workshop post.', 'ubac-serials' )
 			);
 		}
 
 		if ( strlen( $password ) < self::MIN_PASSWORD_LENGTH ) {
 			return new WP_Error(
-				'dahu_serial_numbers_station_weak_password',
+				'ubac_serials_station_weak_password',
 				sprintf(
 					/* translators: %d: minimum number of characters. */
 					__( 'The password must be at least %d characters long.', 'ubac-serials' ),
@@ -148,7 +148,7 @@ class Dahu_Serial_Numbers_Stations {
 		}
 
 		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::stations_table(),
+			Ubac_Serials_Install::stations_table(),
 			array( 'password_hash' => wp_hash_password( $password ) ),
 			array( 'id' => $station_id ),
 			array( '%s' ),
@@ -180,13 +180,13 @@ class Dahu_Serial_Numbers_Stations {
 
 		if ( ! self::get( $station_id ) ) {
 			return new WP_Error(
-				'dahu_serial_numbers_station_unknown',
+				'ubac_serials_station_unknown',
 				__( 'Unknown workshop post.', 'ubac-serials' )
 			);
 		}
 
 		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::stations_table(),
+			Ubac_Serials_Install::stations_table(),
 			array( 'active' => $active ? 1 : 0 ),
 			array( 'id' => $station_id ),
 			array( '%d' ),
@@ -220,7 +220,7 @@ class Dahu_Serial_Numbers_Stations {
 		 *
 		 * @param int $station_id Post id.
 		 */
-		do_action( 'dahu_serial_numbers_station_credentials_revoked', (int) $station_id );
+		do_action( 'ubac_serials_station_credentials_revoked', (int) $station_id );
 	}
 
 	/**
@@ -239,7 +239,7 @@ class Dahu_Serial_Numbers_Stations {
 			return null;
 		}
 
-		$table = Dahu_Serial_Numbers_Install::stations_table();
+		$table = Ubac_Serials_Install::stations_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $station_id ), ARRAY_A );
@@ -263,7 +263,7 @@ class Dahu_Serial_Numbers_Stations {
 			return null;
 		}
 
-		$table = Dahu_Serial_Numbers_Install::stations_table();
+		$table = Ubac_Serials_Install::stations_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE login = %s", $login ), ARRAY_A );
@@ -280,7 +280,7 @@ class Dahu_Serial_Numbers_Stations {
 
 		global $wpdb;
 
-		$table = Dahu_Serial_Numbers_Install::stations_table();
+		$table = Ubac_Serials_Install::stations_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
 		$rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC, id DESC", ARRAY_A );
@@ -316,7 +316,7 @@ class Dahu_Serial_Numbers_Stations {
 		global $wpdb;
 
 		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
-			Dahu_Serial_Numbers_Install::stations_table(),
+			Ubac_Serials_Install::stations_table(),
 			array( 'last_login_at' => gmdate( 'Y-m-d H:i:s' ) ),
 			array( 'id' => (int) $station_id ),
 			array( '%s' ),

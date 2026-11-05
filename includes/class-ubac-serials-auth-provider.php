@@ -9,11 +9,11 @@
  * implementing these four methods and a one-line filter.
  *
  * Nothing in the plugin names the concrete class except the filter default in
- * `Dahu_Serial_Numbers_Auth::get_provider()`. That is the only coupling, and
+ * `Ubac_Serials_Auth::get_provider()`. That is the only coupling, and
  * it is deliberate: a replacement that has to be registered in nine places
  * is not a replacement.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Authentication backend for workshop posts.
  */
-interface Dahu_Serial_Numbers_Auth_Provider {
+interface Ubac_Serials_Auth_Provider {
 
 	/**
 	 * Checks a login and password pair.

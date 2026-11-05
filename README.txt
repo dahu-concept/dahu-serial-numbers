@@ -1,5 +1,5 @@
 === Ubac Serials ===
-Contributors: dahuconcept
+Contributors: ubacconcept
 Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.0
 Tested up to: 7.1
@@ -22,7 +22,7 @@ A batch turns out to be faulty. Which customers have one, and which units are
 still on the shelf? Without serial numbers the answer is everybody who bought
 that product, which is both too many people to write to and not the right ones.
 
-Dahu Serial Numbers answers both, because every unit has a row and every row
+Ubac Serial Numbers answers both, because every unit has a row and every row
 has a history.
 
 = The lifecycle =
@@ -93,7 +93,7 @@ tracking number?
 * Partial shipments: ship part of an order in one parcel and the rest in another, each with its own tracking number. The completeness check applies to a whole-order shipment only, because an order leaving in two parcels necessarily has units without a serial while the first one goes.
 * A "Consignments" screen in the admin: search by reference, tracking number or serial number in one box. Its only action is cancelling a consignment left open by an interrupted process; a closed consignment can never be cancelled.
 * Two read-only REST routes, which require at least one of order, tracking number, reference or serial number, so that a shared bench token cannot list the whole shipping history. Writing to the register is deliberately not exposed over REST.
-* Two database tables that other plugins may read. Changes to them are additive only, and the contract version is in the option dahu_serial_numbers_consignments_api.
+* Two database tables that other plugins may read. Changes to them are additive only, and the contract version is in the option ubac_serials_consignments_api.
 
 The register records what was shipped; it moves no unit itself and talks to no carrier. Two known limits: a cancelled consignment keeps its units, so check its status before counting departures; and "already in another open consignment" is not enforced when two benches act in the same instant, where the status rules stop the second movement instead.
 
@@ -141,7 +141,7 @@ uninstalling is most often a step in reinstalling.
 
 = Can I import serial numbers I already have? =
 
-Through code, yes: `Dahu_Serial_Numbers_Manager::create()` takes a serial, a
+Through code, yes: `Ubac_Serials_Manager::create()` takes a serial, a
 supplier batch, a product and an optional date, and accepts an explicit history
 date so an import records when things really happened rather than the day of
 the import. There is no import screen in this version.
@@ -181,7 +181,7 @@ records which bench did what.
 * New: Stock screen, showing every serialised product, what WooCommerce says now and what would be written, with a manual resynchronisation that works whether the automatic push is on or off and refuses a summary that has since moved.
 * New: units in stock can be re-filed under another product, for the box that went on the shelf under the wrong reference. Dry run, reason required, all-or-nothing in a transaction, and undoable while the correction is still the last thing that happened to the unit. Off at installation.
 * New: a thirteenth status, held not counted as stock, for a unit the shop still has and has decided not to count. Its only exit is back to stock, and no REST route can reach it.
-* New: filters dahu_serial_numbers_stock_reserving_statuses and dahu_serial_numbers_stock_reserved_map; action dahu_serial_numbers_product_changed.
+* New: filters ubac_serials_stock_reserving_statuses and ubac_serials_stock_reserved_map; action ubac_serials_product_changed.
 * Unchanged: the database schema, and the consignment contract version, which stays at 1. Neither a status nor these two features changes a table.
 
 = 1.2.0 =
@@ -194,16 +194,16 @@ records which bench did what.
 * Unchanged: the database schema, and the consignment contract version, which stays at 1. Adding a status changes neither.
 
 = 1.1.0 =
-* Breaking: the filter dahu_serial_numbers_before_shipment now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ); the consignment id is the new second parameter.
+* Breaking: the filter ubac_serials_before_shipment now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ); the consignment id is the new second parameter.
 * New: consignment register recording which serial numbers left, or came back, together, under which reference.
 * New: partial shipments, by passing a list of serial numbers to ship part of an order.
 * New: Consignments screen in the admin, and read-only REST routes GET /consignments and GET /consignments/{reference}.
-* New: actions dahu_serial_numbers_consignment_opened, _closed and _cancelled.
-* Changed: dahu_serial_numbers_block_on_label_failure, dahu_serial_numbers_shipment_status, dahu_serial_numbers_tracking_url and dahu_serial_numbers_shipped each gain a trailing $consignment_id parameter; the tracking URL filter's order can be null.
+* New: actions ubac_serials_consignment_opened, _closed and _cancelled.
+* Changed: ubac_serials_block_on_label_failure, ubac_serials_shipment_status, ubac_serials_tracking_url and ubac_serials_shipped each gain a trailing $consignment_id parameter; the tracking URL filter's order can be null.
 * Changed: the default order status after a shipment is completed only when nothing is left to send; otherwise the status is left alone.
-* New: Shipment::amend_tracking() adds a carrier and tracking number to a closed consignment and fires dahu_serial_numbers_consignment_tracking_amended; it changes nothing else, and keeps the order meta mirror consistent.
+* New: Shipment::amend_tracking() adds a carrier and tracking number to a closed consignment and fires ubac_serials_consignment_tracking_amended; it changes nothing else, and keeps the order meta mirror consistent.
 * New: a label_error column on consignments, and a label_error argument to query() to list the parcels that left without a label.
-* New: filters dahu_serial_numbers_consignment_row_actions (actions on a Consignments screen line) and dahu_serial_numbers_label_failure_note (the order note line written when the carrier failed).
+* New: filters ubac_serials_consignment_row_actions (actions on a Consignments screen line) and ubac_serials_label_failure_note (the order note line written when the carrier failed).
 * Database schema is now version 5.
 
 = 1.0.0 =
@@ -218,7 +218,7 @@ Nothing to do on update: no schema change, no hook signature change, and both ne
 Additive to the lifecycle, and nothing to do on update: no schema change and no hook signature change. Units sitting in "returned not as described" from an earlier version were stuck there — that was the defect this release fixes — and they can now be moved on from the serial numbers screen, which gained a status control for exactly that. ONE BEHAVIOUR CHANGED, and it is a refusal: a shipment that would send more units than an order line ordered is now refused rather than carried out. If you have deliberately assigned more units to a line than it ordered, that shipment will stop and name the line; un-assign what is not going. If your own code reads the status list or the terminal statuses, note that there are now twelve statuses and that "returned not as described" is no longer terminal.
 
 = 1.1.0 =
-If you have a listener on dahu_serial_numbers_before_shipment, update it before anything else: it now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ) and must be registered with 5 accepted arguments, because the old signature hands your code an integer where it expects the order. The other changed hooks only gain trailing parameters. Two database tables for the consignment register are created on update.
+If you have a listener on ubac_serials_before_shipment, update it before anything else: it now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ) and must be registered with 5 accepted arguments, because the old signature hands your code an integer where it expects the order. The other changed hooks only gain trailing parameters. Two database tables for the consignment register are created on update.
 
 = 1.0.0 =
 First release.

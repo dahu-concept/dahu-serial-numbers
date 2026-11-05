@@ -11,7 +11,7 @@
  * What this box is for is the other direction: an order is on screen because
  * of a customer question, and the answer is which units went out with it.
  *
- * @package DahuSerialNumbers
+ * @package UbacSerials
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The order-screen panel.
  */
-class Dahu_Serial_Numbers_Order_Metabox {
+class Ubac_Serials_Order_Metabox {
 
 	/**
 	 * Registers the hooks.
@@ -44,7 +44,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 
 		foreach ( array( 'shop_order', 'woocommerce_page_wc-orders' ) as $screen ) {
 			add_meta_box(
-				'dahu-serial-numbers-order',
+				'ubac-serials-order',
 				__( 'Serial numbers', 'ubac-serials' ),
 				array( __CLASS__, 'render' ),
 				$screen,
@@ -70,7 +70,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 			return;
 		}
 
-		if ( ! Dahu_Serial_Numbers_Install::tables_exist() ) {
+		if ( ! Ubac_Serials_Install::tables_exist() ) {
 			printf(
 				'<p>%s</p>',
 				esc_html__( 'The plugin’s database tables are missing.', 'ubac-serials' )
@@ -79,8 +79,8 @@ class Dahu_Serial_Numbers_Order_Metabox {
 			return;
 		}
 
-		$rows    = Dahu_Serial_Numbers_Manager::get_by_order( $order->get_id() );
-		$missing = Dahu_Serial_Numbers_Manager::missing_for_order( $order->get_id() );
+		$rows    = Ubac_Serials_Manager::get_by_order( $order->get_id() );
+		$missing = Ubac_Serials_Manager::missing_for_order( $order->get_id() );
 
 		if ( ! $rows && ! $missing ) {
 			printf(
@@ -99,7 +99,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 			}
 
 			printf(
-				'<p class="dahu-serial-numbers__caution">%s</p>',
+				'<p class="ubac-serials__caution">%s</p>',
 				esc_html(
 					sprintf(
 						/* translators: %s: number of units. */
@@ -120,7 +120,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 		}
 
 		printf(
-			'<p class="dahu-serial-numbers__hint">%s</p>',
+			'<p class="ubac-serials__hint">%s</p>',
 			esc_html__( 'Read-only here on purpose: a serial number is assigned by scanning the unit at the bench, so that the history records which bench did it and when.', 'ubac-serials' )
 		);
 	}
@@ -134,7 +134,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 	 */
 	private static function render_table( array $rows, WC_Order $order ) {
 
-		echo '<table class="widefat striped dahu-serial-numbers__table"><thead><tr>';
+		echo '<table class="widefat striped ubac-serials__table"><thead><tr>';
 		printf( '<th scope="col">%s</th>', esc_html__( 'Serial number', 'ubac-serials' ) );
 		printf( '<th scope="col">%s</th>', esc_html__( 'Line', 'ubac-serials' ) );
 		printf( '<th scope="col">%s</th>', esc_html__( 'Status', 'ubac-serials' ) );
@@ -151,7 +151,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 				esc_url(
 					add_query_arg(
 						array(
-							'page'   => Dahu_Serial_Numbers_Admin::SLUG,
+							'page'   => Ubac_Serials_Admin::SLUG,
 							'serial' => $row['serial'],
 						),
 						admin_url( 'admin.php' )
@@ -165,7 +165,7 @@ class Dahu_Serial_Numbers_Order_Metabox {
 				esc_html( $item instanceof WC_Order_Item ? $item->get_name() : '—' )
 			);
 
-			printf( '<td>%s</td>', esc_html( Dahu_Serial_Numbers_Statuses::label( (string) $row['status'] ) ) );
+			printf( '<td>%s</td>', esc_html( Ubac_Serials_Statuses::label( (string) $row['status'] ) ) );
 			printf( '<td>%s</td>', esc_html( '' !== (string) $row['supplier_order'] ? (string) $row['supplier_order'] : '—' ) );
 
 			echo '</tr>';

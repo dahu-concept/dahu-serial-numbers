@@ -7,7 +7,7 @@ msgstr ""
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "PO-Revision-Date: 2026-10-23 15:27+0000\n"
-"X-Generator: dahu i18n-build\n"
+"X-Generator: ubac i18n-build\n"
 
 #: includes/class-ubac-serials-workshop.php:262
 msgid "%1$d of %2$d"
@@ -271,16 +271,16 @@ msgid "Created"
 msgstr "Créé le"
 
 #: includes/class-ubac-serials-admin-settings.php:38
-msgid "Dahu Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find."
-msgstr "Dahu Serial Numbers a trois réglages. Tout le reste est un filtre, pour qu’une boutique décide dans son propre code plutôt que par un écran qu’il faut trouver."
+msgid "Ubac Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find."
+msgstr "Ubac Serial Numbers a trois réglages. Tout le reste est un filtre, pour qu’une boutique décide dans son propre code plutôt que par un écran qu’il faut trouver."
 
 #: includes/class-ubac-serials-admin-serials.php:36
-msgid "Dahu Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been."
-msgstr "Dahu Serial Numbers tient une ligne par unité physique que vous expédiez, avec l’historique de partout où elle est passée."
+msgid "Ubac Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been."
+msgstr "Ubac Serial Numbers tient une ligne par unité physique que vous expédiez, avec l’historique de partout où elle est passée."
 
 #: includes/class-ubac-serials-admin-stations.php:39
-msgid "Dahu Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing."
-msgstr "Dahu Serial Numbers connecte l’écran d’atelier avec un identifiant par poste, pas un par personne : un poste est une tablette sur un établi, employée par qui emballe."
+msgid "Ubac Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing."
+msgstr "Ubac Serial Numbers connecte l’écran d’atelier avec un identifiant par poste, pas un par personne : un poste est une tablette sur un établi, employée par qui emballe."
 
 #: includes/class-ubac-serials-admin-settings.php:168
 msgid "Delete the serial numbers and their history when the plugin is deleted"

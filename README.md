@@ -1,4 +1,4 @@
-# Dahu Serial Numbers
+# Ubac Serial Numbers
 
 Per-unit traceability for WooCommerce. One row per physical unit you ship, a
 lifecycle that refuses the moves that make no sense, an append-only history,
@@ -178,7 +178,7 @@ PHP class.
 
 ### Grafting your carrier onto it
 
-> **Upgrading from 1.0.0?** `dahu_serial_numbers_before_shipment` gained a
+> **Upgrading from 1.0.0?** `ubac_serials_before_shipment` gained a
 > parameter in **second** position — `$consignment_id` — so `$order` is now the
 > third. A listener registered with `10, 4` and the old order of arguments
 > receives an integer where it expects the order, and fails; the extension
@@ -193,14 +193,14 @@ Sendcloud, a freight forwarder, a courier who takes a CSV once a day.
 ```php
 <?php
 /**
- * Plugin Name: My carrier for Dahu Serial Numbers
+ * Plugin Name: My carrier for Ubac Serial Numbers
  */
 
 // 1. Create the label when the bench closes the parcel, and hand back the
 //    tracking number. Whatever you return is stored on the order and written
 //    into every unit's history.
 add_filter(
-    'dahu_serial_numbers_before_shipment',
+    'ubac_serials_before_shipment',
     function ( $tracking, $consignment_id, $order, $carrier, $station_id ) {
 
         // Already have one — a label printed earlier, a number typed at the
@@ -212,7 +212,7 @@ add_filter(
         // The parcel is already open and already holds its units, so you can
         // tell the carrier exactly what is in the box: put them on the
         // customs declaration, the packing list, wherever they belong.
-        $consignment = Dahu_Serial_Numbers_Consignments::get( $consignment_id );
+        $consignment = Ubac_Serials_Consignments::get( $consignment_id );
         $serials     = $consignment ? $consignment['serials'] : array();
 
         $label = my_carrier_api_create_label( array(
@@ -238,7 +238,7 @@ add_filter(
 //    no list of carrier URLs in this plugin, and a guessed one that 404s is
 //    worse than none.
 add_filter(
-    'dahu_serial_numbers_tracking_url',
+    'ubac_serials_tracking_url',
     function ( $url, $tracking, $carrier, $order, $consignment_id ) {
         // $order can be null when the link is built from a consignment alone.
         return 'https://my-carrier.example/track/' . rawurlencode( $tracking );
@@ -266,7 +266,7 @@ A shop where nothing may ship without a real label says so, and then nothing
 moves at all:
 
 ```php
-add_filter( 'dahu_serial_numbers_block_on_label_failure', '__return_true' );
+add_filter( 'ubac_serials_block_on_label_failure', '__return_true' );
 ```
 
 ## Consignments
@@ -284,13 +284,13 @@ mirror of the most recent outbound parcel, for the theme, the e-mail or the
 export that reads it.
 
 **It is a ledger, not an actor.** The register moves no unit between statuses;
-`Dahu_Serial_Numbers_Shipment` does that, and uses the register to write down
+`Ubac_Serials_Shipment` does that, and uses the register to write down
 what it did. There is still no carrier API, no label, no manifest: the carrier
 is a name you type and the tracking number a string you paste.
 
 ### Partial shipments
 
-`Dahu_Serial_Numbers_Shipment::ship()` takes `$args['serials']` to ship only
+`Ubac_Serials_Shipment::ship()` takes `$args['serials']` to ship only
 some of an order, and `POST /orders/{id}/shipment` takes the same `serials`
 argument. Omit it and the whole order ships exactly as before.
 
@@ -331,11 +331,11 @@ a route would let a bench token write arbitrary movement records.
 
 ### The tables are a public contract
 
-`dahu_serial_numbers_consignments` and `dahu_serial_numbers_consignment_serials`
+`ubac_serials_consignments` and `ubac_serials_consignment_serials`
 (with your table prefix) may be read by other plugins. Changes to them are
 **additive only**. The version of the contract is
-`Dahu_Serial_Numbers_Consignments::API_VERSION`, readable without loading the
-class from the option `dahu_serial_numbers_consignments_api`, and returned by
+`Ubac_Serials_Consignments::API_VERSION`, readable without loading the
+class from the option `ubac_serials_consignments_api`, and returned by
 `GET /consignments` as `api_version`. The database schema is at version 5; the version
 added `label_error`, a nullable column holding the carrier's message when a label
 was refused, so that "parcels that left without a label" is a `WHERE` clause
@@ -346,12 +346,12 @@ additive.
 ### Adding a tracking number after the parcel has gone
 
 When a carrier does not answer, the parcel is closed anyway and the order note
-says to add the tracking number by hand. `Dahu_Serial_Numbers_Shipment::amend_tracking( $consignment_id, array( 'carrier' => '…', 'tracking' => '…' ) )`
+says to add the tracking number by hand. `Ubac_Serials_Shipment::amend_tracking( $consignment_id, array( 'carrier' => '…', 'tracking' => '…' ) )`
 does that on a **closed** consignment, and fires
-`dahu_serial_numbers_consignment_tracking_amended( $id, $consignment, $previous )`.
+`ubac_serials_consignment_tracking_amended( $id, $consignment, $previous )`.
 It writes the carrier and the tracking number and nothing else: any other key
 (`status`, `serials`, `note`, the measurements…) is refused with
-`dahu_serial_numbers_amend_only_tracking` and nothing is written. The order meta
+`ubac_serials_amend_only_tracking` and nothing is written. The order meta
 mirror describes one parcel, the most recent closed outbound one; it is rewritten
 as a set when that parcel is amended, and left alone when an older one is.
 
@@ -397,7 +397,7 @@ serial against yet. Both halves are needed:
 
 Orders being *processing* or *on hold* reserve; completed ones do not, because
 WooCommerce keeps `_reduced_stock` on their lines for refunds and counting it
-would hold stock back forever. `dahu_serial_numbers_stock_reserving_statuses`
+would hold stock back forever. `ubac_serials_stock_reserving_statuses`
 changes that list.
 
 The number is **set**, not incremented. An increment has to be right every
@@ -471,7 +471,7 @@ boxes:
 
 ```php
 add_filter(
-    'dahu_serial_numbers_is_serialised',
+    'ubac_serials_is_serialised',
     function ( $serialised, $product_id ) {
         return $serialised || has_term( 'motors', 'product_cat', $product_id );
     },
@@ -492,8 +492,8 @@ is hooked on rather than assumed:
 
 ```php
 add_filter(
-    'dahu_serial_numbers_decode',
-    array( 'Dahu_Serial_Numbers_Format', 'letter_year_month' ),
+    'ubac_serials_decode',
+    array( 'Ubac_Serials_Format', 'letter_year_month' ),
     10,
     2
 );
@@ -510,7 +510,7 @@ outside 1–12 is dropped rather than written to the column.
 
 ## The API
 
-Eleven routes under `dahu-serial-numbers/v1`, used by the packing screen. Every
+Eleven routes under `ubac-serials/v1`, used by the packing screen. Every
 one of them but sign-in requires a bearer token issued to a workshop post.
 
 | | |
@@ -549,40 +549,40 @@ somewhere the database is not reachable, which is never the case here.
 
 | | |
 |---|---|
-| `dahu_serial_numbers_transitions` | widen the lifecycle |
-| `dahu_serial_numbers_columns_cleared` | which columns a move clears |
-| `dahu_serial_numbers_is_serialised` | which products carry a serial number |
-| `dahu_serial_numbers_resolve_product` | redirect a product id |
-| `dahu_serial_numbers_normalise` | the last word on what a serial looks like |
-| `dahu_serial_numbers_url_parameters` | which query parameters a scanned URL may carry it in |
-| `dahu_serial_numbers_decode` | read a manufacturing date out of a serial |
-| `dahu_serial_numbers_queue_statuses` | which orders the packing queue lists |
-| `dahu_serial_numbers_stock_reserving_statuses` | which order statuses hold stock back — without the `wc-` prefix |
-| `dahu_serial_numbers_stock_reserved_map` | the last word on how many pieces each product owes to orders — `( $map, $order_ids )` |
-| `dahu_serial_numbers_auth_provider` | replace the authentication backend |
-| `dahu_serial_numbers_token_ttl` | how long a session lasts |
-| `dahu_serial_numbers_auth_max_attempts` | failures before a login locks |
-| `dahu_serial_numbers_auth_lockout_window` | how long it stays locked |
-| `dahu_serial_numbers_before_shipment` | create a carrier label, return a tracking number — `( $tracking, $consignment_id, $order, $carrier, $station_id )` |
-| `dahu_serial_numbers_block_on_label_failure` | refuse the parcel when the carrier fails, instead of recording it — 4th parameter `$consignment_id` |
-| `dahu_serial_numbers_shipment_status` | where an order goes once shipped — 3rd parameter `$consignment_id`; the default is `completed` only when nothing is left to send, an empty string (status unchanged) otherwise |
-| `dahu_serial_numbers_tracking_url` | build a link to follow a parcel — 5th parameter `$consignment_id`; `$order` (4th) can be `null` |
-| `dahu_serial_numbers_label_failure_note` | reword the order note line written when the carrier failed — `( $text, $label_error, $consignment_id )`; unchanged when nobody listens. For a timed-out, non-idempotent call, where "could not create the label" may be untrue |
-| `dahu_serial_numbers_consignment_row_actions` | add actions to a line of the Consignments screen, like `plugin_action_links` — `( $actions, $row )`; fragments are filtered to links and basic markup |
+| `ubac_serials_transitions` | widen the lifecycle |
+| `ubac_serials_columns_cleared` | which columns a move clears |
+| `ubac_serials_is_serialised` | which products carry a serial number |
+| `ubac_serials_resolve_product` | redirect a product id |
+| `ubac_serials_normalise` | the last word on what a serial looks like |
+| `ubac_serials_url_parameters` | which query parameters a scanned URL may carry it in |
+| `ubac_serials_decode` | read a manufacturing date out of a serial |
+| `ubac_serials_queue_statuses` | which orders the packing queue lists |
+| `ubac_serials_stock_reserving_statuses` | which order statuses hold stock back — without the `wc-` prefix |
+| `ubac_serials_stock_reserved_map` | the last word on how many pieces each product owes to orders — `( $map, $order_ids )` |
+| `ubac_serials_auth_provider` | replace the authentication backend |
+| `ubac_serials_token_ttl` | how long a session lasts |
+| `ubac_serials_auth_max_attempts` | failures before a login locks |
+| `ubac_serials_auth_lockout_window` | how long it stays locked |
+| `ubac_serials_before_shipment` | create a carrier label, return a tracking number — `( $tracking, $consignment_id, $order, $carrier, $station_id )` |
+| `ubac_serials_block_on_label_failure` | refuse the parcel when the carrier fails, instead of recording it — 4th parameter `$consignment_id` |
+| `ubac_serials_shipment_status` | where an order goes once shipped — 3rd parameter `$consignment_id`; the default is `completed` only when nothing is left to send, an empty string (status unchanged) otherwise |
+| `ubac_serials_tracking_url` | build a link to follow a parcel — 5th parameter `$consignment_id`; `$order` (4th) can be `null` |
+| `ubac_serials_label_failure_note` | reword the order note line written when the carrier failed — `( $text, $label_error, $consignment_id )`; unchanged when nobody listens. For a timed-out, non-idempotent call, where "could not create the label" may be untrue |
+| `ubac_serials_consignment_row_actions` | add actions to a line of the Consignments screen, like `plugin_action_links` — `( $actions, $row )`; fragments are filtered to links and basic markup |
 
 **Actions**
 
 | | |
 |---|---|
-| `dahu_serial_numbers_created` | a unit was filed |
-| `dahu_serial_numbers_transitioned` | a unit moved |
-| `dahu_serial_numbers_product_changed` | a unit was re-filed under another product, with no move — `( $serial, $from, $to, $context )` |
-| `dahu_serial_numbers_shipped` | a parcel was closed — 5th parameter `$consignment_id` |
-| `dahu_serial_numbers_consignment_opened` | a consignment was opened |
-| `dahu_serial_numbers_consignment_closed` | a consignment was closed |
-| `dahu_serial_numbers_consignment_cancelled` | a consignment was cancelled |
-| `dahu_serial_numbers_consignment_tracking_amended` | a closed consignment got its carrier or tracking number after the fact — `( $id, $consignment, $previous )` |
-| `dahu_serial_numbers_station_credentials_revoked` | a post was switched off, or its password changed |
+| `ubac_serials_created` | a unit was filed |
+| `ubac_serials_transitioned` | a unit moved |
+| `ubac_serials_product_changed` | a unit was re-filed under another product, with no move — `( $serial, $from, $to, $context )` |
+| `ubac_serials_shipped` | a parcel was closed — 5th parameter `$consignment_id` |
+| `ubac_serials_consignment_opened` | a consignment was opened |
+| `ubac_serials_consignment_closed` | a consignment was closed |
+| `ubac_serials_consignment_cancelled` | a consignment was cancelled |
+| `ubac_serials_consignment_tracking_amended` | a closed consignment got its carrier or tracking number after the fact — `( $id, $consignment, $previous )` |
+| `ubac_serials_station_credentials_revoked` | a post was switched off, or its password changed |
 
 ## Times
 
