@@ -162,6 +162,12 @@ records which bench did what.
 == Changelog ==
 
 = 1.5.2 =
+* Variable products are reconciled on their variations. Ticking "serialised" on a variable product is the normal way to do it, but the stock belongs to each variation: the resynchronisation screen examined the parent, reported that nothing needed changing, and left the variations on sale with no units recorded against them.
+* The resynchronisation screen no longer stops at the first five hundred products. Past that, the oldest were dropped from the plan without a word, and adding a product between drawing the list and approving it could refuse the whole run as out of date.
+* Units attached to an order without naming a line are credited to the product rather than to one of its lines. On an order carrying the same product twice, credits were lost at the line's floor, and when no unit named a line at all the whole batch was lost — holding pieces in reserve that had already been sold, and pushing the stock below what was really available.
+* Free units are counted under the same product as reserved ones. A shop using the product-resolution filter had the two halves of the calculation pointing at different products.
+* A batch moved under another product announces nothing until it has actually been written. The announcement was made inside the transaction, so a listener could act on a move that was then rolled back, or commit half the batch.
+* The filter that lets a shop name its own serialised products is refused when it returns a list of ids instead of a map, rather than quietly turning them into product 0 and 1 and losing the real ones.
 * A database that refuses the query no longer makes the stock figure zero. The units are counted, or the plugin says it could not count them and writes nothing — including when another plugin short-circuits the query rather than failing it, which left no error behind to notice.
 * Reservations are guarded the same way as the units themselves. A filter that empties the list of reserving order statuses, or that returns something other than a list, is now refused instead of silently reading as "nothing is reserved" and putting paid-for units back on sale.
 * A batch the plugin could not write is carried over to the next request instead of being dropped at the end of this one.

@@ -1036,7 +1036,19 @@ class Ubac_Serials_Manager {
 		 * @param int    $to      Product it is under now.
 		 * @param array  $context Caller context.
 		 */
-		do_action( 'ubac_serials_product_changed', $serial, $from, $to, $context );
+		/* `defer_action` : L'APPELANT ANNONCERA LUI-MEME, APRES SON COMMIT.
+		 *
+		 * Product_Fix::apply() deplace tout un lot dans une transaction et
+		 * passe ce drapeau. Il etait ignore ici, donc l'action partait
+		 * QUAND MEME, et depuis l'interieur de la transaction : un ecouteur
+		 * qui agit sur un changement qui va etre annule agit sur un fait qui
+		 * n'a pas eu lieu, et un ecouteur qui ecrit — stock WooCommerce, un
+		 * post, son propre COMMIT — pouvait valider la moitie du lot sous les
+		 * pieds de l'appelant. Le commentaire de apply() decrivait cette
+		 * protection ; elle n'existait pas. */
+		if ( empty( $context['defer_action'] ) ) {
+			do_action( 'ubac_serials_product_changed', $serial, $from, $to, $context );
+		}
 
 		return true;
 	}

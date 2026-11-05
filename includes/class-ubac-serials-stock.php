@@ -693,6 +693,8 @@ class Ubac_Serials_Stock {
 				continue;
 			}
 
+			$reste = array();
+
 			foreach ( $order->get_items() as $item_id => $item ) {
 				if ( ! $item instanceof WC_Order_Item_Product ) {
 					continue;
@@ -715,8 +717,33 @@ class Ubac_Serials_Stock {
 				$already  = isset( $held[ $line_key ] ) ? (int) $held[ $line_key ] : 0;
 				$left     = max( 0, $reduced - $already );
 
-				if ( $left > 0 ) {
-					$map[ $product_id ] = ( isset( $map[ $product_id ] ) ? (int) $map[ $product_id ] : 0 ) + $left;
+				/* Cumule par commande ET par produit, pas directement dans la
+				 * carte : la reserve joker de cette commande se soustrait du
+				 * total, et il faut donc l'avoir en entier avant de trancher. */
+				if ( ! isset( $reste[ $product_id ] ) ) {
+					$reste[ $product_id ] = 0;
+				}
+
+				$reste[ $product_id ] += $left;
+			}
+
+			/* LES UNITES SANS LIGNE, CREDITEES AU PRODUIT.
+			 *
+			 * Une unite qui dit « commande 42, produit 7 » et rien de plus est
+			 * bien une piece deja vendue : elle doit retirer du reserve, sinon
+			 * la piece est offerte deux fois. Appliquee au total du produit
+			 * plutot qu'a une ligne, elle ne peut plus etre mangee par le
+			 * plancher d'une ligne trop petite. Le `max` reste, pour le cas
+			 * ou plus d'unites portent la commande que de pieces engagees. */
+			foreach ( $reste as $product_id => $left ) {
+				$joker = isset( $held[ (int) $order_id . ':*:' . $product_id ] )
+					? (int) $held[ (int) $order_id . ':*:' . $product_id ]
+					: 0;
+
+				$net = max( 0, $left - $joker );
+
+				if ( $net > 0 ) {
+					$map[ $product_id ] = ( isset( $map[ $product_id ] ) ? (int) $map[ $product_id ] : 0 ) + $net;
 				}
 			}
 		}
@@ -804,36 +831,24 @@ class Ubac_Serials_Stock {
 			$held[ $key ] = ( isset( $held[ $key ] ) ? $held[ $key ] : 0 ) + $count;
 		}
 
-		// Fold the wildcards into the lines of the same product. A unit that
-		// says "order 42, product 7" and nothing more is counted against
-		// whichever line of order 42 sells product 7; when there are two such
-		// lines it lands on the first, and that is stated rather than hidden:
-		// the alternative is not counting it at all, which offers a unit for
-		// sale that a customer has already bought.
-		foreach ( $held as $key => $count ) {
-			if ( false === strpos( $key, ':*:' ) ) {
-				continue;
-			}
-
-			list( $order_id, , $product_id ) = explode( ':', $key );
-
-			unset( $held[ $key ] );
-
-			foreach ( array_keys( $held ) as $other ) {
-				$parts = explode( ':', $other );
-
-				if ( $parts[0] === $order_id && $parts[2] === $product_id ) {
-					$held[ $other ] += $count;
-					continue 2;
-				}
-			}
-
-			// No line of that order sells that product: keep it under a line
-			// id of zero, where nothing will match it. Counting it against an
-			// unrelated line would be worse than losing it.
-			$held[ $order_id . ':0:' . $product_id ] = $count;
-		}
-
+		/* LE JOKER RESTE UN JOKER, IL N'EST PLUS REPLIE SUR UNE LIGNE.
+		 *
+		 * Le repli choisissait la premiere ligne du meme produit et lui
+		 * donnait tout le lot. Deux defauts, et le second est muet :
+		 *
+		 * — sur une commande a deux lignes du meme produit, une de un et une
+		 *   de trois, trois unites sans ligne tombaient sur la ligne de un.
+		 *   `max( 0, 1 - 3 )` mangeait deux credits au plancher, et la
+		 *   reserve retenait deux pieces de trop ;
+		 * — s'il n'existe aucune entree de ligne pour ce produit — le cas
+		 *   normal quand aucune unite ne porte de ligne — le repli ne
+		 *   trouvait rien, et le lot entier etait perdu. La reserve restait
+		 *   pleine, le stock partait d'autant trop bas, et le produit
+		 *   sortait de la vente sans qu'une ligne le dise.
+		 *
+		 * La reserve est donc rendue telle quelle, sous sa clef joker, et
+		 * `reserved_map()` la soustrait du total engage de la commande pour ce
+		 * produit — la ou le plancher ne peut plus rien manger. */
 		return $held;
 	}
 
@@ -973,10 +988,31 @@ class Ubac_Serials_Stock {
 			array( 'product_id', 'free' )
 		);
 
+		/* L'ID EST RESOLU ICI AUSSI, ET LES UNITES SE CUMULENT.
+		 *
+		 * `reserved_map()` resout, et `free_map()` ne le faisait pas. Une
+		 * boutique qui se sert du filtre `resolve` avait donc ses
+		 * reservations sur l'id cible et ses unites libres sur l'id source :
+		 * deux colonnes du meme plan qui ne parlaient pas du meme produit, et
+		 * un stock calcule a partir de la difference des deux.
+		 *
+		 * Le cumul n'est pas un detail : `resolve()` peut rabattre plusieurs
+		 * ids sources sur une seule cible, et une affectation simple aurait
+		 * garde la derniere ligne en jetant les autres. */
 		$map = array();
 
 		foreach ( (array) $rows as $row ) {
-			$map[ (int) $row['product_id'] ] = (int) $row['free'];
+			$product_id = Ubac_Serials_Products::resolve( (int) $row['product_id'] );
+
+			if ( $product_id <= 0 ) {
+				continue;
+			}
+
+			if ( ! isset( $map[ $product_id ] ) ) {
+				$map[ $product_id ] = 0;
+			}
+
+			$map[ $product_id ] += (int) $row['free'];
 		}
 
 		return $map;
@@ -991,6 +1027,197 @@ class Ubac_Serials_Stock {
 	 *
 	 * @return array<int,int> Product id => units.
 	 */
+	/**
+	 * Every product the serial table knows, whatever the status of its units.
+	 *
+	 * WHY THIS EXISTS, AND WHY IT IS NOT A LIST OF SERIALISED PRODUCTS.
+	 *
+	 * A product whose last unit has shipped has no free line and no
+	 * reservation. Built from `free_map()` and `reserved_map()` alone, the
+	 * plan did not name it at all — and the resynchronisation screen said
+	 * « nothing changes » while WooCommerce went on selling four units that
+	 * no longer exist. That is the exact case the screen exists to catch, and
+	 * it was the one case it could not see.
+	 *
+	 * The obvious fix — enumerate the serialised products — cannot be
+	 * written: `Ubac_Serials_Products::is_serialised()` is filterable, so a
+	 * shop may decide by category with no meta on any product, and no query
+	 * can list them. Enumerating by meta key would cover the common shop and
+	 * quietly miss that one, which is the same silence in a new place.
+	 *
+	 * So the table answers instead. A product whose units have all gone still
+	 * has its rows there; only their status changed. That is precisely the
+	 * case to catch, and it needs no product list at all.
+	 *
+	 * @return array<int,int> Product id => units recorded, any status.
+	 */
+	public static function known_map() {
+
+		global $wpdb;
+
+		$table = Ubac_Serials_Install::serials_table();
+
+		$rows = self::lignes(
+			"SELECT product_id, COUNT(*) AS units
+			 FROM {$table}
+			 WHERE product_id IS NOT NULL AND product_id <> 0
+			 GROUP BY product_id", // phpcs:ignore WordPress.DB.PreparedSQL -- own table name, no user input in this query.
+			array( 'product_id', 'units' )
+		);
+
+		/* Meme resolution et meme cumul que `free_map()`, pour la meme
+		 * raison : les trois cartes du plan doivent indexer le meme produit. */
+		$map = array();
+
+		foreach ( (array) $rows as $row ) {
+			$product_id = Ubac_Serials_Products::resolve( (int) $row['product_id'] );
+
+			if ( $product_id <= 0 ) {
+				continue;
+			}
+
+			if ( ! isset( $map[ $product_id ] ) ) {
+				$map[ $product_id ] = 0;
+			}
+
+			$map[ $product_id ] += (int) $row['units'];
+		}
+
+		/* LE DEUXIEME CAS : SERIALISE, ET JAMAIS UNE SEULE UNITE.
+		 *
+		 * La table ne sait rien de celui-la. Il porte pourtant la meta, donc
+		 * il est enumerable — et il doit l'etre : marquer un produit
+		 * « serialise » sans lui donner d'unite est precisement ce qu'on fait
+		 * en le preparant, et son stock WooCommerce doit tomber a zero plutot
+		 * que de rester vendable. */
+		/* PAS DE PLAFOND, ET C'EST DELIBERE.
+		 *
+		 * Une page de 500 aurait deux defauts, et le second est pire que le
+		 * premier. Au-dela de 500, les plus anciens tombent du plan en
+		 * silence — donc exactement ceux qui ont eu le plus de temps pour
+		 * deriver. Et la fenetre serait datee (`ORDER BY post_date DESC` par
+		 * defaut), si bien que creer un produit coche entre l'affichage et le
+		 * clic decalerait la liste et ferait repondre « Stock changed since
+		 * this list was drawn up » pour un produit etranger au plan.
+		 *
+		 * C'est une requete d'ids, pas une page : `no_found_rows` evite le
+		 * COUNT, et l'ecran ne tourne que sur demande, sous capacite. */
+		$drapeau = get_posts(
+			array(
+				'post_type'      => array( 'product', 'product_variation' ),
+				'post_status'    => 'any',
+				'fields'         => 'ids',
+				'posts_per_page' => -1,
+				'no_found_rows'  => true,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+				'meta_key'       => Ubac_Serials_Products::META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- the flag is the only way to name these products, and the screen runs on demand.
+				'meta_value'     => 'yes', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- same reason.
+			)
+		);
+
+		foreach ( (array) $drapeau as $product_id ) {
+			$product_id = (int) $product_id;
+
+			if ( $product_id <= 0 ) {
+				continue;
+			}
+
+			/* LE DRAPEAU SE POSE SUR LE PARENT, LE STOCK VIT SUR L'ENFANT.
+			 *
+			 * `is_serialised()` remonte au parent : cocher la case sur le
+			 * produit variable plutot que sur chacune de ses variations est
+			 * la facon normale de faire, et son docblock le dit. Mais le
+			 * stock, lui, appartient aux variations, et le plan refuse tout
+			 * parent variable (`variable_parent`). Garder le parent ici
+			 * donnerait donc une ligne qui a l'air examinee et ne decide
+			 * rien, pendant que les variations — invisibles au plan — restent
+			 * vendables sans une seule unite en table. C'est le silence meme
+			 * que cette carte existe pour tuer.
+			 *
+			 * Le parent est donc remplace par ses enfants, et pas ajoute
+			 * avec eux : il n'a pas de stock a reconcilier. */
+			$produit = wc_get_product( $product_id );
+
+			if ( $produit && $produit->is_type( 'variable' ) ) {
+				foreach ( (array) $produit->get_children() as $enfant_id ) {
+					$enfant_id = (int) $enfant_id;
+
+					if ( $enfant_id > 0 && ! isset( $map[ $enfant_id ] ) ) {
+						$map[ $enfant_id ] = 0;
+					}
+				}
+
+				continue;
+			}
+
+			if ( ! isset( $map[ $product_id ] ) ) {
+				$map[ $product_id ] = 0;
+			}
+		}
+
+		/**
+		 * Filters the products the resynchronisation plan examines.
+		 *
+		 * THE ONE CASE NEITHER QUERY CAN REACH. `is_serialised()` is
+		 * filterable, so a shop may decide by category, by shipping class, by
+		 * anything — with no meta on any product. Such a shop is invisible to
+		 * both queries above, and no query could find it. It adds its own ids
+		 * here:
+		 *
+		 *     add_filter(
+		 *         'ubac_serials_stock_known_products',
+		 *         function ( $map ) {
+		 *             foreach ( my_serialised_ids() as $id ) {
+		 *                 if ( ! isset( $map[ $id ] ) ) { $map[ $id ] = 0; }
+		 *             }
+		 *             return $map;
+		 *         }
+		 *     );
+		 *
+		 * @param array<int,int> $map Product id => units recorded.
+		 */
+		$map = apply_filters( 'ubac_serials_stock_known_products', $map );
+
+		/* LE FILTRE EST REFUSE S'IL REND UNE LISTE, PAS RATTRAPE.
+		 *
+		 * L'erreur naturelle est de rendre une liste plate d'ids plutot
+		 * qu'une carte. Les clefs sont alors 0, 1, 2 : le plan porterait des
+		 * lignes `unknown_product` sur des ids qui n'existent pas, et les
+		 * vrais ids seraient perdus en silence — le symptome meme que cette
+		 * carte existe pour tuer, repose dans le chemin d'extension.
+		 *
+		 * Filtrer les clefs ne suffirait pas : seule la clef 0 est invalide,
+		 * et 1, 2, 3 passeraient pour des identifiants de produit. Ce qui se
+		 * reconnait, c'est la forme — des clefs entieres consecutives depuis
+		 * zero. Aucune carte legitime ne peut l'avoir, puisque l'id 0 n'est
+		 * pas un produit. Le refus est donc sur, et il est explicite plutot
+		 * que silencieux, comme pour `ubac_serials_stock_reserved_map`. */
+		if ( ! is_array( $map ) ) {
+			throw new RuntimeException(
+				'ubac-serials: the ubac_serials_stock_known_products filter did not return an array.'
+			);
+		}
+
+		$clefs = array_keys( $map );
+
+		if ( $clefs === range( 0, count( $clefs ) - 1 ) ) {
+			throw new RuntimeException(
+				'ubac-serials: the ubac_serials_stock_known_products filter returned a list of ids; it must return a map of product id => units.'
+			);
+		}
+
+		$propre = array();
+
+		foreach ( $map as $product_id => $units ) {
+			if ( is_int( $product_id ) && $product_id > 0 ) {
+				$propre[ $product_id ] = (int) $units;
+			}
+		}
+
+		return $propre;
+	}
+
 	public static function stuck_map() {
 
 		global $wpdb;
@@ -1274,6 +1501,7 @@ class Ubac_Serials_Stock {
 			$free     = self::free_map();
 			$reserved = self::reserved_map();
 			$stuck    = self::stuck_map();
+			$connus   = self::known_map();
 		} catch ( Throwable $e ) { // phpcs:ignore PHPCompatibility.Classes.NewClasses.throwableFound -- guarded by Requires PHP 7.4.
 			/* L'ECRAN DIT « THE ERROR IS IN THE SITE LOG » : IL FAUT QU'ELLE Y SOIT.
 			 *
@@ -1293,7 +1521,11 @@ class Ubac_Serials_Stock {
 			);
 		}
 
-		$ids = array_values( array_unique( array_merge( array_keys( $free ), array_keys( $reserved ) ) ) );
+		/* known_map() ENTRE ICI, ET C'EST TOUT L'INTERET.
+		 * Sans elle, un produit dont la derniere unite est partie n'a de cle
+		 * dans aucune des deux premieres cartes, donc aucune ligne de plan,
+		 * donc aucun ecart affiche -- pendant que WooCommerce le vend encore. */
+		$ids = array_values( array_unique( array_merge( array_keys( $free ), array_keys( $reserved ), array_keys( $connus ) ) ) );
 		sort( $ids );
 
 		$rows     = array();

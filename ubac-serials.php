@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'UBAC_SERIALS_VERSION', '1.5.1' );
+define( 'UBAC_SERIALS_VERSION', '1.5.2' );
 define( 'UBAC_SERIALS_FILE', __FILE__ );
 define( 'UBAC_SERIALS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'UBAC_SERIALS_URL', plugin_dir_url( __FILE__ ) );
