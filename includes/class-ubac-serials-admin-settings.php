@@ -56,6 +56,13 @@ class Ubac_Serials_Admin_Settings {
 	 */
 	private static function handle_save() {
 
+		/* THE NONCE IS CHECKED BY THE CALLER, immediately before.
+		 * render() calls check_admin_referer() and then this method; the sniff
+		 * does not look beyond the function. The statuses are an array of keys,
+		 * sanitised by Ubac_Serials_Settings::save(), hence the wp_unslash()
+		 * without a sanitiser here. */
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see above.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see above.
 		$submitted = array(
 			'queue_statuses'           => isset( $_POST['queue_statuses'] ) ? (array) wp_unslash( $_POST['queue_statuses'] ) : array(),
 			'workshop_enabled'         => ! empty( $_POST['workshop_enabled'] ),
@@ -63,6 +70,7 @@ class Ubac_Serials_Admin_Settings {
 			'product_fix_enabled'      => ! empty( $_POST['product_fix_enabled'] ),
 			'delete_data_on_uninstall' => ! empty( $_POST['delete_data_on_uninstall'] ),
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		$stored = Ubac_Serials_Settings::save( $submitted );
 

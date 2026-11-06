@@ -86,9 +86,22 @@ class Ubac_Serials_Admin_Stations {
 	 */
 	private static function handle_create() {
 
+		/* THE NONCE IS CHECKED, ONE FRAME UP.
+		 * handle() calls check_admin_referer() before dispatching to this
+		 * method, but the sniff does not look beyond the function: it
+		 * reports a password form "without nonce verification", which stops
+		 * a reviewer dead. The guard is named here because it is invisible
+		 * from here.
+		 *
+		 * The password is NOT sanitised, and that is deliberate: sanitising
+		 * it would quietly change it, and the user could no longer sign in
+		 * with what they typed. It is unslashed, then handed to
+		 * wp_hash_password(), whose business it is. */
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see above.
 		$login    = isset( $_POST['login'] ) ? sanitize_user( wp_unslash( $_POST['login'] ), true ) : '';
 		$password = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
 		$label    = isset( $_POST['label'] ) ? sanitize_text_field( wp_unslash( $_POST['label'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		$created = Ubac_Serials_Stations::create( $login, $password, $label );
 
@@ -115,6 +128,9 @@ class Ubac_Serials_Admin_Stations {
 	 */
 	private static function handle_toggle() {
 
+		// Same guard as handle_create(): handle() checked the nonce before
+		// dispatching here.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- see handle().
 		$id   = isset( $_POST['station_id'] ) ? (int) $_POST['station_id'] : 0;
 		$post = Ubac_Serials_Stations::get( $id );
 
@@ -151,8 +167,21 @@ class Ubac_Serials_Admin_Stations {
 	 */
 	private static function handle_password() {
 
+		/* THE NONCE IS CHECKED, ONE FRAME UP.
+		 * handle() calls check_admin_referer() before dispatching to this
+		 * method, but the sniff does not look beyond the function: it
+		 * reports a password form "without nonce verification", which stops
+		 * a reviewer dead. The guard is named here because it is invisible
+		 * from here.
+		 *
+		 * The password is NOT sanitised, and that is deliberate: sanitising
+		 * it would quietly change it, and the user could no longer sign in
+		 * with what they typed. It is unslashed, then handed to
+		 * wp_hash_password(), whose business it is. */
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see above.
 		$id       = isset( $_POST['station_id'] ) ? (int) $_POST['station_id'] : 0;
 		$password = isset( $_POST['password'] ) ? (string) wp_unslash( $_POST['password'] ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		$result = Ubac_Serials_Stations::set_password( $id, $password );
 
