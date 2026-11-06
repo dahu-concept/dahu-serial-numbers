@@ -1053,11 +1053,11 @@ class Ubac_Serials_Stock {
 
 		$table = Ubac_Serials_Install::serials_table();
 
-		/* Cette requete n'avait pas besoin de prepare() — aucune valeur
-		 * utilisateur — et passait son nom de table par interpolation. Avec
-		 * le plancher a WordPress 6.2, le marqueur %i existe : le nom passe
-		 * par prepare() comme partout ailleurs, et plus rien n'est
-		 * interpole dans du SQL. */
+		/* This query needed no prepare() of its own -- it carries no value
+		 * from anywhere -- and used to build its table name by
+		 * interpolation. With the floor at WordPress 6.2 the %i placeholder
+		 * exists, so the name goes through prepare() like everywhere else
+		 * and nothing is interpolated into SQL any more. */
 		$rows = self::lignes(
 			$wpdb->prepare(
 				"SELECT product_id, COUNT(*) AS units
