@@ -218,13 +218,19 @@ records which bench did what.
 == Upgrade Notice ==
 
 = 1.3.0 =
-Nothing to do on update: no schema change, no hook signature change, and both new features are off until you switch them on in Settings. ONE THING TO READ BEFORE SWITCHING ON the stock push: it writes WooCommerce's stock column, which is what customers buy against, and it writes it as a whole number. Open the Stock screen first — it shows what would be written for every product, writes nothing, and names the products it will not touch. If your own code reads the status list or the terminal statuses, note that there are now thirteen statuses.
-
+Nothing to do on update: no schema change, no hook signature change, and both
+new features stay off until you switch them on. Before switching the stock push
+on, open the Stock screen: it shows what would be written for every product and
+writes nothing. There are now thirteen statuses.
 = 1.2.0 =
-Additive to the lifecycle, and nothing to do on update: no schema change and no hook signature change. Units sitting in "returned not as described" from an earlier version were stuck there — that was the defect this release fixes — and they can now be moved on from the serial numbers screen, which gained a status control for exactly that. ONE BEHAVIOUR CHANGED, and it is a refusal: a shipment that would send more units than an order line ordered is now refused rather than carried out. If you have deliberately assigned more units to a line than it ordered, that shipment will stop and name the line; un-assign what is not going. If your own code reads the status list or the terminal statuses, note that there are now twelve statuses and that "returned not as described" is no longer terminal.
-
+Additive, and nothing to do on update. One behaviour changed, and it is a
+refusal: a shipment sending more units than the order line ordered is now
+refused and names the line. There are now twelve statuses, and "returned not as
+described" is no longer terminal. See the changelog.
 = 1.1.0 =
-If you have a listener on ubac_serials_before_shipment, update it before anything else: it now receives ( $tracking, $consignment_id, $order, $carrier, $station_id ) and must be registered with 5 accepted arguments, because the old signature hands your code an integer where it expects the order. The other changed hooks only gain trailing parameters. Two database tables for the consignment register are created on update.
-
+If you listen on ubac_serials_before_shipment, update that listener first: it
+now receives five arguments and must be registered with five accepted, or your
+code is handed an integer where it expects the order. Two tables for the
+consignment register are created on update.
 = 1.0.0 =
 First release.
