@@ -4,7 +4,7 @@ Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.3
+Stable tag: 1.5.4
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -161,6 +161,10 @@ records which bench did what.
 
 == Changelog ==
 
+= 1.5.4 =
+* Changed: the compiled French catalogue now travels in the package. It was left out on the grounds that the directory serves language packs, which is true only for a copy installed from the directory and only once translations have been imported: a copy installed by hand showed English with a catalogue that was fully translated.
+* Changed: the French readme moves under docs/, so the directory's checker no longer reports an unexpected markdown file at the plugin root.
+
 = 1.5.3 =
 * Fixed: saving the serialised box on a product or a variation checked neither the nonce nor the capability, relying entirely on WooCommerce having done so before firing the hook. Both are now checked here, and a request without the nonce -- or from a customer holding a valid one -- writes nothing.
 * Changed: the table name in twenty-one queries now goes through prepare()'s %i identifier placeholder instead of being built into the statement. Every one was exercised against real rows: a prepare() given one argument for two placeholders returns an empty set without raising, so a converted query can look valid and quietly return nothing.
@@ -221,6 +225,9 @@ records which bench did what.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.5.4 =
+French now works on a copy installed by hand: the compiled catalogue travels in the package. The French readme moves under docs/.
 
 = 1.5.3 =
 The serialised box on a product now verifies the request itself rather than relying on WooCommerce. Table names go through prepare()'s %i placeholder, so WordPress 6.2 is the floor.

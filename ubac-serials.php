@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Ubac Serial Numbers
  * Description:       Per-unit traceability for WooCommerce: a serial number on every item you ship, a lifecycle with a transition matrix that refuses the moves that make no sense, an append-only history, a workshop screen where the number is captured at packing time, and a consignment ledger so a tracking number resolves to the units that travelled under it.
- * Version:           1.5.3
+ * Version:           1.5.4
  * Author:            Hugo Vial-Jaime
  * Author URI:        https://dahu-concept.fr
  * License:           MIT
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'UBAC_SERIALS_VERSION', '1.5.3' );
+define( 'UBAC_SERIALS_VERSION', '1.5.4' );
 define( 'UBAC_SERIALS_FILE', __FILE__ );
 define( 'UBAC_SERIALS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'UBAC_SERIALS_URL', plugin_dir_url( __FILE__ ) );
