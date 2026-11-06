@@ -4,7 +4,7 @@ Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -161,6 +161,11 @@ records which bench did what.
 
 == Changelog ==
 
+= 1.5.3 =
+* Fixed: saving the serialised box on a product or a variation checked neither the nonce nor the capability, relying entirely on WooCommerce having done so before firing the hook. Both are now checked here, and a request without the nonce -- or from a customer holding a valid one -- writes nothing.
+* Changed: the table name in twenty-one queries now goes through prepare()'s %i identifier placeholder instead of being built into the statement. Every one was exercised against real rows: a prepare() given one argument for two placeholders returns an empty set without raising, so a converted query can look valid and quietly return nothing.
+* Changed: WordPress 6.2 is now the floor, which is the release %i arrived in.
+
 = 1.5.2 =
 * Variable products are reconciled on their variations. Ticking "serialised" on a variable product is the normal way to do it, but the stock belongs to each variation: the resynchronisation screen examined the parent, reported that nothing needed changing, and left the variations on sale with no units recorded against them.
 * The resynchronisation screen no longer stops at the first five hundred products. Past that, the oldest were dropped from the plan without a word, and adding a product between drawing the list and approving it could refuse the whole run as out of date.
@@ -216,6 +221,9 @@ records which bench did what.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.5.3 =
+The serialised box on a product now verifies the request itself rather than relying on WooCommerce. Table names go through prepare()'s %i placeholder, so WordPress 6.2 is the floor.
 
 = 1.3.0 =
 Nothing to do on update: no schema change, no hook signature change, and both
