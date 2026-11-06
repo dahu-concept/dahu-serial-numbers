@@ -83,7 +83,7 @@ class Ubac_Serials_Manager {
 		$table = Ubac_Serials_Install::serials_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE serial = %s", $serial ), ARRAY_A );
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i WHERE serial = %s", $table, $serial ), ARRAY_A );
 
 		return $row ? $row : null;
 	}
@@ -107,7 +107,7 @@ class Ubac_Serials_Manager {
 		$table = Ubac_Serials_Install::serials_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$table} WHERE serial = %s", $serial ) );
+		return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM %i WHERE serial = %s", $table, $serial ) );
 	}
 
 	/**
@@ -129,7 +129,7 @@ class Ubac_Serials_Manager {
 		$table = Ubac_Serials_Install::serials_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE order_id = %d ORDER BY order_item_id ASC, serial ASC", $order_id ), ARRAY_A );
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE order_id = %d ORDER BY order_item_id ASC, serial ASC", $table, $order_id ), ARRAY_A );
 
 		return $rows ? $rows : array();
 	}

@@ -176,7 +176,7 @@ class Ubac_Serials_Station_Auth_Provider implements Ubac_Serials_Auth_Provider {
 		$table = Ubac_Serials_Install::tokens_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE token_hash = %s", hash( 'sha256', $token ) ), ARRAY_A );
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i WHERE token_hash = %s", $table, hash( 'sha256', $token ) ), ARRAY_A );
 
 		if ( ! $row ) {
 			return new WP_Error(
@@ -273,7 +273,7 @@ class Ubac_Serials_Station_Auth_Provider implements Ubac_Serials_Auth_Provider {
 		$table = Ubac_Serials_Install::tokens_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$removed = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE expires_at < %s", gmdate( 'Y-m-d H:i:s' ) ) );
+		$removed = $wpdb->query( $wpdb->prepare( "DELETE FROM %i WHERE expires_at < %s", $table, gmdate( 'Y-m-d H:i:s' ) ) );
 
 		return (int) $removed;
 	}

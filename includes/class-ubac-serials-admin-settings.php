@@ -62,7 +62,6 @@ class Ubac_Serials_Admin_Settings {
 		 * sanitised by Ubac_Serials_Settings::save(), hence the wp_unslash()
 		 * without a sanitiser here. */
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see above.
-		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see above.
 		$submitted = array(
 			'queue_statuses'           => isset( $_POST['queue_statuses'] ) ? (array) wp_unslash( $_POST['queue_statuses'] ) : array(),
 			'workshop_enabled'         => ! empty( $_POST['workshop_enabled'] ),

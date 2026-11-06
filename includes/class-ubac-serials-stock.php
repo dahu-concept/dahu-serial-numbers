@@ -802,10 +802,10 @@ class Ubac_Serials_Stock {
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders -- the lists are %d/%s placeholders.
 				"SELECT order_id, order_item_id, product_id, COUNT(*) AS held
-				 FROM {$table}
+				 FROM %i
 				 WHERE order_id IN ({$in_orders}) AND status IN ({$in_statuses})
 				 GROUP BY order_id, order_item_id, product_id",
-				$placeholders
+				array_merge( array( $table ), $placeholders )
 			),
 			array( 'order_id', 'order_item_id', 'product_id', 'held' )
 		);
@@ -973,13 +973,13 @@ class Ubac_Serials_Stock {
 		$rows = self::lignes(
 			$wpdb->prepare(
 				"SELECT product_id, COUNT(*) AS free
-				 FROM {$table}
+				 FROM %i
 				 WHERE status = %s
 				   AND product_id IS NOT NULL
 				   AND ( order_id IS NULL OR order_id = 0 )
 				   AND ( order_item_id IS NULL OR order_item_id = 0 )
 				 GROUP BY product_id",
-				Ubac_Serials_Statuses::IN_STOCK
+				$table, Ubac_Serials_Statuses::IN_STOCK
 			),
 			array( 'product_id', 'free' )
 		);
@@ -1053,11 +1053,19 @@ class Ubac_Serials_Stock {
 
 		$table = Ubac_Serials_Install::serials_table();
 
+		/* Cette requete n'avait pas besoin de prepare() — aucune valeur
+		 * utilisateur — et passait son nom de table par interpolation. Avec
+		 * le plancher a WordPress 6.2, le marqueur %i existe : le nom passe
+		 * par prepare() comme partout ailleurs, et plus rien n'est
+		 * interpole dans du SQL. */
 		$rows = self::lignes(
-			"SELECT product_id, COUNT(*) AS units
-			 FROM {$table}
-			 WHERE product_id IS NOT NULL AND product_id <> 0
-			 GROUP BY product_id", // phpcs:ignore WordPress.DB.PreparedSQL -- own table name, no user input in this query.
+			$wpdb->prepare(
+				"SELECT product_id, COUNT(*) AS units
+				 FROM %i
+				 WHERE product_id IS NOT NULL AND product_id <> 0
+				 GROUP BY product_id",
+				$table
+			),
 			array( 'product_id', 'units' )
 		);
 
@@ -1224,12 +1232,12 @@ class Ubac_Serials_Stock {
 		$rows = self::lignes(
 			$wpdb->prepare(
 				"SELECT product_id, COUNT(*) AS stuck
-				 FROM {$table}
+				 FROM %i
 				 WHERE status = %s
 				   AND product_id IS NOT NULL
 				   AND ( ( order_id IS NOT NULL AND order_id <> 0 ) OR ( order_item_id IS NOT NULL AND order_item_id <> 0 ) )
 				 GROUP BY product_id",
-				Ubac_Serials_Statuses::IN_STOCK
+				$table, Ubac_Serials_Statuses::IN_STOCK
 			),
 			array( 'product_id', 'stuck' )
 		);

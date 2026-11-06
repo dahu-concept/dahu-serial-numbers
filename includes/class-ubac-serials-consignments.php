@@ -1104,7 +1104,7 @@ class Ubac_Serials_Consignments {
 		$table = Ubac_Serials_Install::consignments_table();
 
 		$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, value prepared.
-			$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", (int) $id ),
+			$wpdb->prepare( "SELECT * FROM %i WHERE id = %d", $table, (int) $id ),
 			ARRAY_A
 		);
 
@@ -1131,7 +1131,7 @@ class Ubac_Serials_Consignments {
 			$row = self::row( (int) $id_or_reference );
 		} else {
 			$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, value prepared.
-				$wpdb->prepare( "SELECT * FROM {$table} WHERE reference = %s", (string) $id_or_reference ),
+				$wpdb->prepare( "SELECT * FROM %i WHERE reference = %s", $table, (string) $id_or_reference ),
 				ARRAY_A
 			);
 		}
@@ -1168,7 +1168,7 @@ class Ubac_Serials_Consignments {
 		return array_map(
 			'strval',
 			(array) $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, value prepared.
-				$wpdb->prepare( "SELECT serial FROM {$table} WHERE consignment_id = %d ORDER BY id ASC", (int) $id )
+				$wpdb->prepare( "SELECT serial FROM %i WHERE consignment_id = %d ORDER BY id ASC", $table, (int) $id )
 			)
 		);
 	}
@@ -1199,7 +1199,7 @@ class Ubac_Serials_Consignments {
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
 		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, values prepared.
-			$wpdb->prepare( "SELECT consignment_id, serial FROM {$table} WHERE consignment_id IN ({$placeholders}) ORDER BY id ASC", $ids ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare( "SELECT consignment_id, serial FROM %i WHERE consignment_id IN ({$placeholders}) ORDER BY id ASC", array_merge( array( $table ), $ids ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- {$placeholders} holds generated %d markers; the arguments are passed as an array.
 			ARRAY_A
 		);
 
@@ -1231,7 +1231,7 @@ class Ubac_Serials_Consignments {
 		$table = Ubac_Serials_Install::consignments_table();
 
 		$id = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, value prepared.
-			$wpdb->prepare( "SELECT id FROM {$table} WHERE reference = %s", (string) $reference )
+			$wpdb->prepare( "SELECT id FROM %i WHERE reference = %s", $table, (string) $reference )
 		);
 
 		return null === $id ? null : self::get( (int) $id );
@@ -1251,12 +1251,14 @@ class Ubac_Serials_Consignments {
 		$consignments = Ubac_Serials_Install::consignments_table();
 		$pivot        = Ubac_Serials_Install::consignment_serials_table();
 
-		$reference = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own tables, values prepared.
+		$reference = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own tables.
 			$wpdb->prepare(
-				"SELECT c.reference FROM {$pivot} p
-				INNER JOIN {$consignments} c ON c.id = p.consignment_id
+				"SELECT c.reference FROM %i p
+				INNER JOIN %i c ON c.id = p.consignment_id
 				WHERE p.serial = %s AND c.status = %s AND c.id <> %d
 				ORDER BY c.id DESC LIMIT 1",
+				$pivot,
+				$consignments,
 				(string) $serial,
 				self::OPEN,
 				(int) $besides
@@ -1309,12 +1311,14 @@ class Ubac_Serials_Consignments {
 		$consignments = Ubac_Serials_Install::consignments_table();
 		$pivot        = Ubac_Serials_Install::consignment_serials_table();
 
-		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own tables, value prepared.
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own tables.
 			$wpdb->prepare(
-				"SELECT c.*, p.added_at AS added_at FROM {$pivot} p
-				INNER JOIN {$consignments} c ON c.id = p.consignment_id
+				"SELECT c.*, p.added_at AS added_at FROM %i p
+				INNER JOIN %i c ON c.id = p.consignment_id
 				WHERE p.serial = %s
 				ORDER BY c.id DESC",
+				$pivot,
+				$consignments,
 				(string) $serial
 			),
 			ARRAY_A
@@ -1500,7 +1504,7 @@ class Ubac_Serials_Consignments {
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
 		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- own table, values prepared.
-			$wpdb->prepare( "SELECT consignment_id, COUNT(*) AS n FROM {$pivot} WHERE consignment_id IN ({$placeholders}) GROUP BY consignment_id", $ids ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare( "SELECT consignment_id, COUNT(*) AS n FROM %i WHERE consignment_id IN ({$placeholders}) GROUP BY consignment_id", array_merge( array( $pivot ), $ids ) ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- {$placeholders} holds generated %d markers; the arguments are passed as an array.
 			ARRAY_A
 		);
 

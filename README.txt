@@ -1,7 +1,7 @@
 === Ubac Serial Numbers ===
 Contributors: dahuconcept
 Tags: serial numbers, traceability, serialised stock, warranty, packing
-Requires at least: 6.0
+Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 1.5.2

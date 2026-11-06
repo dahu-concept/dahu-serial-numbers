@@ -63,6 +63,39 @@ class Ubac_Serials_Product_Field {
 	}
 
 	/**
+	 * May the current request write the box on this product?
+	 *
+	 * WooCommerce does check the request before firing these hooks, but
+	 * relying on that is relying on somebody else's implementation detail:
+	 * the day a third party fires `woocommerce_save_product_variation` from
+	 * its own code, the check disappears with it and nothing here notices.
+	 * So the guard is written out — the capability, then whichever of the
+	 * two nonces matches the way the product was saved: the whole edit
+	 * screen posting to post.php, or the variations panel over AJAX.
+	 *
+	 * @param int $post_id Product or variation id.
+	 * @return bool
+	 */
+	private static function may_save( $post_id ) {
+
+		if ( ! current_user_can( 'edit_product', $post_id ) ) {
+			return false;
+		}
+
+		if ( isset( $_POST['woocommerce_meta_nonce'] )
+			&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' ) ) {
+			return true;
+		}
+
+		if ( isset( $_POST['security'] )
+			&& wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['security'] ) ), 'save-variations' ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Stores the box on a simple or variable product.
 	 *
 	 * @param WC_Product $product Product being saved.
@@ -74,10 +107,11 @@ class Ubac_Serials_Product_Field {
 			return;
 		}
 
-		// WooCommerce has already checked the nonce and the capability for
-		// this screen before firing this hook; re-checking here would be
-		// checking a nonce this code never issued.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! self::may_save( $product->get_id() ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- may_save() verified the nonce just above.
 		$ticked = isset( $_POST['_ubac_serials_serialised'] );
 
 		Ubac_Serials_Products::set_serialised( $product->get_id(), $ticked );
@@ -124,9 +158,11 @@ class Ubac_Serials_Product_Field {
 	 */
 	public static function save_variation( $variation_id, $loop ) {
 
-		// Same reasoning as save_simple(): WooCommerce verified the request
-		// before firing this hook.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! self::may_save( $variation_id ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- may_save() verified the nonce just above.
 		$submitted = isset( $_POST['ubac_serials_serialised'] ) ? (array) wp_unslash( $_POST['ubac_serials_serialised'] ) : array();
 
 		Ubac_Serials_Products::set_serialised( $variation_id, ! empty( $submitted[ $loop ] ) );

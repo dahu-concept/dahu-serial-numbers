@@ -100,11 +100,11 @@ class Ubac_Serials_Log {
 		$limit = max( 0, (int) $limit );
 
 		if ( 0 === $limit ) {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE serial = %s ORDER BY created_at DESC, id DESC", $serial ), ARRAY_A );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table; the name goes through prepare() as %i.
+			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE serial = %s ORDER BY created_at DESC, id DESC", $table, $serial ), ARRAY_A );
 		} else {
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE serial = %s ORDER BY created_at DESC, id DESC LIMIT %d", $serial, $limit ), ARRAY_A );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table; the name goes through prepare() as %i.
+			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE serial = %s ORDER BY created_at DESC, id DESC LIMIT %d", $table, $serial, $limit ), ARRAY_A );
 		}
 
 		return $rows ? $rows : array();
@@ -123,8 +123,8 @@ class Ubac_Serials_Log {
 		$table = Ubac_Serials_Install::log_table();
 		$limit = max( 1, (int) $limit );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} ORDER BY created_at DESC, id DESC LIMIT %d", $limit ), ARRAY_A );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table; the name goes through prepare() as %i.
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i ORDER BY created_at DESC, id DESC LIMIT %d", $table, $limit ), ARRAY_A );
 
 		return $rows ? $rows : array();
 	}
@@ -147,8 +147,8 @@ class Ubac_Serials_Log {
 
 		$table = Ubac_Serials_Install::log_table();
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE serial = %s", $serial ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table; the name goes through prepare() as %i.
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM %i WHERE serial = %s", $table, $serial ) );
 	}
 
 	/**

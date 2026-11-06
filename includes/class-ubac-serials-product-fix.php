@@ -656,7 +656,8 @@ class Ubac_Serials_Product_Fix {
 
 		$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- own table.
 			$wpdb->prepare(
-				"SELECT event, context FROM {$table} WHERE serial = %s ORDER BY id DESC LIMIT 1",
+				"SELECT event, context FROM %i WHERE serial = %s ORDER BY id DESC LIMIT 1",
+				$table,
 				(string) $serial
 			),
 			ARRAY_A

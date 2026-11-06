@@ -242,7 +242,7 @@ class Ubac_Serials_Stations {
 		$table = Ubac_Serials_Install::stations_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $station_id ), ARRAY_A );
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i WHERE id = %d", $table, $station_id ), ARRAY_A );
 
 		return $row ? $row : null;
 	}
@@ -266,7 +266,7 @@ class Ubac_Serials_Stations {
 		$table = Ubac_Serials_Install::stations_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE login = %s", $login ), ARRAY_A );
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM %i WHERE login = %s", $table, $login ), ARRAY_A );
 
 		return $row ? $row : null;
 	}
@@ -283,7 +283,7 @@ class Ubac_Serials_Stations {
 		$table = Ubac_Serials_Install::stations_table();
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
-		$rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC, id DESC", ARRAY_A );
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i ORDER BY created_at DESC, id DESC", $table ), ARRAY_A );
 
 		return $rows ? $rows : array();
 	}
