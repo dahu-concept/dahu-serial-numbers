@@ -93,19 +93,19 @@ class Ubac_Serials_Statuses {
 	public static function labels() {
 
 		return array(
-			self::RECEIVED        => __( 'Received', 'ubac-serials' ),
-			self::IN_STOCK        => __( 'In stock', 'ubac-serials' ),
-			self::ASSIGNED        => __( 'Assigned to an order', 'ubac-serials' ),
-			self::SHIPPED         => __( 'Shipped', 'ubac-serials' ),
-			self::RETURN_EXPECTED => __( 'Return expected', 'ubac-serials' ),
-			self::RETURNED_OK     => __( 'Returned, as described', 'ubac-serials' ),
-			self::RETURNED_FAULTY => __( 'Returned, not as described', 'ubac-serials' ),
-			self::IN_REPAIR       => __( 'In repair', 'ubac-serials' ),
-			self::REPLACED        => __( 'Replaced', 'ubac-serials' ),
-			self::REPAIRED        => __( 'Repaired', 'ubac-serials' ),
-			self::RESTOCKING      => __( 'Going back to stock', 'ubac-serials' ),
-			self::ADJUSTED_OUT    => __( 'Held, not counted as stock', 'ubac-serials' ),
-			self::DESTROYED       => __( 'Destroyed', 'ubac-serials' ),
+			self::RECEIVED        => __( 'Received', 'dahuconcept-serial-numbers' ),
+			self::IN_STOCK        => __( 'In stock', 'dahuconcept-serial-numbers' ),
+			self::ASSIGNED        => __( 'Assigned to an order', 'dahuconcept-serial-numbers' ),
+			self::SHIPPED         => __( 'Shipped', 'dahuconcept-serial-numbers' ),
+			self::RETURN_EXPECTED => __( 'Return expected', 'dahuconcept-serial-numbers' ),
+			self::RETURNED_OK     => __( 'Returned, as described', 'dahuconcept-serial-numbers' ),
+			self::RETURNED_FAULTY => __( 'Returned, not as described', 'dahuconcept-serial-numbers' ),
+			self::IN_REPAIR       => __( 'In repair', 'dahuconcept-serial-numbers' ),
+			self::REPLACED        => __( 'Replaced', 'dahuconcept-serial-numbers' ),
+			self::REPAIRED        => __( 'Repaired', 'dahuconcept-serial-numbers' ),
+			self::RESTOCKING      => __( 'Going back to stock', 'dahuconcept-serial-numbers' ),
+			self::ADJUSTED_OUT    => __( 'Held, not counted as stock', 'dahuconcept-serial-numbers' ),
+			self::DESTROYED       => __( 'Destroyed', 'dahuconcept-serial-numbers' ),
 		);
 	}
 

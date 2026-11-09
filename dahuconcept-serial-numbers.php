@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name:       Ubac Serial Numbers
+ * Plugin Name:       DahuConcept Serial Numbers
  * Description:       Per-unit traceability for WooCommerce: a serial number on every item you ship, a lifecycle with a transition matrix that refuses the moves that make no sense, an append-only history, a workshop screen where the number is captured at packing time, and a consignment ledger so a tracking number resolves to the units that travelled under it.
  * Version:           1.5.4
  * Author:            Hugo Vial-Jaime
  * Author URI:        https://dahu-concept.fr
  * License:           MIT
  * License URI:       https://opensource.org/licenses/MIT
- * Text Domain:       ubac-serials
+ * Text Domain:       dahuconcept-serial-numbers
  * Domain Path:       /languages
  * Requires at least: 6.2
  * Requires PHP:      7.4
@@ -212,7 +212,7 @@ add_filter(
 		$links[] = sprintf(
 			'<a href="%s" target="_blank" rel="noopener">%s</a>',
 			esc_url( 'https://dahu-concept.fr' ),
-			esc_html__( 'Hugo Vial-Jaime — Dahu-Concept', 'ubac-serials' )
+			esc_html__( 'Hugo Vial-Jaime — Dahu-Concept', 'dahuconcept-serial-numbers' )
 		);
 
 		return $links;
@@ -248,8 +248,8 @@ add_action(
 		Ubac_Welcome::register(
 			array(
 				'slug'       => 'ubac-serials',
-				'name'       => __( 'Serial numbers', 'ubac-serials' ),
-				'tagline'    => __( 'Follows every unit you hold, from goods-in to the customer.', 'ubac-serials' ),
+				'name'       => __( 'Serial numbers', 'dahuconcept-serial-numbers' ),
+				'tagline'    => __( 'Follows every unit you hold, from goods-in to the customer.', 'dahuconcept-serial-numbers' ),
 				'file'       => UBAC_SERIALS_FILE,
 				'version'    => UBAC_SERIALS_VERSION,
 				'textdomain' => 'ubac-serials',
@@ -267,24 +267,24 @@ add_action(
 				 * no text domain of its own.
 				 */
 				'strings'    => array(
-					'next'   => __( 'Next', 'ubac-serials' ),
-					'done'   => __( 'Done', 'ubac-serials' ),
-					'skip'   => __( 'Skip', 'ubac-serials' ),
-					'of'     => __( 'of', 'ubac-serials' ),
-					'denied' => __( 'You are not allowed to view this page.', 'ubac-serials' ),
+					'next'   => __( 'Next', 'dahuconcept-serial-numbers' ),
+					'done'   => __( 'Done', 'dahuconcept-serial-numbers' ),
+					'skip'   => __( 'Skip', 'dahuconcept-serial-numbers' ),
+					'of'     => __( 'of', 'dahuconcept-serial-numbers' ),
+					'denied' => __( 'You are not allowed to view this page.', 'dahuconcept-serial-numbers' ),
 				),
 				'points'     => array(
 				array(
-					'title' => __( 'Each unit, by name', 'ubac-serials' ),
-					'text'  => __( 'A serial has a state, a place and a history you can read.', 'ubac-serials' ),
+					'title' => __( 'Each unit, by name', 'dahuconcept-serial-numbers' ),
+					'text'  => __( 'A serial has a state, a place and a history you can read.', 'dahuconcept-serial-numbers' ),
 				),
 				array(
-					'title' => __( 'Consignments', 'ubac-serials' ),
-					'text'  => __( 'What left together, what came back, and when.', 'ubac-serials' ),
+					'title' => __( 'Consignments', 'dahuconcept-serial-numbers' ),
+					'text'  => __( 'What left together, what came back, and when.', 'dahuconcept-serial-numbers' ),
 				),
 				array(
-					'title' => __( 'No silent moves', 'ubac-serials' ),
-					'text'  => __( 'A unit never changes hands without a line saying so.', 'ubac-serials' ),
+					'title' => __( 'No silent moves', 'dahuconcept-serial-numbers' ),
+					'text'  => __( 'A unit never changes hands without a line saying so.', 'dahuconcept-serial-numbers' ),
 				),
 				),
 
@@ -303,18 +303,18 @@ add_action(
 				'tour'        => array(
 					array(
 						'selector' => '#ubac-sn-search',
-						'title'    => __( 'Find any unit', 'ubac-serials' ),
-						'text'     => __( 'Type a serial number to open that unit.', 'ubac-serials' ),
+						'title'    => __( 'Find any unit', 'dahuconcept-serial-numbers' ),
+						'text'     => __( 'Type a serial number to open that unit.', 'dahuconcept-serial-numbers' ),
 					),
 					array(
 						'selector' => '#ubac-sn-status',
-						'title'    => __( 'Narrow by state', 'ubac-serials' ),
-						'text'     => __( 'Show only the units in one state, such as shipped or in repair.', 'ubac-serials' ),
+						'title'    => __( 'Narrow by state', 'dahuconcept-serial-numbers' ),
+						'text'     => __( 'Show only the units in one state, such as shipped or in repair.', 'dahuconcept-serial-numbers' ),
 					),
 					array(
 						'selector' => '.ubac-serials__table',
-						'title'    => __( 'One row per unit', 'ubac-serials' ),
-						'text'     => __( 'Open a row to read that unit’s full history.', 'ubac-serials' ),
+						'title'    => __( 'One row per unit', 'dahuconcept-serial-numbers' ),
+						'text'     => __( 'Open a row to read that unit’s full history.', 'dahuconcept-serial-numbers' ),
 					),
 				),
 			)

@@ -145,17 +145,17 @@ class Ubac_Serials_Product_Fix {
 	public static function refusal_label( $code ) {
 
 		$labels = array(
-			'destination_unknown'        => __( 'No such destination product.', 'ubac-serials' ),
-			'destination_variable'       => __( 'The destination is a variable product: pick one of its variations.', 'ubac-serials' ),
-			'destination_not_serialised' => __( 'The destination product is not marked as carrying serial numbers.', 'ubac-serials' ),
-			'no_reason'                  => __( 'A reason is required: it is what the history line will say.', 'ubac-serials' ),
-			'no_serial'                  => __( 'No serial number was given.', 'ubac-serials' ),
-			'unknown'                    => __( 'Unknown serial number.', 'ubac-serials' ),
-			'not_in_stock'               => __( 'Not in stock, and on no order line this could be squared against: its product is what an order or a case says it is.', 'ubac-serials' ),
-			'not_in_stock_elsewhere'     => __( 'Not in stock: the only product it can be re-filed under is the one its own order line names.', 'ubac-serials' ),
-			'attached'                   => __( 'Still carries an order.', 'ubac-serials' ),
-			'no_product'                 => __( 'Filed under no product, so there is nothing to correct.', 'ubac-serials' ),
-			'same_product'               => __( 'Already filed under that product.', 'ubac-serials' ),
+			'destination_unknown'        => __( 'No such destination product.', 'dahuconcept-serial-numbers' ),
+			'destination_variable'       => __( 'The destination is a variable product: pick one of its variations.', 'dahuconcept-serial-numbers' ),
+			'destination_not_serialised' => __( 'The destination product is not marked as carrying serial numbers.', 'dahuconcept-serial-numbers' ),
+			'no_reason'                  => __( 'A reason is required: it is what the history line will say.', 'dahuconcept-serial-numbers' ),
+			'no_serial'                  => __( 'No serial number was given.', 'dahuconcept-serial-numbers' ),
+			'unknown'                    => __( 'Unknown serial number.', 'dahuconcept-serial-numbers' ),
+			'not_in_stock'               => __( 'Not in stock, and on no order line this could be squared against: its product is what an order or a case says it is.', 'dahuconcept-serial-numbers' ),
+			'not_in_stock_elsewhere'     => __( 'Not in stock: the only product it can be re-filed under is the one its own order line names.', 'dahuconcept-serial-numbers' ),
+			'attached'                   => __( 'Still carries an order.', 'dahuconcept-serial-numbers' ),
+			'no_product'                 => __( 'Filed under no product, so there is nothing to correct.', 'dahuconcept-serial-numbers' ),
+			'same_product'               => __( 'Already filed under that product.', 'dahuconcept-serial-numbers' ),
 		);
 
 		return isset( $labels[ $code ] ) ? $labels[ $code ] : (string) $code;
@@ -263,7 +263,7 @@ class Ubac_Serials_Product_Fix {
 				'converge'  => $converge,
 				'note'      => $converge > 0 ? sprintf(
 					/* translators: 1: order number, 2: order line id. */
-					__( 'Squared with order #%1$d, line %2$d. The order line is not changed, and no stock count moves.', 'ubac-serials' ),
+					__( 'Squared with order #%1$d, line %2$d. The order line is not changed, and no stock count moves.', 'dahuconcept-serial-numbers' ),
 					(int) $row['order_id'],
 					$converge
 				) : '',
@@ -350,7 +350,7 @@ class Ubac_Serials_Product_Fix {
 
 		return $product ? $product->get_name() : sprintf(
 			/* translators: %d: product id. */
-			__( 'Product #%d (gone)', 'ubac-serials' ),
+			__( 'Product #%d (gone)', 'dahuconcept-serial-numbers' ),
 			$product_id
 		);
 	}
@@ -395,7 +395,7 @@ class Ubac_Serials_Product_Fix {
 		if ( ! self::enabled() ) {
 			return new WP_Error(
 				'ubac_serials_product_fix_off',
-				__( 'Product corrections are switched off. The Settings screen turns them on.', 'ubac-serials' )
+				__( 'Product corrections are switched off. The Settings screen turns them on.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -404,7 +404,7 @@ class Ubac_Serials_Product_Fix {
 		if ( (string) $fingerprint !== $plan['fingerprint'] ) {
 			return new WP_Error(
 				'ubac_serials_product_fix_moved',
-				__( 'Something moved since this summary was drawn up. Here it is again — read it and run it once more.', 'ubac-serials' ),
+				__( 'Something moved since this summary was drawn up. Here it is again — read it and run it once more.', 'dahuconcept-serial-numbers' ),
 				array( 'plan' => $plan )
 			);
 		}
@@ -412,7 +412,7 @@ class Ubac_Serials_Product_Fix {
 		if ( $plan['refusals'] ) {
 			return new WP_Error(
 				'ubac_serials_product_fix_refused',
-				__( 'Nothing was changed: the list has at least one unit that cannot be re-filed.', 'ubac-serials' ),
+				__( 'Nothing was changed: the list has at least one unit that cannot be re-filed.', 'dahuconcept-serial-numbers' ),
 				array( 'plan' => $plan )
 			);
 		}
@@ -449,7 +449,7 @@ class Ubac_Serials_Product_Fix {
 					'ubac_serials_product_fix_failed',
 					sprintf(
 						/* translators: 1: serial number, 2: error message. */
-						__( 'Nothing was changed. Serial number %1$s could not be re-filed: %2$s', 'ubac-serials' ),
+						__( 'Nothing was changed. Serial number %1$s could not be re-filed: %2$s', 'dahuconcept-serial-numbers' ),
 						$row['serial'],
 						$done->get_error_message()
 					)
@@ -526,14 +526,14 @@ class Ubac_Serials_Product_Fix {
 		if ( ! $run ) {
 			return new WP_Error(
 				'ubac_serials_product_fix_no_run',
-				__( 'No such run — it may have aged out of the list.', 'ubac-serials' )
+				__( 'No such run — it may have aged out of the list.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
 		if ( ! empty( $run['undone_at'] ) ) {
 			return new WP_Error(
 				'ubac_serials_product_fix_undone',
-				__( 'This run has already been put back.', 'ubac-serials' )
+				__( 'This run has already been put back.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -602,7 +602,7 @@ class Ubac_Serials_Product_Fix {
 					'event'  => self::EVENT_UNDO,
 					'reason' => sprintf(
 						/* translators: %s: run id. */
-						__( 'Correction %s put back', 'ubac-serials' ),
+						__( 'Correction %s put back', 'dahuconcept-serial-numbers' ),
 						$run_id
 					),
 					'run_id' => $run_id,

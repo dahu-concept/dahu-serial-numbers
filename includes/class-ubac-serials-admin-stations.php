@@ -31,12 +31,12 @@ class Ubac_Serials_Admin_Stations {
 	public static function render() {
 
 		if ( ! current_user_can( self::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage workshop posts.', 'ubac-serials' ) );
+			wp_die( esc_html__( 'You do not have permission to manage workshop posts.', 'dahuconcept-serial-numbers' ) );
 		}
 
 		Ubac_Serials_Admin::open(
-			__( 'Workshop posts', 'ubac-serials' ),
-			__( 'Ubac Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing.', 'ubac-serials' )
+			__( 'Workshop posts', 'dahuconcept-serial-numbers' ),
+			__( 'DahuConcept Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing.', 'dahuconcept-serial-numbers' )
 		);
 
 		if ( ! Ubac_Serials_Admin::warn_if_no_tables() ) {
@@ -115,7 +115,7 @@ class Ubac_Serials_Admin_Stations {
 			'success',
 			sprintf(
 				/* translators: %s: workshop post login. */
-				__( 'Workshop post “%s” created.', 'ubac-serials' ),
+				__( 'Workshop post “%s” created.', 'dahuconcept-serial-numbers' ),
 				$login
 			)
 		);
@@ -135,7 +135,7 @@ class Ubac_Serials_Admin_Stations {
 		$post = Ubac_Serials_Stations::get( $id );
 
 		if ( ! $post ) {
-			Ubac_Serials_Admin::notice( 'error', __( 'Unknown workshop post.', 'ubac-serials' ) );
+			Ubac_Serials_Admin::notice( 'error', __( 'Unknown workshop post.', 'dahuconcept-serial-numbers' ) );
 
 			return;
 		}
@@ -152,11 +152,11 @@ class Ubac_Serials_Admin_Stations {
 		Ubac_Serials_Admin::notice(
 			'success',
 			$wanted
-				? __( 'Workshop post switched back on.', 'ubac-serials' )
+				? __( 'Workshop post switched back on.', 'dahuconcept-serial-numbers' )
 				// Said explicitly, because it is the part somebody needs to
 				// know: switching a post off does not wait for its session to
 				// run out, it ends it now.
-				: __( 'Workshop post switched off, and signed out everywhere it was signed in.', 'ubac-serials' )
+				: __( 'Workshop post switched off, and signed out everywhere it was signed in.', 'dahuconcept-serial-numbers' )
 		);
 	}
 
@@ -193,7 +193,7 @@ class Ubac_Serials_Admin_Stations {
 
 		Ubac_Serials_Admin::notice(
 			'success',
-			__( 'Password replaced, and the post signed out everywhere it was signed in.', 'ubac-serials' )
+			__( 'Password replaced, and the post signed out everywhere it was signed in.', 'dahuconcept-serial-numbers' )
 		);
 	}
 
@@ -210,7 +210,7 @@ class Ubac_Serials_Admin_Stations {
 		$suggestion = wp_generate_password( 16, false, false );
 
 		?>
-		<h2><?php esc_html_e( 'New post', 'ubac-serials' ); ?></h2>
+		<h2><?php esc_html_e( 'New post', 'dahuconcept-serial-numbers' ); ?></h2>
 
 		<form method="post" class="ubac-serials__panel">
 			<?php wp_nonce_field( self::NONCE ); ?>
@@ -218,14 +218,14 @@ class Ubac_Serials_Admin_Stations {
 
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="ubac-sn-login"><?php esc_html_e( 'Login', 'ubac-serials' ); ?></label></th>
+					<th scope="row"><label for="ubac-sn-login"><?php esc_html_e( 'Login', 'dahuconcept-serial-numbers' ); ?></label></th>
 					<td>
 						<input type="text" id="ubac-sn-login" name="login" class="regular-text" autocomplete="off" required />
-						<p class="ubac-serials__hint"><?php esc_html_e( 'Something the bench can read off a card: bench-1, packing-left.', 'ubac-serials' ); ?></p>
+						<p class="ubac-serials__hint"><?php esc_html_e( 'Something the bench can read off a card: bench-1, packing-left.', 'dahuconcept-serial-numbers' ); ?></p>
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="ubac-sn-password"><?php esc_html_e( 'Password', 'ubac-serials' ); ?></label></th>
+					<th scope="row"><label for="ubac-sn-password"><?php esc_html_e( 'Password', 'dahuconcept-serial-numbers' ); ?></label></th>
 					<td>
 						<input
 							type="text"
@@ -241,7 +241,7 @@ class Ubac_Serials_Admin_Stations {
 							<?php
 							printf(
 								/* translators: %d: minimum number of characters. */
-								esc_html__( 'Generated for you, and shown rather than hidden so you can write it down once. At least %d characters.', 'ubac-serials' ),
+								esc_html__( 'Generated for you, and shown rather than hidden so you can write it down once. At least %d characters.', 'dahuconcept-serial-numbers' ),
 								(int) Ubac_Serials_Stations::MIN_PASSWORD_LENGTH
 							);
 							?>
@@ -249,15 +249,15 @@ class Ubac_Serials_Admin_Stations {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="ubac-sn-label"><?php esc_html_e( 'Name', 'ubac-serials' ); ?></label></th>
+					<th scope="row"><label for="ubac-sn-label"><?php esc_html_e( 'Name', 'dahuconcept-serial-numbers' ); ?></label></th>
 					<td>
-						<input type="text" id="ubac-sn-label" name="label" class="regular-text" placeholder="<?php esc_attr_e( 'Bench 1', 'ubac-serials' ); ?>" />
-						<p class="ubac-serials__hint"><?php esc_html_e( 'Shown on the packing screen and in the history. Defaults to the login.', 'ubac-serials' ); ?></p>
+						<input type="text" id="ubac-sn-label" name="label" class="regular-text" placeholder="<?php esc_attr_e( 'Bench 1', 'dahuconcept-serial-numbers' ); ?>" />
+						<p class="ubac-serials__hint"><?php esc_html_e( 'Shown on the packing screen and in the history. Defaults to the login.', 'dahuconcept-serial-numbers' ); ?></p>
 					</td>
 				</tr>
 			</table>
 
-			<?php submit_button( __( 'Create post', 'ubac-serials' ) ); ?>
+			<?php submit_button( __( 'Create post', 'dahuconcept-serial-numbers' ) ); ?>
 		</form>
 		<?php
 	}
@@ -272,22 +272,22 @@ class Ubac_Serials_Admin_Stations {
 		$posts = Ubac_Serials_Stations::all();
 
 		?>
-		<h2><?php esc_html_e( 'Existing posts', 'ubac-serials' ); ?></h2>
+		<h2><?php esc_html_e( 'Existing posts', 'dahuconcept-serial-numbers' ); ?></h2>
 
 		<table class="widefat striped ubac-serials__table">
 			<thead>
 				<tr>
-					<th scope="col"><?php esc_html_e( 'Login', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Name', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'State', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Created', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Last sign-in', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Login', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Name', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'State', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Created', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Last sign-in', 'dahuconcept-serial-numbers' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 			<?php if ( ! $posts ) : ?>
 				<tr>
-					<td colspan="5"><?php esc_html_e( 'No workshop post yet. The packing screen needs one to sign in with.', 'ubac-serials' ); ?></td>
+					<td colspan="5"><?php esc_html_e( 'No workshop post yet. The packing screen needs one to sign in with.', 'dahuconcept-serial-numbers' ); ?></td>
 				</tr>
 			<?php else : ?>
 				<?php foreach ( $posts as $post ) : ?>
@@ -309,7 +309,7 @@ class Ubac_Serials_Admin_Stations {
 										<input type="hidden" name="ubac_action" value="toggle" />
 										<input type="hidden" name="station_id" value="<?php echo esc_attr( (string) (int) $post['id'] ); ?>" />
 										<button type="submit" class="button-link">
-											<?php echo $active ? esc_html__( 'Switch off', 'ubac-serials' ) : esc_html__( 'Switch back on', 'ubac-serials' ); ?>
+											<?php echo $active ? esc_html__( 'Switch off', 'dahuconcept-serial-numbers' ) : esc_html__( 'Switch back on', 'dahuconcept-serial-numbers' ); ?>
 										</button>
 									</form>
 								</span>
@@ -319,18 +319,18 @@ class Ubac_Serials_Admin_Stations {
 										<input type="hidden" name="ubac_action" value="password" />
 										<input type="hidden" name="station_id" value="<?php echo esc_attr( (string) (int) $post['id'] ); ?>" />
 										<label class="screen-reader-text" for="ubac-sn-pass-<?php echo esc_attr( (string) (int) $post['id'] ); ?>">
-											<?php esc_html_e( 'New password', 'ubac-serials' ); ?>
+											<?php esc_html_e( 'New password', 'dahuconcept-serial-numbers' ); ?>
 										</label>
 										<input
 											type="text"
 											id="ubac-sn-pass-<?php echo esc_attr( (string) (int) $post['id'] ); ?>"
 											name="password"
 											class="ubac-serials__inline-field"
-											placeholder="<?php esc_attr_e( 'New password', 'ubac-serials' ); ?>"
+											placeholder="<?php esc_attr_e( 'New password', 'dahuconcept-serial-numbers' ); ?>"
 											autocomplete="off"
 											minlength="<?php echo esc_attr( (string) Ubac_Serials_Stations::MIN_PASSWORD_LENGTH ); ?>"
 										/>
-										<button type="submit" class="button-link"><?php esc_html_e( 'Replace', 'ubac-serials' ); ?></button>
+										<button type="submit" class="button-link"><?php esc_html_e( 'Replace', 'dahuconcept-serial-numbers' ); ?></button>
 									</form>
 								</span>
 							</div>
@@ -338,9 +338,9 @@ class Ubac_Serials_Admin_Stations {
 						<td><?php echo esc_html( $post['label'] ); ?></td>
 						<td>
 							<?php if ( $active ) : ?>
-								<span class="ubac-serials__state ubac-serials__state--on"><?php esc_html_e( 'On', 'ubac-serials' ); ?></span>
+								<span class="ubac-serials__state ubac-serials__state--on"><?php esc_html_e( 'On', 'dahuconcept-serial-numbers' ); ?></span>
 							<?php else : ?>
-								<span class="ubac-serials__state ubac-serials__state--off"><?php esc_html_e( 'Off', 'ubac-serials' ); ?></span>
+								<span class="ubac-serials__state ubac-serials__state--off"><?php esc_html_e( 'Off', 'dahuconcept-serial-numbers' ); ?></span>
 							<?php endif; ?>
 						</td>
 						<td class="ubac-serials__num"><?php echo esc_html( Ubac_Serials_Admin::local( $post['created_at'] ) ); ?></td>
@@ -352,7 +352,7 @@ class Ubac_Serials_Admin_Stations {
 		</table>
 
 		<p class="ubac-serials__hint">
-			<?php esc_html_e( 'A post is never deleted. The history points at post ids, and a line that answers “who packed this parcel” with a missing id answers nothing — so switching off refuses every future sign-in while leaving the past readable.', 'ubac-serials' ); ?>
+			<?php esc_html_e( 'A post is never deleted. The history points at post ids, and a line that answers “who packed this parcel” with a missing id answers nothing — so switching off refuses every future sign-in while leaving the past readable.', 'dahuconcept-serial-numbers' ); ?>
 		</p>
 		<?php
 	}

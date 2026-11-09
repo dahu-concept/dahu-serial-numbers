@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: ubac-serials\n"
+"Project-Id-Version: dahuconcept-serial-numbers\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"PO-Revision-Date: 2026-10-23 15:27+0000\n"
+"PO-Revision-Date: 2026-11-09 07:30+0000\n"
 "X-Generator: ubac i18n-build\n"
 
-#: includes/class-ubac-serials-workshop.php:262
+#: includes/class-ubac-serials-workshop.php:268
 msgid "%1$d of %2$d"
 msgstr "%1$d sur %2$d"
 
@@ -36,7 +36,7 @@ msgid "%1$s is already in open consignment %2$s."
 msgstr "%1$s est déjà dans l’envoi ouvert %2$s."
 
 #. translators: 1: date, 2: number of units put back, 3: number skipped. */
-#: includes/class-ubac-serials-admin-stock.php:764
+#: includes/class-ubac-serials-admin-stock.php:778
 msgid "%1$s — back: %2$d, left alone: %3$d"
 msgstr "%1$s — annulées : %2$d, laissées telles quelles : %3$d"
 
@@ -52,13 +52,13 @@ msgid_plural "%d products could not be written. The history below names them."
 msgstr[0] "%d produit n’a pas pu être écrit. L’historique ci-dessous le nomme."
 msgstr[1] "%d produits n’ont pas pu être écrits. L’historique ci-dessous les nomme."
 
-#: includes/class-ubac-serials-admin-stock.php:433
+#: includes/class-ubac-serials-admin-stock.php:447
 msgid "%d product would change."
 msgid_plural "%d products would change."
 msgstr[0] "%d produit changerait."
 msgstr[1] "%d produits changeraient."
 
-#: includes/class-ubac-serials-workshop.php:250
+#: includes/class-ubac-serials-workshop.php:253
 msgid "%d to scan"
 msgstr "%d à scanner"
 
@@ -70,7 +70,7 @@ msgstr[0] "%d unité annulée."
 msgstr[1] "%d unités annulées."
 
 #. translators: %d: number of units. */
-#: includes/class-ubac-serials-admin-stock.php:386
+#: includes/class-ubac-serials-admin-stock.php:400
 msgid "%d unit says in stock while still carrying an order, so it is not counted."
 msgid_plural "%d units say in stock while still carrying an order, so they are not counted."
 msgstr[0] "%d unité se dit en stock tout en portant encore une commande, elle n’est donc pas comptée."
@@ -99,7 +99,7 @@ msgstr "Un produit de destination est obligatoire."
 msgid "A login is required."
 msgstr "Un identifiant est obligatoire."
 
-#: includes/class-ubac-serials-admin-stations.php:326
+#: includes/class-ubac-serials-admin-stations.php:355
 msgid "A post is never deleted. The history points at post ids, and a line that answers “who packed this parcel” with a missing id answers nothing — so switching off refuses every future sign-in while leaving the past readable."
 msgstr "Un poste n’est jamais supprimé. L’historique pointe sur des identifiants de poste, et une ligne qui répond « qui a emballé ce colis » par un identifiant disparu ne répond rien — désactiver refuse donc toute connexion future en laissant le passé lisible."
 
@@ -107,15 +107,15 @@ msgstr "Un poste n’est jamais supprimé. L’historique pointe sur des identif
 msgid "A reason is required: it is what the history line will say."
 msgstr "Un motif est obligatoire : c’est ce que dira la ligne d’historique."
 
-#: includes/class-ubac-serials-admin-stock.php:737
+#: includes/class-ubac-serials-admin-stock.php:751
 msgid "A run can be put back as long as nothing else has happened to the units since. Those that have moved on are named and left alone — undoing them would undo a later decision."
 msgstr "Un lot peut être annulé tant qu’il ne s’est rien passé d’autre sur les unités depuis. Celles qui ont bougé sont nommées et laissées telles quelles — les annuler annulerait une décision plus récente."
 
-#: ubac-serials.php:284
+#: dahuconcept-serial-numbers.php:279
 msgid "A serial has a state, a place and a history you can read."
 msgstr "Un numéro de série a un état, un lieu et un historique lisibles."
 
-#: includes/class-ubac-serials-manager.php:1165
+#: includes/class-ubac-serials-manager.php:1176
 msgid "A serial number and an order are both required."
 msgstr "Un numéro de série et une commande sont tous deux obligatoires."
 
@@ -124,7 +124,7 @@ msgstr "Un numéro de série et une commande sont tous deux obligatoires."
 msgid "A unit cannot go from “%1$s” to “%2$s”. The list on this screen only offers the moves that are allowed, so this one did not come from here."
 msgstr "Une unité ne peut pas passer de « %1$s » à « %2$s ». Cet écran ne propose que les transitions autorisées : celle-ci ne vient donc pas d’ici."
 
-#: ubac-serials.php:292
+#: dahuconcept-serial-numbers.php:287
 msgid "A unit never changes hands without a line saying so."
 msgstr "Une unité ne change jamais de mains sans qu’une ligne le dise."
 
@@ -132,20 +132,20 @@ msgstr "Une unité ne change jamais de mains sans qu’une ligne le dise."
 msgid "Actions"
 msgstr "Actions"
 
-#: includes/class-ubac-serials-admin-stock.php:676
+#: includes/class-ubac-serials-admin-stock.php:690
 msgid "After"
 msgstr "Après"
 
-#: includes/class-ubac-serials-admin.php:96
+#: includes/class-ubac-serials-admin.php:102
 msgid "All serial numbers"
 msgstr "Tous les numéros de série"
 
-#: includes/class-ubac-serials-admin-settings.php:157
+#: includes/class-ubac-serials-admin-settings.php:164
 msgid "Allow units in stock to be re-filed under another product"
 msgstr "Autoriser le reclassement d’unités en stock sous un autre produit"
 
 #. translators: %d: order number. */
-#: includes/class-ubac-serials-manager.php:1187
+#: includes/class-ubac-serials-manager.php:1198
 msgid "Already attached to order #%d — left as it is."
 msgstr "Déjà rattaché à la commande n° %d — laissé en l’état."
 
@@ -165,15 +165,15 @@ msgstr "Tous les statuts"
 msgid "Assigned to an order"
 msgstr "Affecté à une commande"
 
-#: includes/class-ubac-serials-workshop.php:246
+#: includes/class-ubac-serials-workshop.php:248
 msgid "Back to the list"
 msgstr "Retour à la liste"
 
-#: includes/class-ubac-serials-admin-stock.php:467 includes/class-ubac-serials-admin-stock.php:675
+#: includes/class-ubac-serials-admin-stock.php:481 includes/class-ubac-serials-admin-stock.php:689
 msgid "Before"
 msgstr "Avant"
 
-#: includes/class-ubac-serials-admin-stations.php:225
+#: includes/class-ubac-serials-admin-stations.php:254
 msgid "Bench 1"
 msgstr "Atelier 1"
 
@@ -193,7 +193,7 @@ msgstr "Annulé"
 msgid "Cancelled by hand from the consignments screen."
 msgstr "Annulé à la main depuis l’écran des envois."
 
-#: includes/class-ubac-serials-admin-consignments.php:260 includes/class-ubac-serials-workshop.php:266
+#: includes/class-ubac-serials-admin-consignments.php:260 includes/class-ubac-serials-workshop.php:272
 msgid "Carrier"
 msgstr "Transporteur"
 
@@ -202,7 +202,7 @@ msgstr "Transporteur"
 msgid "Carrier: %s"
 msgstr "Transporteur : %s"
 
-#: includes/class-ubac-serials-workshop.php:259
+#: includes/class-ubac-serials-workshop.php:263
 msgid "Choose which line you are packing."
 msgstr "Choisissez la ligne que vous préparez."
 
@@ -240,7 +240,7 @@ msgstr "L’envoi %s a été annulé et ne peut pas être fermé."
 msgid "Consignment: %s"
 msgstr "Envoi : %s"
 
-#: ubac-serials.php:287 includes/class-ubac-serials-admin-consignments.php:62 includes/class-ubac-serials-admin.php:104 includes/class-ubac-serials-admin.php:105
+#: dahuconcept-serial-numbers.php:282 includes/class-ubac-serials-admin-consignments.php:62 includes/class-ubac-serials-admin.php:110 includes/class-ubac-serials-admin.php:111
 msgid "Consignments"
 msgstr "Envois"
 
@@ -249,11 +249,11 @@ msgstr "Envois"
 msgid "Correction %s put back"
 msgstr "Correction %s annulée"
 
-#: includes/class-ubac-serials-admin-stock.php:516
+#: includes/class-ubac-serials-admin-stock.php:530
 msgid "Corrections are switched off, so this form will show what would happen and write nothing. The Settings screen turns them on."
 msgstr "Les corrections sont désactivées, ce formulaire montrera donc ce qui se passerait sans rien écrire. L’écran Réglages les active."
 
-#: includes/class-ubac-serials-admin-stock.php:733
+#: includes/class-ubac-serials-admin-stock.php:747
 msgid "Corrections made"
 msgstr "Corrections effectuées"
 
@@ -262,27 +262,27 @@ msgstr "Corrections effectuées"
 msgid "Could not be recorded in the consignment and did NOT ship: %s. They are still assigned to this order — put them in the next parcel."
 msgstr "N’ont pas pu être enregistrées dans l’envoi et ne sont PAS parties : %s. Elles restent affectées à cette commande — mettez-les dans le prochain colis."
 
-#: includes/class-ubac-serials-admin-stations.php:231
+#: includes/class-ubac-serials-admin-stations.php:260
 msgid "Create post"
 msgstr "Créer le poste"
 
-#: includes/class-ubac-serials-admin-stations.php:254
+#: includes/class-ubac-serials-admin-stations.php:283
 msgid "Created"
 msgstr "Créé le"
 
 #: includes/class-ubac-serials-admin-settings.php:38
-msgid "Ubac Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find."
-msgstr "Ubac Serial Numbers a trois réglages. Tout le reste est un filtre, pour qu’une boutique décide dans son propre code plutôt que par un écran qu’il faut trouver."
+msgid "DahuConcept Serial Numbers has three settings. Everything else about it is a filter, so that a shop can decide in its own code rather than through a screen somebody has to find."
+msgstr "DahuConcept Serial Numbers a trois réglages. Tout le reste est un filtre, pour qu’une boutique décide dans son propre code plutôt que par un écran qu’il faut trouver."
 
 #: includes/class-ubac-serials-admin-serials.php:36
-msgid "Ubac Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been."
-msgstr "Ubac Serial Numbers tient une ligne par unité physique que vous expédiez, avec l’historique de partout où elle est passée."
+msgid "DahuConcept Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been."
+msgstr "DahuConcept Serial Numbers tient une ligne par unité physique que vous expédiez, avec l’historique de partout où elle est passée."
 
 #: includes/class-ubac-serials-admin-stations.php:39
-msgid "Ubac Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing."
-msgstr "Ubac Serial Numbers connecte l’écran d’atelier avec un identifiant par poste, pas un par personne : un poste est une tablette sur un établi, employée par qui emballe."
+msgid "DahuConcept Serial Numbers signs the packing screen in with one login per bench, not one per person: a post is a tablet on a workbench, used by whoever is packing."
+msgstr "DahuConcept Serial Numbers connecte l’écran d’atelier avec un identifiant par poste, pas un par personne : un poste est une tablette sur un établi, employée par qui emballe."
 
-#: includes/class-ubac-serials-admin-settings.php:168
+#: includes/class-ubac-serials-admin-settings.php:175
 msgid "Delete the serial numbers and their history when the plugin is deleted"
 msgstr "Supprimer les numéros de série et leur historique à la suppression de l’extension"
 
@@ -313,11 +313,11 @@ msgstr "Détail"
 msgid "Direction"
 msgstr "Direction"
 
-#: includes/class-ubac-serials-workshop.php:284
+#: includes/class-ubac-serials-workshop.php:290
 msgid "Dismiss"
 msgstr "Fermer"
 
-#: ubac-serials.php:276
+#: dahuconcept-serial-numbers.php:271
 msgid "Done"
 msgstr "Terminé"
 
@@ -325,11 +325,11 @@ msgstr "Terminé"
 msgid "Each unit of this product carries its own serial number"
 msgstr "Chaque unité de ce produit porte son propre numéro de série"
 
-#: includes/class-ubac-serials-product-field.php:111
+#: includes/class-ubac-serials-product-field.php:145
 msgid "Each unit of this variation carries its own serial number"
 msgstr "Chaque unité de cette variation porte son propre numéro de série"
 
-#: ubac-serials.php:283
+#: dahuconcept-serial-numbers.php:278
 msgid "Each unit, by name"
 msgstr "Chaque unité, nommément"
 
@@ -345,19 +345,19 @@ msgstr "Chaque transition est inscrite dans l’historique ci-dessous, avec son 
 msgid "Every set of units that left or came back together. Search by consignment reference, tracking number or serial number."
 msgstr "Chaque lot d’unités parti ou revenu ensemble. Recherchez par référence d’envoi, numéro de suivi ou numéro de série."
 
-#: includes/class-ubac-serials-workshop.php:264
+#: includes/class-ubac-serials-workshop.php:270
 msgid "Every unit on this order has been scanned."
 msgstr "Toutes les unités de cette commande ont été scannées."
 
-#: includes/class-ubac-serials-admin-stations.php:246
+#: includes/class-ubac-serials-admin-stations.php:275
 msgid "Existing posts"
 msgstr "Postes existants"
 
-#: includes/class-ubac-serials-admin-stock.php:531
+#: includes/class-ubac-serials-admin-stock.php:545
 msgid "File them under"
 msgstr "Les classer sous"
 
-#: includes/class-ubac-serials-admin-stock.php:647 includes/class-ubac-serials-admin-stock.php:743
+#: includes/class-ubac-serials-admin-stock.php:661 includes/class-ubac-serials-admin-stock.php:757
 msgid "Filed under"
 msgstr "Classé sous"
 
@@ -369,24 +369,24 @@ msgstr "Classé sous aucun produit, il n’y a donc rien à corriger."
 msgid "Filter"
 msgstr "Filtrer"
 
-#: ubac-serials.php:311
+#: dahuconcept-serial-numbers.php:306
 msgid "Find any unit"
 msgstr "Retrouvez n'importe quelle unité"
 
-#: ubac-serials.php:257
+#: dahuconcept-serial-numbers.php:252
 msgid "Follows every unit you hold, from goods-in to the customer."
 msgstr "Suit chaque unité que vous détenez, de la réception au client."
 
-#: includes/class-ubac-serials-admin-stock.php:510
+#: includes/class-ubac-serials-admin-stock.php:524
 msgid "For a box that went on the shelf under the wrong reference. Units in stock and on no order can be re-filed freely. A unit that has left stock can only be squared with its own order line, when the record and the line disagree about which product went out: the line is the authority, it is never changed, and no stock count moves."
 msgstr "Pour un carton rangé sous la mauvaise référence. Les unités en stock et sans commande se reclassent librement. Une unité sortie du stock ne peut être que recalée sur sa propre ligne de commande, quand la fiche et la ligne ne s'accordent pas sur le produit parti : la ligne fait foi, elle n'est jamais modifiée, et aucun compte de stock ne bouge."
 
-#: includes/class-ubac-serials-admin-settings.php:161
+#: includes/class-ubac-serials-admin-settings.php:168
 msgid "For the box that went on the shelf under the wrong reference. Only units in stock and on no order can be re-filed, a reason is required, a run is all-or-nothing and can be put back. The dry run works with this off, so you can read what would happen before deciding."
 msgstr "Pour le carton parti sur l’étagère sous la mauvaise référence. Seules les unités en stock et sur aucune commande peuvent être reclassées, un motif est obligatoire, un lot passe en entier ou pas du tout et peut être annulé. La simulation fonctionne sans cocher, vous pouvez donc lire ce qui se passerait avant de décider."
 
 #. translators: %d: minimum number of characters. */
-#: includes/class-ubac-serials-admin-stations.php:215
+#: includes/class-ubac-serials-admin-stations.php:244
 msgid "Generated for you, and shown rather than hidden so you can write it down once. At least %d characters."
 msgstr "Généré pour vous, et affiché plutôt que masqué pour que vous puissiez le noter une fois. %d caractères au minimum."
 
@@ -406,11 +406,11 @@ msgstr "Retenu, non compté en stock"
 msgid "History"
 msgstr "Historique"
 
-#: ubac-serials.php:220
+#: dahuconcept-serial-numbers.php:215
 msgid "Hugo Vial-Jaime — Dahu-Concept"
 msgstr "Hugo Vial-Jaime — Dahu-Concept"
 
-#: includes/class-ubac-serials-admin-stock.php:425
+#: includes/class-ubac-serials-admin-stock.php:439
 msgid "I have read the table above and want these numbers written to WooCommerce"
 msgstr "J’ai lu le tableau ci-dessus et je veux que ces nombres soient écrits dans WooCommerce"
 
@@ -442,7 +442,7 @@ msgstr "Dernier pointage"
 msgid "Last movement"
 msgstr "Dernier mouvement"
 
-#: includes/class-ubac-serials-admin-stations.php:255
+#: includes/class-ubac-serials-admin-stations.php:284
 msgid "Last sign-in"
 msgstr "Dernière connexion"
 
@@ -451,11 +451,11 @@ msgid "Leave it where it is"
 msgstr "La laisser où elle est"
 
 #. translators: %s: the shop's dimension unit, e.g. cm. */
-#: includes/class-ubac-serials-workshop.php:276
+#: includes/class-ubac-serials-workshop.php:282
 msgid "Length × width × height (%s)"
 msgstr "Longueur × largeur × hauteur (%s)"
 
-#: includes/class-ubac-serials-admin-settings.php:142
+#: includes/class-ubac-serials-admin-settings.php:149
 msgid "Let the units on the shelf set the WooCommerce stock of serialised products"
 msgstr "Laisser les unités de l’étagère fixer le stock WooCommerce des produits sérialisés"
 
@@ -463,7 +463,7 @@ msgstr "Laisser les unités de l’étagère fixer le stock WooCommerce des prod
 msgid "Line"
 msgstr "Ligne"
 
-#: includes/class-ubac-serials-admin-stations.php:192 includes/class-ubac-serials-admin-stations.php:251 includes/class-ubac-serials-workshop.php:241
+#: includes/class-ubac-serials-admin-stations.php:221 includes/class-ubac-serials-admin-stations.php:280 includes/class-ubac-serials-workshop.php:243
 msgid "Login"
 msgstr "Identifiant"
 
@@ -471,15 +471,19 @@ msgstr "Identifiant"
 msgid "Made"
 msgstr "Fabriqué"
 
-#: includes/class-ubac-serials-admin-settings.php:125
+#: includes/class-ubac-serials-admin-settings.php:132
 msgid "Make the packing screen reachable"
 msgstr "Rendre l’écran d’atelier accessible"
 
-#: includes/class-ubac-serials-workshop.php:265
+#: includes/class-ubac-serials-workshop.php:271
 msgid "Mark as shipped"
 msgstr "Marquer comme expédiée"
 
-#: includes/class-ubac-serials-workshop.php:279
+#: includes/class-ubac-serials-admin-stock.php:381
+msgid "Marked as serialised, but no unit has ever been recorded against it. The zero is the absence of a count, not a count of zero — approving this takes the product off sale."
+msgstr "Marqué comme suivi à l’unité, mais aucune unité n’y a jamais été enregistrée. Le zéro est l’absence de comptage, non un comptage à zéro — valider retirerait le produit de la vente."
+
+#: includes/class-ubac-serials-workshop.php:285
 msgid "Marking as shipped…"
 msgstr "Expédition en cours…"
 
@@ -504,19 +508,19 @@ msgstr "Mouvement"
 msgid "Moving from “%1$s” to “%2$s” is not allowed."
 msgstr "Le passage de « %1$s » à « %2$s » n’est pas permis."
 
-#: includes/class-ubac-serials-admin-stations.php:223 includes/class-ubac-serials-admin-stations.php:252
+#: includes/class-ubac-serials-admin-stations.php:252 includes/class-ubac-serials-admin-stations.php:281
 msgid "Name"
 msgstr "Nom"
 
-#: ubac-serials.php:316
+#: dahuconcept-serial-numbers.php:311
 msgid "Narrow by state"
 msgstr "Filtrez par état"
 
-#: includes/class-ubac-serials-admin-stations.php:293 includes/class-ubac-serials-admin-stations.php:300
+#: includes/class-ubac-serials-admin-stations.php:322 includes/class-ubac-serials-admin-stations.php:329
 msgid "New password"
 msgstr "Nouveau mot de passe"
 
-#: includes/class-ubac-serials-admin-stations.php:184
+#: includes/class-ubac-serials-admin-stations.php:213
 msgid "New post"
 msgstr "Nouveau poste"
 
@@ -524,7 +528,7 @@ msgstr "Nouveau poste"
 msgid "New status"
 msgstr "Nouvel état"
 
-#: ubac-serials.php:275
+#: dahuconcept-serial-numbers.php:270
 msgid "Next"
 msgstr "Suivant"
 
@@ -540,15 +544,15 @@ msgstr "Aucun envoi pour l’instant. Un envoi est enregistré chaque fois qu’
 msgid "No history line, which should not happen: filing a unit writes one."
 msgstr "Aucune ligne d’historique, ce qui ne devrait pas arriver : enregistrer une unité en écrit une."
 
-#: includes/class-ubac-serials-workshop.php:249
+#: includes/class-ubac-serials-workshop.php:251
 msgid "No order matches that."
 msgstr "Aucune commande ne correspond."
 
-#: includes/class-ubac-serials-admin-settings.php:78
+#: includes/class-ubac-serials-admin-settings.php:85
 msgid "No order status was selected, so the queue has gone back to watching orders being processed. A queue that watches nothing shows an empty screen with no explanation."
 msgstr "Aucun statut n’a été sélectionné : la file est revenue aux commandes en traitement. Une file qui ne surveille rien affiche un écran vide sans explication."
 
-#: includes/class-ubac-serials-workshop.php:263
+#: includes/class-ubac-serials-workshop.php:269
 msgid "No serial number needed"
 msgstr "Pas de numéro de série"
 
@@ -564,7 +568,7 @@ msgstr "Aucun numéro de série n’a été donné."
 msgid "No serialised product holds a unit yet, so there is nothing to compare."
 msgstr "Aucun produit sérialisé ne porte encore d’unité, il n’y a donc rien à comparer."
 
-#: ubac-serials.php:291
+#: dahuconcept-serial-numbers.php:286
 msgid "No silent moves"
 msgstr "Aucun mouvement muet"
 
@@ -576,7 +580,7 @@ msgstr "Cet envoi n’existe pas."
 msgid "No such destination product."
 msgstr "Ce produit de destination n’existe pas."
 
-#: includes/class-ubac-serials-stock.php:801
+#: includes/class-ubac-serials-stock.php:1347
 msgid "No such product."
 msgstr "Ce produit n’existe pas."
 
@@ -597,7 +601,7 @@ msgstr "Aucune unité enregistrée sous %s."
 msgid "No unit was named, so there is nothing to put in the parcel."
 msgstr "Aucune unité n’est nommée : il n’y a rien à mettre dans le colis."
 
-#: includes/class-ubac-serials-admin-stations.php:261
+#: includes/class-ubac-serials-admin-stations.php:290
 msgid "No workshop post yet. The packing screen needs one to sign in with."
 msgstr "Aucun poste atelier pour l’instant. L’écran d’atelier en a besoin d’un pour se connecter."
 
@@ -619,11 +623,11 @@ msgstr "Pas en stock, et rattaché à aucune ligne de commande sur laquelle le r
 msgid "Not in stock: the only product it can be re-filed under is the one its own order line names."
 msgstr "Pas en stock : le seul produit sous lequel il peut être reclassé est celui que nomme sa propre ligne de commande."
 
-#: includes/class-ubac-serials-stock.php:805
+#: includes/class-ubac-serials-stock.php:1351
 msgid "Not marked as carrying serial numbers."
 msgstr "Non marqué comme portant des numéros de série."
 
-#: includes/class-ubac-serials-stock.php:802
+#: includes/class-ubac-serials-stock.php:1348
 msgid "Not on sale: the product, or its parent, is in the bin or unpublished."
 msgstr "Hors vente : le produit, ou son parent, est à la corbeille ou non publié."
 
@@ -631,11 +635,11 @@ msgstr "Hors vente : le produit, ou son parent, est à la corbeille ou non publi
 msgid "Not one unit could be recorded in the parcel, so nothing was shipped. Nothing has moved; try again."
 msgstr "Aucune unité n’a pu être enregistrée dans le colis, rien n’est donc parti. Rien n’a bougé ; réessayez."
 
-#: includes/class-ubac-serials-admin-stock.php:360 includes/class-ubac-serials-admin-stock.php:650
+#: includes/class-ubac-serials-admin-stock.php:360 includes/class-ubac-serials-admin-stock.php:664
 msgid "Note"
 msgstr "Remarque"
 
-#: includes/class-ubac-serials-admin-stock.php:632
+#: includes/class-ubac-serials-admin-stock.php:646
 msgid "Nothing can be written while anything in this list is refused: a run is all of it or none of it, because half a correction is a state nobody can reason about afterwards."
 msgstr "Rien ne peut être écrit tant qu’une ligne de cette liste est refusée : un lot passe en entier ou pas du tout, parce qu’une correction à moitié faite est un état sur lequel plus personne ne peut raisonner ensuite."
 
@@ -673,7 +677,7 @@ msgstr "Rien à enregistrer : le numéro de série est vide."
 msgid "Nothing to write: every serialised product already shows what its units say."
 msgstr "Rien à écrire : chaque produit sérialisé affiche déjà ce que disent ses unités."
 
-#: includes/class-ubac-serials-workshop.php:248
+#: includes/class-ubac-serials-workshop.php:250
 msgid "Nothing waiting to be packed."
 msgstr "Rien à préparer."
 
@@ -686,31 +690,31 @@ msgstr "Rien n’a été modifié. Le numéro de série %1$s n’a pas pu être 
 msgid "Nothing was changed: the list has at least one unit that cannot be re-filed."
 msgstr "Rien n’a été modifié : la liste contient au moins une unité qui ne peut pas être reclassée."
 
-#: includes/class-ubac-serials-admin-stations.php:314
+#: includes/class-ubac-serials-admin-stations.php:343
 msgid "Off"
 msgstr "Inactif"
 
-#: includes/class-ubac-serials-admin-settings.php:129
+#: includes/class-ubac-serials-admin-settings.php:136
 msgid "Off until you ask for it. The packing screen is a page that opens without a WordPress session — it signs in with a workshop post of its own — and a plugin that switched one on at activation would have opened a door the shop did not ask for."
 msgstr "Désactivé tant que vous ne le demandez pas. L’écran d’atelier est une page qui s’ouvre sans session WordPress — il se connecte avec son propre poste atelier — et une extension qui en activerait une à l’installation aurait ouvert une porte que la boutique n’a pas demandée."
 
-#: includes/class-ubac-serials-admin-settings.php:146
+#: includes/class-ubac-serials-admin-settings.php:153
 msgid "Off until you ask for it. With it on, the stock of a serialised product becomes the number of units in stock on no order, less the pieces orders being prepared have already reserved — written as a whole number, never as an increment. Products whose stock WooCommerce does not manage, and variable parents, are left alone and named on the Stock screen."
 msgstr "Décoché jusqu’à ce que vous le demandiez. Coché, le stock d’un produit sérialisé devient le nombre d’unités en stock sur aucune commande, moins les pièces que les commandes en préparation ont déjà réservées — écrit comme un nombre entier, jamais comme un incrément. Les produits dont WooCommerce ne gère pas le stock, et les parents variables, sont laissés tels quels et nommés sur l’écran Stock."
 
-#: includes/class-ubac-serials-admin-settings.php:172
+#: includes/class-ubac-serials-admin-settings.php:179
 msgid "Off, and worth leaving off. The serial numbers and their history are the only record of which unit went to which customer, going back as far as you have been serialising — and a warranty claim arrives two years later. Uninstalling is also, most of the time, a step in reinstalling."
 msgstr "Décoché, et il vaut mieux le laisser décoché. Les numéros de série et leur historique sont le seul document qui dit quelle unité est partie chez quel client, aussi loin que vous sérialisez — et une demande de garantie arrive deux ans plus tard. Et désinstaller est le plus souvent une étape d’une réinstallation."
 
-#: includes/class-ubac-serials-admin-stations.php:312
+#: includes/class-ubac-serials-admin-stations.php:341
 msgid "On"
 msgstr "Actif"
 
-#: includes/class-ubac-serials-admin-stock.php:527
+#: includes/class-ubac-serials-admin-stock.php:541
 msgid "One per line, or separated by spaces, commas or semicolons"
 msgstr "Un par ligne, ou séparés par des espaces, des virgules ou des points-virgules"
 
-#: ubac-serials.php:321
+#: dahuconcept-serial-numbers.php:316
 msgid "One row per unit"
 msgstr "Une ligne par unité"
 
@@ -722,7 +726,7 @@ msgstr "Seuls le transporteur et le numéro de suivi peuvent être modifiés sur
 msgid "Open"
 msgstr "Ouvert"
 
-#: ubac-serials.php:322
+#: dahuconcept-serial-numbers.php:317
 msgid "Open a row to read that unit’s full history."
 msgstr "Ouvrez une ligne pour lire l'historique complet de l'unité."
 
@@ -734,7 +738,7 @@ msgstr "Ouvert le"
 msgid "Order"
 msgstr "Commande"
 
-#: includes/class-ubac-serials-workshop.php:280
+#: includes/class-ubac-serials-workshop.php:286
 msgid "Order marked as shipped."
 msgstr "Commande marquée comme expédiée."
 
@@ -742,7 +746,7 @@ msgstr "Commande marquée comme expédiée."
 msgid "Order not found."
 msgstr "Commande introuvable."
 
-#: includes/class-ubac-serials-admin-settings.php:107
+#: includes/class-ubac-serials-admin-settings.php:114
 msgid "Order statuses the queue watches"
 msgstr "Statuts de commande que la file surveille"
 
@@ -751,7 +755,7 @@ msgid "Orders of this product will ask the packing screen for one serial number 
 msgstr "Les commandes de ce produit demanderont à l’écran d’atelier un numéro de série par unité. Sur un produit variable, cocher ici couvre chaque variation qui n’a pas d’avis propre."
 
 #. translators: %d: number of pieces. */
-#: includes/class-ubac-serials-admin-stock.php:373
+#: includes/class-ubac-serials-admin-stock.php:387
 msgid "Orders reserve %d piece more than there are units on the shelf — written as zero rather than as a negative stock."
 msgid_plural "Orders reserve %d pieces more than there are units on the shelf — written as zero rather than as a negative stock."
 msgstr[0] "Les commandes réservent %d pièce de plus qu’il n’y a d’unités sur l’étagère — écrit zéro plutôt qu’un stock négatif."
@@ -766,7 +770,7 @@ msgid "Packed and shipped."
 msgstr "Préparée et expédiée."
 
 #. translators: %s: shop name. */
-#: includes/class-ubac-serials-workshop.php:220
+#: includes/class-ubac-serials-workshop.php:222
 msgid "Packing — %s"
 msgstr "Atelier — %s"
 
@@ -774,11 +778,11 @@ msgstr "Atelier — %s"
 msgid "Parcel"
 msgstr "Colis"
 
-#: includes/class-ubac-serials-admin-stations.php:199 includes/class-ubac-serials-workshop.php:242
+#: includes/class-ubac-serials-admin-stations.php:228 includes/class-ubac-serials-workshop.php:244
 msgid "Password"
 msgstr "Mot de passe"
 
-#: includes/class-ubac-serials-admin-stations.php:167
+#: includes/class-ubac-serials-admin-stations.php:196
 msgid "Password replaced, and the post signed out everywhere it was signed in."
 msgstr "Mot de passe remplacé, et le poste déconnecté partout où il était connecté."
 
@@ -787,7 +791,7 @@ msgstr "Mot de passe remplacé, et le poste déconnecté partout où il était c
 msgid "Post: %s"
 msgstr "Poste : %s"
 
-#: includes/class-ubac-serials-admin-serials.php:175 includes/class-ubac-serials-admin-serials.php:324 includes/class-ubac-serials-admin-stock.php:355 includes/class-ubac-serials-admin-stock.php:465 includes/class-ubac-serials-admin-stock.php:674
+#: includes/class-ubac-serials-admin-serials.php:175 includes/class-ubac-serials-admin-serials.php:324 includes/class-ubac-serials-admin-stock.php:355 includes/class-ubac-serials-admin-stock.php:479 includes/class-ubac-serials-admin-stock.php:688
 msgid "Product"
 msgstr "Produit"
 
@@ -796,7 +800,7 @@ msgstr "Produit"
 msgid "Product #%d (gone)"
 msgstr "Produit n° %d (disparu)"
 
-#: includes/class-ubac-serials-admin-settings.php:153
+#: includes/class-ubac-serials-admin-settings.php:160
 msgid "Product corrections"
 msgstr "Corrections de produit"
 
@@ -804,12 +808,12 @@ msgstr "Corrections de produit"
 msgid "Product corrections are switched off. The Settings screen turns them on."
 msgstr "Les corrections de produit sont désactivées. L’écran Réglages les active."
 
-#: includes/class-ubac-serials-admin-stock.php:745 includes/class-ubac-serials-admin-stock.php:775
+#: includes/class-ubac-serials-admin-stock.php:759 includes/class-ubac-serials-admin-stock.php:789
 msgid "Put back"
 msgstr "Annuler le lot"
 
 #. translators: %d: number of units. */
-#: includes/class-ubac-serials-admin-stock.php:704
+#: includes/class-ubac-serials-admin-stock.php:718
 msgid "Re-file %d unit"
 msgid_plural "Re-file %d units"
 msgstr[0] "Reclasser %d unité"
@@ -819,11 +823,11 @@ msgstr[1] "Reclasser %d unités"
 msgid "Read-only here on purpose: a serial number is assigned by scanning the unit at the bench, so that the history records which bench did it and when."
 msgstr "En lecture seule ici, volontairement : un numéro de série s’affecte en scannant l’unité au poste, pour que l’historique enregistre quel poste l’a fait et quand."
 
-#: includes/class-ubac-serials-workshop.php:251
+#: includes/class-ubac-serials-workshop.php:254
 msgid "Ready"
 msgstr "Prête"
 
-#: includes/class-ubac-serials-admin-stock.php:541 includes/class-ubac-serials-admin-stock.php:744
+#: includes/class-ubac-serials-admin-stock.php:555 includes/class-ubac-serials-admin-stock.php:758
 msgid "Reason"
 msgstr "Motif"
 
@@ -831,7 +835,7 @@ msgstr "Motif"
 msgid "Received"
 msgstr "Reçu"
 
-#: includes/class-ubac-serials-admin-stock.php:462
+#: includes/class-ubac-serials-admin-stock.php:476
 msgid "Recent pushes"
 msgstr "Reports récents"
 
@@ -848,7 +852,7 @@ msgstr "Référence"
 msgid "Reference, tracking or serial"
 msgstr "Référence, suivi ou numéro de série"
 
-#: includes/class-ubac-serials-workshop.php:245
+#: includes/class-ubac-serials-workshop.php:247
 msgid "Refresh"
 msgstr "Actualiser"
 
@@ -857,7 +861,7 @@ msgstr "Actualiser"
 msgid "Refused by the register and left out of this parcel: %s"
 msgstr "Refusée par le registre et laissée hors de ce colis : %s"
 
-#: includes/class-ubac-serials-workshop.php:260
+#: includes/class-ubac-serials-workshop.php:264
 msgid "Remove"
 msgstr "Retirer"
 
@@ -865,7 +869,7 @@ msgstr "Retirer"
 msgid "Repaired"
 msgstr "Réparée"
 
-#: includes/class-ubac-serials-admin-stations.php:304
+#: includes/class-ubac-serials-admin-stations.php:333
 msgid "Replace"
 msgstr "Remplacer"
 
@@ -873,7 +877,7 @@ msgstr "Remplacer"
 msgid "Replaced"
 msgstr "Remplacé"
 
-#: includes/class-ubac-serials-admin-stock.php:543
+#: includes/class-ubac-serials-admin-stock.php:557
 msgid "Required: it is what the history line will say, to whoever reads it next year."
 msgstr "Obligatoire : c’est ce que dira la ligne d’historique, à qui la lira l’an prochain."
 
@@ -893,7 +897,7 @@ msgstr "Revenu conforme"
 msgid "Returned, not as described"
 msgstr "Revenu non conforme"
 
-#: includes/class-ubac-serials-admin-settings.php:175
+#: includes/class-ubac-serials-admin-settings.php:182
 msgid "Save changes"
 msgstr "Enregistrer"
 
@@ -901,15 +905,15 @@ msgstr "Enregistrer"
 msgid "Say which parcel you are looking for: an order, a tracking number, a reference or a serial number."
 msgstr "Dites quel colis vous cherchez : une commande, un numéro de suivi, une référence ou un numéro de série."
 
-#: includes/class-ubac-serials-workshop.php:257
+#: includes/class-ubac-serials-workshop.php:260
 msgid "Scan into this line"
 msgstr "Scanner sur cette ligne"
 
-#: includes/class-ubac-serials-workshop.php:252
+#: includes/class-ubac-serials-workshop.php:255
 msgid "Scan or type a serial number"
 msgstr "Scanner ou saisir un numéro de série"
 
-#: includes/class-ubac-serials-workshop.php:258
+#: includes/class-ubac-serials-workshop.php:262
 msgid "Scanning into: %s"
 msgstr "Scan sur : %s"
 
@@ -921,7 +925,7 @@ msgstr "Rechercher"
 msgid "Search a serial number"
 msgstr "Rechercher un numéro de série"
 
-#: includes/class-ubac-serials-workshop.php:247
+#: includes/class-ubac-serials-workshop.php:249
 msgid "Search an order"
 msgstr "Rechercher une commande"
 
@@ -929,7 +933,7 @@ msgstr "Rechercher une commande"
 msgid "Search consignments"
 msgstr "Rechercher des envois"
 
-#: includes/class-ubac-serials-admin-stock.php:646
+#: includes/class-ubac-serials-admin-stock.php:660
 msgid "Serial"
 msgstr "Numéro de série"
 
@@ -953,7 +957,7 @@ msgid "Serial number %1$s still carries order #%2$d. Detach it before re-filing 
 msgstr "Le numéro de série %1$s porte encore la commande n° %2$d. Désaffectez-le avant de le reclasser."
 
 #. translators: %s: serial number. */
-#: includes/class-ubac-serials-manager.php:1210
+#: includes/class-ubac-serials-manager.php:1221
 msgid "Serial number %s could not be attached."
 msgstr "Le numéro de série %s n’a pas pu être rattaché."
 
@@ -1017,7 +1021,7 @@ msgstr "Le numéro de série %s est sur une autre commande."
 msgid "Serial number longer than %1$d characters: %2$s"
 msgstr "Numéro de série de plus de %1$d caractères : %2$s"
 
-#: ubac-serials.php:256 includes/class-ubac-serials-admin-serials.php:35 includes/class-ubac-serials-admin-stock.php:526 includes/class-ubac-serials-admin.php:84 includes/class-ubac-serials-admin.php:85 includes/class-ubac-serials-admin.php:95 includes/class-ubac-serials-order-metabox.php:48 includes/class-ubac-serials-product-field.php:51 includes/class-ubac-serials-product-field.php:105
+#: dahuconcept-serial-numbers.php:251 includes/class-ubac-serials-admin-serials.php:35 includes/class-ubac-serials-admin-stock.php:540 includes/class-ubac-serials-admin.php:90 includes/class-ubac-serials-admin.php:91 includes/class-ubac-serials-admin.php:101 includes/class-ubac-serials-order-metabox.php:48 includes/class-ubac-serials-product-field.php:51 includes/class-ubac-serials-product-field.php:139
 msgid "Serial numbers"
 msgstr "Numéros de série"
 
@@ -1025,7 +1029,7 @@ msgstr "Numéros de série"
 msgid "Session expired, please sign in again."
 msgstr "Session expirée, reconnectez-vous."
 
-#: includes/class-ubac-serials-workshop.php:283
+#: includes/class-ubac-serials-workshop.php:289
 msgid "Session over. Sign in again."
 msgstr "Session terminée. Reconnectez-vous."
 
@@ -1033,11 +1037,11 @@ msgstr "Session terminée. Reconnectez-vous."
 msgid "Set up a workshop post"
 msgstr "Créer un poste atelier"
 
-#: includes/class-ubac-serials-admin-settings.php:37 includes/class-ubac-serials-admin.php:134 includes/class-ubac-serials-admin.php:135
+#: includes/class-ubac-serials-admin-settings.php:37 includes/class-ubac-serials-admin.php:140 includes/class-ubac-serials-admin.php:141
 msgid "Settings"
 msgstr "Réglages"
 
-#: includes/class-ubac-serials-admin-settings.php:69
+#: includes/class-ubac-serials-admin-settings.php:76
 msgid "Settings saved."
 msgstr "Réglages enregistrés."
 
@@ -1064,11 +1068,11 @@ msgstr "Expédié, mais aucune unité n’a pu être enregistrée comme partie :
 msgid "Shipped. No serial number was on this order."
 msgstr "Expédiée. Aucun numéro de série sur cette commande."
 
-#: includes/class-ubac-serials-admin-stock.php:546
+#: includes/class-ubac-serials-admin-stock.php:560
 msgid "Show me what would happen"
 msgstr "Montrer ce qui se passerait"
 
-#: ubac-serials.php:317
+#: dahuconcept-serial-numbers.php:312
 msgid "Show only the units in one state, such as shipped or in repair."
 msgstr "N'affichez que les unités dans un état donné, expédiée ou en réparation par exemple."
 
@@ -1077,19 +1081,19 @@ msgstr "N'affichez que les unités dans un état donné, expédiée ou en répar
 msgid "Showing %1$s of %2$s matching units."
 msgstr "%1$s unités affichées sur %2$s correspondantes."
 
-#: includes/class-ubac-serials-admin-stations.php:226
+#: includes/class-ubac-serials-admin-stations.php:255
 msgid "Shown on the packing screen and in the history. Defaults to the login."
 msgstr "Affiché sur l’écran d’atelier et dans l’historique. À défaut, l’identifiant."
 
-#: includes/class-ubac-serials-workshop.php:240
+#: includes/class-ubac-serials-workshop.php:242
 msgid "Sign in"
 msgstr "Se connecter"
 
-#: includes/class-ubac-serials-workshop.php:243
+#: includes/class-ubac-serials-workshop.php:245
 msgid "Sign out"
 msgstr "Se déconnecter"
 
-#: ubac-serials.php:277
+#: dahuconcept-serial-numbers.php:272
 msgid "Skip"
 msgstr "Passer"
 
@@ -1097,7 +1101,7 @@ msgstr "Passer"
 msgid "Something moved since this summary was drawn up. Here it is again — read it and run it once more."
 msgstr "Quelque chose a bougé depuis que ce récapitulatif a été établi. Le voici de nouveau — relisez-le et relancez."
 
-#: includes/class-ubac-serials-admin-stations.php:195
+#: includes/class-ubac-serials-admin-stations.php:224
 msgid "Something the bench can read off a card: bench-1, packing-left."
 msgstr "Quelque chose que le poste peut lire sur une étiquette : atelier-1, emballage-gauche."
 
@@ -1106,7 +1110,7 @@ msgstr "Quelque chose que le poste peut lire sur une étiquette : atelier-1, emb
 msgid "Squared with order #%1$d, line %2$d. The order line is not changed, and no stock count moves."
 msgstr "Recalé sur la commande n°%1$d, ligne %2$d. La ligne de commande n'est pas modifiée, et aucun compte de stock ne bouge."
 
-#: includes/class-ubac-serials-admin-stations.php:253 includes/class-ubac-serials-admin-stock.php:648
+#: includes/class-ubac-serials-admin-stations.php:282 includes/class-ubac-serials-admin-stock.php:662
 msgid "State"
 msgstr "État"
 
@@ -1118,11 +1122,11 @@ msgstr "Statut"
 msgid "Still carries an order."
 msgstr "Porte encore une commande."
 
-#: includes/class-ubac-serials-admin-stock.php:67 includes/class-ubac-serials-admin.php:113 includes/class-ubac-serials-admin.php:114
+#: includes/class-ubac-serials-admin-stock.php:67 includes/class-ubac-serials-admin.php:119 includes/class-ubac-serials-admin.php:120
 msgid "Stock"
 msgstr "Stock"
 
-#: includes/class-ubac-serials-stock.php:1012
+#: includes/class-ubac-serials-stock.php:1662
 msgid "Stock changed since this list was drawn up. Here it is again — read it and run it once more."
 msgstr "Le stock a changé depuis que cette liste a été établie. La voici de nouveau — relisez-la et relancez."
 
@@ -1141,15 +1145,15 @@ msgstr "Lot fournisseur"
 msgid "Supplier name"
 msgstr "Désignation fournisseur"
 
-#: includes/class-ubac-serials-admin-stations.php:283
+#: includes/class-ubac-serials-admin-stations.php:312
 msgid "Switch back on"
 msgstr "Réactiver"
 
-#: includes/class-ubac-serials-admin-stations.php:283
+#: includes/class-ubac-serials-admin-stations.php:312
 msgid "Switch off"
 msgstr "Désactiver"
 
-#: includes/class-ubac-serials-workshop.php:261
+#: includes/class-ubac-serials-workshop.php:266
 msgid "Take %s off this order?"
 msgstr "Retirer %s de cette commande ?"
 
@@ -1192,7 +1196,7 @@ msgid "The carrier could not create the label: %s — the parcel was recorded as
 msgstr "Le transporteur n’a pas pu créer l’étiquette : %s — le colis a été enregistré comme expédié malgré tout, les unités sont donc tracées. Ajoutez le numéro de suivi à la main quand vous l’aurez."
 
 #. translators: %s: serial number. */
-#: includes/class-ubac-serials-manager.php:1129
+#: includes/class-ubac-serials-manager.php:1140
 msgid "The check on serial number %s could not be recorded."
 msgstr "Le pointage du numéro de série %s n’a pas pu être enregistré."
 
@@ -1226,15 +1230,15 @@ msgstr "La ligne d’historique de %s n’a pas pu être écrite."
 msgid "The login “%s” is already taken."
 msgstr "L’identifiant « %s » est déjà pris."
 
-#: includes/class-ubac-serials-admin-settings.php:100
+#: includes/class-ubac-serials-admin-settings.php:107
 msgid "The packing queue"
 msgstr "La file de préparation"
 
-#: includes/class-ubac-serials-admin-settings.php:121
+#: includes/class-ubac-serials-admin-settings.php:128
 msgid "The packing screen"
 msgstr "L’écran d’atelier"
 
-#: includes/class-ubac-serials-workshop.php:268
+#: includes/class-ubac-serials-workshop.php:274
 msgid "The parcel"
 msgstr "Le colis"
 
@@ -1242,7 +1246,7 @@ msgstr "Le colis"
 msgid "The parcel’s measurements could not be recorded."
 msgstr "Les mesures du colis n’ont pas pu être enregistrées."
 
-#: includes/class-ubac-serials-product-field.php:110
+#: includes/class-ubac-serials-product-field.php:144
 msgid "The parent product is ticked, so this variation already carries serial numbers. Tick this only to be explicit."
 msgstr "Le produit parent est coché : cette variation porte déjà des numéros de série. Ne cochez ici que pour être explicite."
 
@@ -1255,11 +1259,11 @@ msgstr "Le mot de passe doit faire au moins %d caractères."
 msgid "The plugin’s database tables are missing."
 msgstr "Les tables de l’extension sont absentes."
 
-#: includes/class-ubac-serials-admin.php:257
+#: includes/class-ubac-serials-admin.php:263
 msgid "The plugin’s database tables are missing. Deactivating and reactivating the plugin creates them."
 msgstr "Les tables de l’extension sont absentes. Les recréer : désactiver puis réactiver l’extension."
 
-#: includes/class-ubac-serials-admin-settings.php:134
+#: includes/class-ubac-serials-admin-settings.php:141
 msgid "The screen is on but no workshop post exists yet, so nobody can sign in to it."
 msgstr "L’écran est actif mais aucun poste atelier n’existe encore : personne ne peut s’y connecter."
 
@@ -1267,7 +1271,7 @@ msgstr "L’écran est actif mais aucun poste atelier n’existe encore : person
 msgid "The serial number is empty or unreadable."
 msgstr "Le numéro de série est vide ou illisible."
 
-#: includes/class-ubac-serials-workshop.php:282
+#: includes/class-ubac-serials-workshop.php:288
 msgid "The shop did not answer. Nothing was recorded — scan it again."
 msgstr "La boutique n’a pas répondu. Rien n’a été enregistré — scannez de nouveau."
 
@@ -1288,6 +1292,14 @@ msgstr "Le numéro de suivi n’a pas pu être enregistré."
 msgid "The unit is now “%s”, and the move is in its history."
 msgstr "L’unité est maintenant « %s », et la transition figure dans son historique."
 
+#: includes/class-ubac-serials-stock.php:1352
+msgid "The units could not be counted: the database refused the query. Nothing was written — that way no stock figure is invented."
+msgstr "Les unités n’ont pas pu être comptées : la base a refusé la requête. Rien n’a été écrit — ainsi aucun chiffre de stock n’est inventé."
+
+#: includes/class-ubac-serials-stock.php:1655
+msgid "The units could not be counted: the database refused the query. Nothing was written."
+msgstr "Les unités n’ont pas pu être comptées : la base a refusé la requête. Rien n’a été écrit."
+
 #. translators: 1: consignment reference, 2: the error. */
 #: includes/class-ubac-serials-shipment.php:448
 msgid "The units shipped, but consignment %1$s could not be closed (%2$s). It is still open, which also stops those units joining another consignment — cancel it on the Consignments screen, or close it by hand."
@@ -1302,7 +1314,7 @@ msgstr "Le poste atelier n’a pas pu être créé."
 msgid "These units could NOT be recorded in the parcel and did not ship: %s. Take them out of the box."
 msgstr "Ces unités n’ont PAS pu être enregistrées dans le colis et ne sont pas parties : %s. Sortez-les du carton."
 
-#: includes/class-ubac-serials-admin-settings.php:150
+#: includes/class-ubac-serials-admin-settings.php:157
 msgid "This changes what customers can buy. The Stock screen shows every product and what would be written before anything is, and the manual resynchronisation works whether this is on or off."
 msgstr "Ceci change ce que les clients peuvent acheter. L’écran Stock montre chaque produit et ce qui serait écrit avant que rien ne le soit, et la resynchronisation manuelle fonctionne que ce soit coché ou non."
 
@@ -1327,7 +1339,7 @@ msgstr "Ce colis a déjà été mesuré en %1$s et la boutique utilise maintenan
 msgid "This run has already been put back."
 msgstr "Ce lot a déjà été annulé."
 
-#: includes/class-ubac-serials-workshop.php:195
+#: includes/class-ubac-serials-workshop.php:196
 msgid "This screen needs JavaScript. Serial numbers are scanned into it one at a time, and every scan is checked against the shop as it happens."
 msgstr "Cet écran a besoin de JavaScript. Les numéros de série y sont scannés un par un, et chaque scan est vérifié auprès de la boutique à l’instant."
 
@@ -1339,7 +1351,7 @@ msgstr "Ce numéro de série est enregistré sous un autre produit que celui de 
 msgid "This workshop post has been deactivated."
 msgstr "Ce poste atelier a été désactivé."
 
-#: includes/class-ubac-serials-workshop.php:244
+#: includes/class-ubac-serials-workshop.php:246
 msgid "To pack"
 msgstr "À préparer"
 
@@ -1354,7 +1366,7 @@ msgstr[1] "Trop de tentatives échouées. Réessayez dans %d minutes."
 msgid "Tracking"
 msgstr "Suivi"
 
-#: includes/class-ubac-serials-workshop.php:267
+#: includes/class-ubac-serials-workshop.php:273
 msgid "Tracking number"
 msgstr "Numéro de suivi"
 
@@ -1363,19 +1375,19 @@ msgstr "Numéro de suivi"
 msgid "Tracking: %s"
 msgstr "Suivi : %s"
 
-#: includes/class-ubac-serials-admin-stock.php:466
+#: includes/class-ubac-serials-admin-stock.php:480
 msgid "Triggered by"
 msgstr "Déclenché par"
 
-#: ubac-serials.php:312
+#: dahuconcept-serial-numbers.php:307
 msgid "Type a serial number to open that unit."
 msgstr "Saisissez un numéro de série pour ouvrir cette unité."
 
-#: includes/class-ubac-serials-admin-settings.php:164
+#: includes/class-ubac-serials-admin-settings.php:171
 msgid "Uninstalling"
 msgstr "Désinstallation"
 
-#: includes/class-ubac-serials-admin-consignments.php:262 includes/class-ubac-serials-admin-stock.php:742
+#: includes/class-ubac-serials-admin-consignments.php:262 includes/class-ubac-serials-admin-stock.php:756
 msgid "Units"
 msgstr "Unités"
 
@@ -1383,7 +1395,7 @@ msgstr "Unités"
 msgid "Units in stock"
 msgstr "Unités en stock"
 
-#: includes/class-ubac-serials-admin-stock.php:672
+#: includes/class-ubac-serials-admin-stock.php:686
 msgid "Units in stock, before and after"
 msgstr "Unités en stock, avant et après"
 
@@ -1401,7 +1413,7 @@ msgid "Unknown serial number."
 msgstr "Numéro de série inconnu."
 
 #. translators: %s: serial number. */
-#: includes/class-ubac-serials-manager.php:678 includes/class-ubac-serials-manager.php:850 includes/class-ubac-serials-manager.php:1107 includes/class-ubac-serials-manager.php:1176 includes/class-ubac-serials-rest.php:457 includes/class-ubac-serials-rest.php:853
+#: includes/class-ubac-serials-manager.php:678 includes/class-ubac-serials-manager.php:850 includes/class-ubac-serials-manager.php:1118 includes/class-ubac-serials-manager.php:1187 includes/class-ubac-serials-rest.php:457 includes/class-ubac-serials-rest.php:853
 msgid "Unknown serial number: %s"
 msgstr "Numéro de série inconnu : %s"
 
@@ -1410,20 +1422,20 @@ msgstr "Numéro de série inconnu : %s"
 msgid "Unknown status: %s"
 msgstr "Statut inconnu : %s"
 
-#: includes/class-ubac-serials-admin-stations.php:122 includes/class-ubac-serials-station-auth-provider.php:121 includes/class-ubac-serials-stations.php:135 includes/class-ubac-serials-stations.php:184
+#: includes/class-ubac-serials-admin-stations.php:138 includes/class-ubac-serials-station-auth-provider.php:121 includes/class-ubac-serials-stations.php:135 includes/class-ubac-serials-stations.php:184
 msgid "Unknown workshop post."
 msgstr "Poste atelier inconnu."
 
-#: includes/class-ubac-serials-stock.php:803
+#: includes/class-ubac-serials-stock.php:1349
 msgid "Variable product: stock belongs to its variations."
 msgstr "Produit variable : le stock appartient à ses variations."
 
 #. translators: %s: the shop's weight unit, e.g. kg. */
-#: includes/class-ubac-serials-workshop.php:271
+#: includes/class-ubac-serials-workshop.php:277
 msgid "Weight (%s)"
 msgstr "Poids (%s)"
 
-#: ubac-serials.php:288
+#: dahuconcept-serial-numbers.php:283
 msgid "What left together, what came back, and when."
 msgstr "Ce qui est parti ensemble, ce qui est revenu, et quand."
 
@@ -1431,11 +1443,11 @@ msgstr "Ce qui est parti ensemble, ce qui est revenu, et quand."
 msgid "What the units on your shelves say the WooCommerce stock of each serialised product should be — and a way to re-file units that went in under the wrong product."
 msgstr "Ce que les unités de vos étagères disent que le stock WooCommerce de chaque produit sérialisé devrait être — et de quoi reclasser les unités entrées sous le mauvais produit."
 
-#: includes/class-ubac-serials-admin-stock.php:627
+#: includes/class-ubac-serials-admin-stock.php:641
 msgid "What would happen"
 msgstr "Ce qui se passerait"
 
-#: includes/class-ubac-serials-admin-serials.php:665 includes/class-ubac-serials-admin-stock.php:464 includes/class-ubac-serials-admin-stock.php:741
+#: includes/class-ubac-serials-admin-serials.php:665 includes/class-ubac-serials-admin-stock.php:478 includes/class-ubac-serials-admin-stock.php:755
 msgid "When"
 msgstr "Quand"
 
@@ -1443,7 +1455,7 @@ msgstr "Quand"
 msgid "Where it can go next"
 msgstr "Où elle peut aller ensuite"
 
-#: includes/class-ubac-serials-admin-settings.php:103
+#: includes/class-ubac-serials-admin-settings.php:110
 msgid "Which orders the packing screen lists. Completed orders are deliberately not the default: a completed order has left, and a queue that lists it invites somebody to open a parcel that is already on a van."
 msgstr "Quelles commandes l’écran d’atelier liste. Les commandes terminées ne sont volontairement pas dans la sélection par défaut : une commande terminée est partie, et une file qui la liste invite à ouvrir un colis déjà dans un camion."
 
@@ -1455,32 +1467,32 @@ msgstr "Motif, pour l’historique (facultatif)"
 msgid "WooCommerce now"
 msgstr "WooCommerce actuellement"
 
-#: includes/class-ubac-serials-admin-settings.php:138 includes/class-ubac-serials-admin-stock.php:97
+#: includes/class-ubac-serials-admin-settings.php:145 includes/class-ubac-serials-admin-stock.php:97
 msgid "WooCommerce stock"
 msgstr "Stock WooCommerce"
 
-#: includes/class-ubac-serials-stock.php:804
+#: includes/class-ubac-serials-stock.php:1350
 msgid "WooCommerce stock management is off for this product."
 msgstr "La gestion de stock WooCommerce est désactivée pour ce produit."
 
-#: includes/class-ubac-serials-workshop.php:281
+#: includes/class-ubac-serials-workshop.php:287
 msgid "Working…"
 msgstr "En cours…"
 
-#: includes/class-ubac-serials-admin-stations.php:139
+#: includes/class-ubac-serials-admin-stations.php:155
 msgid "Workshop post switched back on."
 msgstr "Poste atelier réactivé."
 
-#: includes/class-ubac-serials-admin-stations.php:143
+#: includes/class-ubac-serials-admin-stations.php:159
 msgid "Workshop post switched off, and signed out everywhere it was signed in."
 msgstr "Poste atelier désactivé, et déconnecté partout où il était connecté."
 
 #. translators: %s: workshop post login. */
-#: includes/class-ubac-serials-admin-stations.php:105
+#: includes/class-ubac-serials-admin-stations.php:118
 msgid "Workshop post “%s” created."
 msgstr "Poste atelier « %s » créé."
 
-#: includes/class-ubac-serials-admin-stations.php:38 includes/class-ubac-serials-admin.php:122 includes/class-ubac-serials-admin.php:123
+#: includes/class-ubac-serials-admin-stations.php:38 includes/class-ubac-serials-admin.php:128 includes/class-ubac-serials-admin.php:129
 msgid "Workshop posts"
 msgstr "Postes atelier"
 
@@ -1488,15 +1500,15 @@ msgstr "Postes atelier"
 msgid "Would be written"
 msgstr "Serait écrit"
 
-#: includes/class-ubac-serials-admin-stock.php:649
+#: includes/class-ubac-serials-admin-stock.php:663
 msgid "Would become"
 msgstr "Deviendrait"
 
-#: includes/class-ubac-serials-admin-stock.php:439
+#: includes/class-ubac-serials-admin-stock.php:453
 msgid "Write these numbers to WooCommerce"
 msgstr "Écrire ces nombres dans WooCommerce"
 
-#: includes/class-ubac-serials-admin-stock.php:468
+#: includes/class-ubac-serials-admin-stock.php:482
 msgid "Written"
 msgstr "Écrit"
 
@@ -1509,7 +1521,7 @@ msgstr "Mauvais produit"
 msgid "Yes, move it to “%s”"
 msgstr "Oui, la déplacer vers « %s »"
 
-#: ubac-serials.php:279
+#: dahuconcept-serial-numbers.php:274
 msgid "You are not allowed to view this page."
 msgstr "Vous n’avez pas l’autorisation de voir cette page."
 
@@ -1549,7 +1561,7 @@ msgstr "Vous n’avez pas les droits nécessaires pour consulter les numéros de
 msgid "You do not have permission to write stock."
 msgstr "Vous n’avez pas l’autorisation d’écrire le stock."
 
-#: ubac-serials.php:278
+#: dahuconcept-serial-numbers.php:273
 msgid "of"
 msgstr "sur"
 
@@ -1565,7 +1577,7 @@ msgctxt "parcel weight"
 msgid "%1$s %2$s"
 msgstr "%1$s %2$s"
 
-#: includes/class-ubac-serials-admin-stock.php:533
+#: includes/class-ubac-serials-admin-stock.php:547
 msgid "— pick a product —"
 msgstr "— choisir un produit —"
 

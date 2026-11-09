@@ -48,15 +48,15 @@ class Ubac_Serials_Product_Field {
 			array(
 				'id'          => '_ubac_serials_serialised',
 				'value'       => 'yes' === get_post_meta( $post->ID, Ubac_Serials_Products::META_KEY, true ) ? 'yes' : 'no',
-				'label'       => __( 'Serial numbers', 'ubac-serials' ),
-				'description' => __( 'Each unit of this product carries its own serial number', 'ubac-serials' ),
+				'label'       => __( 'Serial numbers', 'dahuconcept-serial-numbers' ),
+				'description' => __( 'Each unit of this product carries its own serial number', 'dahuconcept-serial-numbers' ),
 				'desc_tip'    => false,
 			)
 		);
 
 		printf(
 			'<p class="form-field"><span class="description">%s</span></p>',
-			esc_html__( 'Orders of this product will ask the packing screen for one serial number per unit. On a variable product, ticking it here covers every variation that has no answer of its own.', 'ubac-serials' )
+			esc_html__( 'Orders of this product will ask the packing screen for one serial number per unit. On a variable product, ticking it here covers every variation that has no answer of its own.', 'dahuconcept-serial-numbers' )
 		);
 
 		echo '</div>';
@@ -136,13 +136,13 @@ class Ubac_Serials_Product_Field {
 				'id'            => 'ubac_serials_serialised_' . $loop,
 				'name'          => 'ubac_serials_serialised[' . $loop . ']',
 				'value'         => 'yes' === $own ? 'yes' : 'no',
-				'label'         => __( 'Serial numbers', 'ubac-serials' ),
+				'label'         => __( 'Serial numbers', 'dahuconcept-serial-numbers' ),
 				'description'   => Ubac_Serials_Products::is_serialised( (int) $variation->post_parent )
 					// Said on the variation, because a reader looking at an
 					// unticked box on a variation of a ticked parent would
 					// otherwise conclude this variation is not serialised.
-					? __( 'The parent product is ticked, so this variation already carries serial numbers. Tick this only to be explicit.', 'ubac-serials' )
-					: __( 'Each unit of this variation carries its own serial number', 'ubac-serials' ),
+					? __( 'The parent product is ticked, so this variation already carries serial numbers. Tick this only to be explicit.', 'dahuconcept-serial-numbers' )
+					: __( 'Each unit of this variation carries its own serial number', 'dahuconcept-serial-numbers' ),
 				'desc_tip'      => false,
 				'wrapper_class' => 'form-row form-row-full',
 			)

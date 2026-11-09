@@ -53,14 +53,14 @@ class Ubac_Serials_Admin_Consignments {
 	public static function render() {
 
 		if ( ! current_user_can( Ubac_Serials_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to view consignments.', 'ubac-serials' ) );
+			wp_die( esc_html__( 'You do not have permission to view consignments.', 'dahuconcept-serial-numbers' ) );
 		}
 
 		self::maybe_cancel();
 
 		Ubac_Serials_Admin::open(
-			__( 'Consignments', 'ubac-serials' ),
-			__( 'Every set of units that left or came back together. Search by consignment reference, tracking number or serial number.', 'ubac-serials' )
+			__( 'Consignments', 'dahuconcept-serial-numbers' ),
+			__( 'Every set of units that left or came back together. Search by consignment reference, tracking number or serial number.', 'dahuconcept-serial-numbers' )
 		);
 
 		Ubac_Serials_Admin::warn_if_no_tables();
@@ -108,13 +108,13 @@ class Ubac_Serials_Admin_Consignments {
 		check_admin_referer( 'ubac-serials-cancel-consignment' );
 
 		if ( ! current_user_can( Ubac_Serials_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to cancel a consignment.', 'ubac-serials' ) );
+			wp_die( esc_html__( 'You do not have permission to cancel a consignment.', 'dahuconcept-serial-numbers' ) );
 		}
 
 		$id        = (int) $_POST['ubac_consignment_cancel'];
 		$cancelled = Ubac_Serials_Consignments::cancel(
 			$id,
-			__( 'Cancelled by hand from the consignments screen.', 'ubac-serials' )
+			__( 'Cancelled by hand from the consignments screen.', 'dahuconcept-serial-numbers' )
 		);
 
 		if ( is_wp_error( $cancelled ) ) {
@@ -125,7 +125,7 @@ class Ubac_Serials_Admin_Consignments {
 
 		Ubac_Serials_Admin::notice(
 			'success',
-			__( 'The consignment is cancelled. Its units are free to go in another parcel.', 'ubac-serials' )
+			__( 'The consignment is cancelled. Its units are free to go in another parcel.', 'dahuconcept-serial-numbers' )
 		);
 	}
 
@@ -191,17 +191,17 @@ class Ubac_Serials_Admin_Consignments {
 
 		printf(
 			'<label class="screen-reader-text" for="ubac-consignment-search">%s</label>',
-			esc_html__( 'Search consignments', 'ubac-serials' )
+			esc_html__( 'Search consignments', 'dahuconcept-serial-numbers' )
 		);
 
 		printf(
 			'<input type="search" id="ubac-consignment-search" name="s" value="%s" placeholder="%s" />',
 			esc_attr( $search ),
-			esc_attr__( 'Reference, tracking or serial', 'ubac-serials' )
+			esc_attr__( 'Reference, tracking or serial', 'dahuconcept-serial-numbers' )
 		);
 
 		echo '<select name="direction">';
-		printf( '<option value="">%s</option>', esc_html__( 'Any direction', 'ubac-serials' ) );
+		printf( '<option value="">%s</option>', esc_html__( 'Any direction', 'dahuconcept-serial-numbers' ) );
 
 		foreach ( $directions as $key => $label ) {
 			printf(
@@ -215,7 +215,7 @@ class Ubac_Serials_Admin_Consignments {
 		echo '</select>';
 
 		echo '<select name="status">';
-		printf( '<option value="">%s</option>', esc_html__( 'Any status', 'ubac-serials' ) );
+		printf( '<option value="">%s</option>', esc_html__( 'Any status', 'dahuconcept-serial-numbers' ) );
 
 		foreach ( $statuses as $key => $label ) {
 			printf(
@@ -228,7 +228,7 @@ class Ubac_Serials_Admin_Consignments {
 
 		echo '</select>';
 
-		printf( '<button type="submit" class="ubac-ui-btn">%s</button>', esc_html__( 'Search', 'ubac-serials' ) );
+		printf( '<button type="submit" class="ubac-ui-btn">%s</button>', esc_html__( 'Search', 'dahuconcept-serial-numbers' ) );
 		echo '</form>';
 	}
 
@@ -253,24 +253,24 @@ class Ubac_Serials_Admin_Consignments {
 
 		echo '<table class="widefat striped ubac-serials__table">';
 		echo '<thead><tr>';
-		printf( '<th scope="col">%s</th>', esc_html__( 'Reference', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Direction', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Status', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Order', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Carrier', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Tracking', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Units', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Parcel', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Opened', 'ubac-serials' ) );
-		printf( '<th scope="col"><span class="screen-reader-text">%s</span></th>', esc_html__( 'Actions', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Reference', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Direction', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Status', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Order', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Carrier', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Tracking', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Units', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Parcel', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Opened', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col"><span class="screen-reader-text">%s</span></th>', esc_html__( 'Actions', 'dahuconcept-serial-numbers' ) );
 		echo '</tr></thead><tbody>';
 
 		if ( ! $rows ) {
 			printf(
 				'<tr><td colspan="10">%s</td></tr>',
 				'' === $search
-					? esc_html__( 'No consignment yet. One is recorded every time a parcel is closed on the packing screen.', 'ubac-serials' )
-					: esc_html__( 'No consignment matches that reference, tracking number or serial number.', 'ubac-serials' )
+					? esc_html__( 'No consignment yet. One is recorded every time a parcel is closed on the packing screen.', 'dahuconcept-serial-numbers' )
+					: esc_html__( 'No consignment matches that reference, tracking number or serial number.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -333,7 +333,7 @@ class Ubac_Serials_Admin_Consignments {
 				printf(
 					'<button type="submit" name="ubac_consignment_cancel" value="%d" class="button button-small">%s</button>',
 					(int) $id,
-					esc_html__( 'Cancel', 'ubac-serials' )
+					esc_html__( 'Cancel', 'dahuconcept-serial-numbers' )
 				);
 				echo '</form>';
 			}
@@ -347,7 +347,7 @@ class Ubac_Serials_Admin_Consignments {
 			if ( $serials ) {
 				echo '<tr class="ubac-serials__subrow">';
 				printf( '<td colspan="10"><span class="ubac-serials__hint">%s</span> %s</td>',
-					esc_html__( 'Units:', 'ubac-serials' ),
+					esc_html__( 'Units:', 'dahuconcept-serial-numbers' ),
 					esc_html( implode( ', ', $serials ) )
 				);
 				echo '</tr>';

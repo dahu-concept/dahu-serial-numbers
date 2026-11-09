@@ -139,7 +139,7 @@ class Ubac_Serials_Shipment {
 							'%s unit on this order still has no serial number.',
 							'%s units on this order still have no serial number.',
 							$owed,
-							'ubac-serials'
+							'dahuconcept-serial-numbers'
 						),
 						number_format_i18n( $owed )
 					),
@@ -183,7 +183,7 @@ class Ubac_Serials_Shipment {
 						'“%1$s” already has %2$d unit recorded as shipped on this order, and this parcel would add %3$d more, against %4$d ordered. Nothing has been shipped. Record what became of the unit that is already out before sending another.',
 						'“%1$s” already has %2$d units recorded as shipped on this order, and this parcel would add %3$d more, against %4$d ordered. Nothing has been shipped. Record what became of the units that are already out before sending another.',
 						$first['shipped'],
-						'ubac-serials'
+						'dahuconcept-serial-numbers'
 					),
 					$first['product_name'],
 					$first['shipped'],
@@ -262,12 +262,12 @@ class Ubac_Serials_Shipment {
 				// one moment where refusing costs nothing and is honest.
 				Ubac_Serials_Consignments::cancel(
 					$consignment_id,
-					__( 'No unit could be recorded in this consignment.', 'ubac-serials' )
+					__( 'No unit could be recorded in this consignment.', 'dahuconcept-serial-numbers' )
 				);
 
 				return new WP_Error(
 					'ubac_serials_consignment_not_filled',
-					__( 'Not one unit could be recorded in the parcel, so nothing was shipped. Nothing has moved; try again.', 'ubac-serials' ),
+					__( 'Not one unit could be recorded in the parcel, so nothing was shipped. Nothing has moved; try again.', 'dahuconcept-serial-numbers' ),
 					array(
 						'status'       => 500,
 						'unregistered' => $unregistered,
@@ -348,7 +348,7 @@ class Ubac_Serials_Shipment {
 			$order->add_order_note(
 				sprintf(
 					/* translators: %s: the carrier's error message. */
-					__( 'Shipment refused: the carrier could not create the label (%s). Nothing was recorded as shipped.', 'ubac-serials' ),
+					__( 'Shipment refused: the carrier could not create the label (%s). Nothing was recorded as shipped.', 'dahuconcept-serial-numbers' ),
 					$label_error
 				)
 			);
@@ -357,7 +357,7 @@ class Ubac_Serials_Shipment {
 				'ubac_serials_label_failed',
 				sprintf(
 					/* translators: %s: the carrier's error message. */
-					__( 'The carrier could not create the label: %s', 'ubac-serials' ),
+					__( 'The carrier could not create the label: %s', 'dahuconcept-serial-numbers' ),
 					$label_error
 				),
 				array(
@@ -445,7 +445,7 @@ class Ubac_Serials_Shipment {
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: consignment reference, 2: the error. */
-					__( 'The units shipped, but consignment %1$s could not be closed (%2$s). It is still open, which also stops those units joining another consignment — cancel it on the Consignments screen, or close it by hand.', 'ubac-serials' ),
+					__( 'The units shipped, but consignment %1$s could not be closed (%2$s). It is still open, which also stops those units joining another consignment — cancel it on the Consignments screen, or close it by hand.', 'dahuconcept-serial-numbers' ),
 					'' !== $reference ? $reference : (string) $consignment_id,
 					$closed->get_error_message()
 				)
@@ -500,7 +500,7 @@ class Ubac_Serials_Shipment {
 		$status = (string) apply_filters( 'ubac_serials_shipment_status', self::default_status( $order ), $order, $consignment_id );
 
 		if ( '' !== $status && $order->get_status() !== $status ) {
-			$order->update_status( $status, __( 'Packed and shipped.', 'ubac-serials' ) );
+			$order->update_status( $status, __( 'Packed and shipped.', 'dahuconcept-serial-numbers' ) );
 		}
 
 		/**
@@ -576,7 +576,7 @@ class Ubac_Serials_Shipment {
 				'ubac_serials_not_assigned',
 				sprintf(
 					/* translators: %s: comma-separated serial numbers. */
-					__( 'Not assigned to this order, so it cannot ship with it: %s', 'ubac-serials' ),
+					__( 'Not assigned to this order, so it cannot ship with it: %s', 'dahuconcept-serial-numbers' ),
 					implode( ', ', $rejects )
 				),
 				array(
@@ -589,7 +589,7 @@ class Ubac_Serials_Shipment {
 		if ( ! $to_ship ) {
 			return new WP_Error(
 				'ubac_serials_nothing_to_ship',
-				__( 'No unit was named, so there is nothing to put in the parcel.', 'ubac-serials' ),
+				__( 'No unit was named, so there is nothing to put in the parcel.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -736,7 +736,7 @@ class Ubac_Serials_Shipment {
 		if ( $unregistered ) {
 			$lines[] = sprintf(
 				/* translators: %s: comma-separated serial numbers. */
-				__( 'Refused by the register and left out of this parcel: %s', 'ubac-serials' ),
+				__( 'Refused by the register and left out of this parcel: %s', 'dahuconcept-serial-numbers' ),
 				implode( ', ', $unregistered )
 			);
 		}
@@ -744,7 +744,7 @@ class Ubac_Serials_Shipment {
 		if ( $stuck ) {
 			$lines[] = sprintf(
 				/* translators: %s: comma-separated serial numbers. */
-				__( 'Taken back out, because the status change was refused: %s', 'ubac-serials' ),
+				__( 'Taken back out, because the status change was refused: %s', 'dahuconcept-serial-numbers' ),
 				implode( ', ', $stuck )
 			);
 		}
@@ -752,7 +752,7 @@ class Ubac_Serials_Shipment {
 		if ( '' !== $label_error ) {
 			$lines[] = sprintf(
 				/* translators: %s: the carrier's error message. */
-				__( 'The carrier could not create the label: %s', 'ubac-serials' ),
+				__( 'The carrier could not create the label: %s', 'dahuconcept-serial-numbers' ),
 				$label_error
 			);
 		}
@@ -788,17 +788,17 @@ class Ubac_Serials_Shipment {
 		if ( $shipped ) {
 			$lines[] = sprintf(
 				/* translators: %s: comma-separated serial numbers. */
-				__( 'Shipped with serial numbers: %s', 'ubac-serials' ),
+				__( 'Shipped with serial numbers: %s', 'dahuconcept-serial-numbers' ),
 				implode( ', ', $shipped )
 			);
 		} elseif ( $stuck ) {
 			$lines[] = sprintf(
 				/* translators: %s: comma-separated serial numbers. */
-				__( 'Shipped, but not one unit could be recorded as having left: %s. Each unit’s own history says why it was refused, and the consignment below is empty as a result.', 'ubac-serials' ),
+				__( 'Shipped, but not one unit could be recorded as having left: %s. Each unit’s own history says why it was refused, and the consignment below is empty as a result.', 'dahuconcept-serial-numbers' ),
 				implode( ', ', $stuck )
 			);
 		} else {
-			$lines[] = __( 'Shipped. No serial number was on this order.', 'ubac-serials' );
+			$lines[] = __( 'Shipped. No serial number was on this order.', 'dahuconcept-serial-numbers' );
 		}
 
 		// The reference goes on the note because this is where a second
@@ -807,7 +807,7 @@ class Ubac_Serials_Shipment {
 		if ( '' !== $reference ) {
 			$lines[] = sprintf(
 				/* translators: %s: consignment reference. */
-				__( 'Consignment: %s', 'ubac-serials' ),
+				__( 'Consignment: %s', 'dahuconcept-serial-numbers' ),
 				$reference
 			);
 		}
@@ -815,7 +815,7 @@ class Ubac_Serials_Shipment {
 		if ( '' !== $carrier ) {
 			$lines[] = sprintf(
 				/* translators: %s: carrier name. */
-				__( 'Carrier: %s', 'ubac-serials' ),
+				__( 'Carrier: %s', 'dahuconcept-serial-numbers' ),
 				$carrier
 			);
 		}
@@ -823,7 +823,7 @@ class Ubac_Serials_Shipment {
 		if ( '' !== $tracking ) {
 			$lines[] = sprintf(
 				/* translators: %s: tracking number. */
-				__( 'Tracking: %s', 'ubac-serials' ),
+				__( 'Tracking: %s', 'dahuconcept-serial-numbers' ),
 				$tracking
 			);
 		}
@@ -831,7 +831,7 @@ class Ubac_Serials_Shipment {
 		if ( '' !== $label_error ) {
 			$text = sprintf(
 				/* translators: %s: the carrier's error message. */
-				__( 'The carrier could not create the label: %s — the parcel was recorded as shipped anyway, so the units are on file. Add the tracking number by hand once you have it.', 'ubac-serials' ),
+				__( 'The carrier could not create the label: %s — the parcel was recorded as shipped anyway, so the units are on file. Add the tracking number by hand once you have it.', 'dahuconcept-serial-numbers' ),
 				$label_error
 			);
 
@@ -857,7 +857,7 @@ class Ubac_Serials_Shipment {
 		if ( $unregistered ) {
 			$lines[] = sprintf(
 				/* translators: %s: comma-separated serial numbers. */
-				__( 'Could not be recorded in the consignment and did NOT ship: %s. They are still assigned to this order — put them in the next parcel.', 'ubac-serials' ),
+				__( 'Could not be recorded in the consignment and did NOT ship: %s. They are still assigned to this order — put them in the next parcel.', 'dahuconcept-serial-numbers' ),
 				implode( ', ', $unregistered )
 			);
 		}

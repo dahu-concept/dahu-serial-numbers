@@ -87,8 +87,8 @@ class Ubac_Serials_Admin {
 			// H1 below is the same string again. Arriving somewhere whose
 			// name changed on the way in makes a reader doubt they are in the
 			// right place.
-			__( 'Serial numbers', 'ubac-serials' ),
-			__( 'Serial numbers', 'ubac-serials' ),
+			__( 'Serial numbers', 'dahuconcept-serial-numbers' ),
+			__( 'Serial numbers', 'dahuconcept-serial-numbers' ),
 			self::CAPABILITY,
 			self::SLUG,
 			array( 'Ubac_Serials_Admin_Serials', 'render' ),
@@ -98,8 +98,8 @@ class Ubac_Serials_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Serial numbers', 'ubac-serials' ),
-			__( 'All serial numbers', 'ubac-serials' ),
+			__( 'Serial numbers', 'dahuconcept-serial-numbers' ),
+			__( 'All serial numbers', 'dahuconcept-serial-numbers' ),
 			self::CAPABILITY,
 			self::SLUG,
 			array( 'Ubac_Serials_Admin_Serials', 'render' )
@@ -107,8 +107,8 @@ class Ubac_Serials_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Consignments', 'ubac-serials' ),
-			__( 'Consignments', 'ubac-serials' ),
+			__( 'Consignments', 'dahuconcept-serial-numbers' ),
+			__( 'Consignments', 'dahuconcept-serial-numbers' ),
 			self::CAPABILITY,
 			self::SLUG . '-consignments',
 			array( 'Ubac_Serials_Admin_Consignments', 'render' )
@@ -116,8 +116,8 @@ class Ubac_Serials_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Stock', 'ubac-serials' ),
-			__( 'Stock', 'ubac-serials' ),
+			__( 'Stock', 'dahuconcept-serial-numbers' ),
+			__( 'Stock', 'dahuconcept-serial-numbers' ),
 			self::CAPABILITY,
 			self::SLUG . '-stock',
 			array( 'Ubac_Serials_Admin_Stock', 'render' )
@@ -125,8 +125,8 @@ class Ubac_Serials_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Workshop posts', 'ubac-serials' ),
-			__( 'Workshop posts', 'ubac-serials' ),
+			__( 'Workshop posts', 'dahuconcept-serial-numbers' ),
+			__( 'Workshop posts', 'dahuconcept-serial-numbers' ),
 			// Higher than the rest, deliberately: a workshop post is a
 			// credential for a page reachable without a WordPress session,
 			// which is a different kind of thing from shop data.
@@ -137,8 +137,8 @@ class Ubac_Serials_Admin {
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Settings', 'ubac-serials' ),
-			__( 'Settings', 'ubac-serials' ),
+			__( 'Settings', 'dahuconcept-serial-numbers' ),
+			__( 'Settings', 'dahuconcept-serial-numbers' ),
 			'manage_options',
 			self::SLUG . '-settings',
 			array( 'Ubac_Serials_Admin_Settings', 'render' )
@@ -260,7 +260,7 @@ class Ubac_Serials_Admin {
 
 		self::notice(
 			'error',
-			__( 'The plugin’s database tables are missing. Deactivating and reactivating the plugin creates them.', 'ubac-serials' )
+			__( 'The plugin’s database tables are missing. Deactivating and reactivating the plugin creates them.', 'dahuconcept-serial-numbers' )
 		);
 
 		return true;

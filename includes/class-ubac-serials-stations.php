@@ -61,7 +61,7 @@ class Ubac_Serials_Stations {
 		if ( '' === $login ) {
 			return new WP_Error(
 				'ubac_serials_station_no_login',
-				__( 'A login is required.', 'ubac-serials' )
+				__( 'A login is required.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -70,7 +70,7 @@ class Ubac_Serials_Stations {
 				'ubac_serials_station_weak_password',
 				sprintf(
 					/* translators: %d: minimum number of characters. */
-					__( 'The password must be at least %d characters long.', 'ubac-serials' ),
+					__( 'The password must be at least %d characters long.', 'dahuconcept-serial-numbers' ),
 					self::MIN_PASSWORD_LENGTH
 				)
 			);
@@ -81,7 +81,7 @@ class Ubac_Serials_Stations {
 				'ubac_serials_station_exists',
 				sprintf(
 					/* translators: %s: login. */
-					__( 'The login “%s” is already taken.', 'ubac-serials' ),
+					__( 'The login “%s” is already taken.', 'dahuconcept-serial-numbers' ),
 					$login
 				)
 			);
@@ -102,7 +102,7 @@ class Ubac_Serials_Stations {
 		if ( ! $inserted ) {
 			return new WP_Error(
 				'ubac_serials_station_insert_failed',
-				__( 'The workshop post could not be created.', 'ubac-serials' )
+				__( 'The workshop post could not be created.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -132,7 +132,7 @@ class Ubac_Serials_Stations {
 		if ( ! self::get( $station_id ) ) {
 			return new WP_Error(
 				'ubac_serials_station_unknown',
-				__( 'Unknown workshop post.', 'ubac-serials' )
+				__( 'Unknown workshop post.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -141,7 +141,7 @@ class Ubac_Serials_Stations {
 				'ubac_serials_station_weak_password',
 				sprintf(
 					/* translators: %d: minimum number of characters. */
-					__( 'The password must be at least %d characters long.', 'ubac-serials' ),
+					__( 'The password must be at least %d characters long.', 'dahuconcept-serial-numbers' ),
 					self::MIN_PASSWORD_LENGTH
 				)
 			);
@@ -181,7 +181,7 @@ class Ubac_Serials_Stations {
 		if ( ! self::get( $station_id ) ) {
 			return new WP_Error(
 				'ubac_serials_station_unknown',
-				__( 'Unknown workshop post.', 'ubac-serials' )
+				__( 'Unknown workshop post.', 'dahuconcept-serial-numbers' )
 			);
 		}
 

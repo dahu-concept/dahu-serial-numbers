@@ -436,7 +436,7 @@ class Ubac_Serials_Manager {
 		if ( '' === $serial ) {
 			return new WP_Error(
 				'ubac_serials_empty_serial',
-				__( 'The serial number is empty or unreadable.', 'ubac-serials' )
+				__( 'The serial number is empty or unreadable.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -445,7 +445,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_too_long',
 				sprintf(
 					/* translators: 1: maximum number of characters, 2: serial number. */
-					__( 'Serial number longer than %1$d characters: %2$s', 'ubac-serials' ),
+					__( 'Serial number longer than %1$d characters: %2$s', 'dahuconcept-serial-numbers' ),
 					Ubac_Serials_Format::MAX_LENGTH,
 					$serial
 				)
@@ -457,7 +457,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_duplicate',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s is already on file.', 'ubac-serials' ),
+					__( 'Serial number %s is already on file.', 'dahuconcept-serial-numbers' ),
 					$serial
 				),
 				array( 'serial' => $serial )
@@ -471,7 +471,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_invalid_status',
 				sprintf(
 					/* translators: %s: status key. */
-					__( 'Unknown status: %s', 'ubac-serials' ),
+					__( 'Unknown status: %s', 'dahuconcept-serial-numbers' ),
 					$status
 				)
 			);
@@ -511,7 +511,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_insert_failed',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s could not be filed.', 'ubac-serials' ),
+					__( 'Serial number %s could not be filed.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -675,7 +675,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'ubac-serials' ),
+					__( 'Unknown serial number: %s', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -686,7 +686,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_invalid_status',
 				sprintf(
 					/* translators: %s: status key. */
-					__( 'Unknown status: %s', 'ubac-serials' ),
+					__( 'Unknown status: %s', 'dahuconcept-serial-numbers' ),
 					$to
 				)
 			);
@@ -699,7 +699,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_illegal_transition',
 				sprintf(
 					/* translators: 1: current status label, 2: wanted status label. */
-					__( 'Moving from “%1$s” to “%2$s” is not allowed.', 'ubac-serials' ),
+					__( 'Moving from “%1$s” to “%2$s” is not allowed.', 'dahuconcept-serial-numbers' ),
 					Ubac_Serials_Statuses::label( $from ),
 					Ubac_Serials_Statuses::label( $to )
 				),
@@ -754,7 +754,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s could not be updated.', 'ubac-serials' ),
+					__( 'Serial number %s could not be updated.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -847,7 +847,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'ubac-serials' ),
+					__( 'Unknown serial number: %s', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -859,7 +859,7 @@ class Ubac_Serials_Manager {
 		if ( $to <= 0 ) {
 			return new WP_Error(
 				'ubac_serials_invalid_product',
-				__( 'A destination product is required.', 'ubac-serials' )
+				__( 'A destination product is required.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -870,7 +870,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_no_product',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s is filed under no product, so there is nothing to correct.', 'ubac-serials' ),
+					__( 'Serial number %s is filed under no product, so there is nothing to correct.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -881,7 +881,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_same_product',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s is already filed under that product.', 'ubac-serials' ),
+					__( 'Serial number %s is already filed under that product.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -905,7 +905,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_not_in_stock',
 				sprintf(
 					/* translators: 1: serial number, 2: status label. */
-					__( 'Serial number %1$s is “%2$s”, so its product is what an order or a case says it is. Only a unit in stock can be re-filed.', 'ubac-serials' ),
+					__( 'Serial number %1$s is “%2$s”, so its product is what an order or a case says it is. Only a unit in stock can be re-filed.', 'dahuconcept-serial-numbers' ),
 					$serial,
 					Ubac_Serials_Statuses::label( $status )
 				)
@@ -917,7 +917,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_attached',
 				sprintf(
 					/* translators: 1: serial number, 2: order number. */
-					__( 'Serial number %1$s still carries order #%2$d. Detach it before re-filing it.', 'ubac-serials' ),
+					__( 'Serial number %1$s still carries order #%2$d. Detach it before re-filing it.', 'dahuconcept-serial-numbers' ),
 					$serial,
 					(int) $row['order_id']
 				)
@@ -930,7 +930,7 @@ class Ubac_Serials_Manager {
 					'ubac_serials_converge_line',
 					sprintf(
 						/* translators: %s: serial number. */
-						__( 'Serial number %s does not belong to the order line this correction names.', 'ubac-serials' ),
+						__( 'Serial number %s does not belong to the order line this correction names.', 'dahuconcept-serial-numbers' ),
 						$serial
 					)
 				);
@@ -950,7 +950,7 @@ class Ubac_Serials_Manager {
 					'ubac_serials_converge_elsewhere',
 					sprintf(
 						/* translators: %s: serial number. */
-						__( 'Serial number %s has left stock: the only product it can be re-filed under is the one its own order line names.', 'ubac-serials' ),
+						__( 'Serial number %s has left stock: the only product it can be re-filed under is the one its own order line names.', 'dahuconcept-serial-numbers' ),
 						$serial
 					)
 				);
@@ -989,7 +989,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s could not be re-filed — it changed while this was being prepared.', 'ubac-serials' ),
+					__( 'Serial number %s could not be re-filed — it changed while this was being prepared.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -1115,7 +1115,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'ubac-serials' ),
+					__( 'Unknown serial number: %s', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -1137,7 +1137,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'The check on serial number %s could not be recorded.', 'ubac-serials' ),
+					__( 'The check on serial number %s could not be recorded.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -1173,7 +1173,7 @@ class Ubac_Serials_Manager {
 		if ( '' === $serial || $order_id <= 0 ) {
 			return new WP_Error(
 				'ubac_serials_invalid_attach',
-				__( 'A serial number and an order are both required.', 'ubac-serials' )
+				__( 'A serial number and an order are both required.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -1184,7 +1184,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'ubac-serials' ),
+					__( 'Unknown serial number: %s', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -1195,7 +1195,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_already_attached',
 				sprintf(
 					/* translators: %d: order number. */
-					__( 'Already attached to order #%d — left as it is.', 'ubac-serials' ),
+					__( 'Already attached to order #%d — left as it is.', 'dahuconcept-serial-numbers' ),
 					(int) $row['order_id']
 				),
 				array( 'existing_order_id' => (int) $row['order_id'] )
@@ -1218,7 +1218,7 @@ class Ubac_Serials_Manager {
 				'ubac_serials_update_failed',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s could not be attached.', 'ubac-serials' ),
+					__( 'Serial number %s could not be attached.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);

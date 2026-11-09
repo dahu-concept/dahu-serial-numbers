@@ -49,8 +49,15 @@ function ubac_serials_uninstall_site() {
 	// they are deleted here — and the welcome screen and the guided tour
 	// would then stay silent for good, with nothing on screen to explain why.
 	delete_option( 'ubac_welcome_seen_ubac-serials' );
+	// Les memes clefs sous le nouveau slug : elle est construite au runtime
+	// a partir du slug, donc elle a change avec lui. Sans ces trois lignes,
+	// une mise a jour depuis la version Ubac laisse des orphelines que plus
+	// rien ne nomme.
+	delete_option( 'ubac_welcome_seen_dahuconcept-serial-numbers' );
 	delete_option( 'ubac_welcome_pending_ubac-serials' );
+	delete_option( 'ubac_welcome_pending_dahuconcept-serial-numbers' );
 	delete_option( 'ubac_welcome_tour_ubac-serials' );
+	delete_option( 'ubac_welcome_tour_dahuconcept-serial-numbers' );
 
 	global $wpdb;
 

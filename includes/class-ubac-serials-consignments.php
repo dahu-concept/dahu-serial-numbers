@@ -168,9 +168,9 @@ class Ubac_Serials_Consignments {
 	public static function status_labels() {
 
 		return array(
-			self::OPEN      => __( 'Open', 'ubac-serials' ),
-			self::CLOSED    => __( 'Closed', 'ubac-serials' ),
-			self::CANCELLED => __( 'Cancelled', 'ubac-serials' ),
+			self::OPEN      => __( 'Open', 'dahuconcept-serial-numbers' ),
+			self::CLOSED    => __( 'Closed', 'dahuconcept-serial-numbers' ),
+			self::CANCELLED => __( 'Cancelled', 'dahuconcept-serial-numbers' ),
 		);
 	}
 
@@ -182,8 +182,8 @@ class Ubac_Serials_Consignments {
 	public static function direction_labels() {
 
 		return array(
-			self::OUT => __( 'Outbound', 'ubac-serials' ),
-			self::IN  => __( 'Inbound', 'ubac-serials' ),
+			self::OUT => __( 'Outbound', 'dahuconcept-serial-numbers' ),
+			self::IN  => __( 'Inbound', 'dahuconcept-serial-numbers' ),
 		);
 	}
 
@@ -221,7 +221,7 @@ class Ubac_Serials_Consignments {
 		if ( self::OUT !== $direction && self::IN !== $direction ) {
 			return new WP_Error(
 				'ubac_serials_bad_direction',
-				__( 'A consignment is either outbound or inbound.', 'ubac-serials' ),
+				__( 'A consignment is either outbound or inbound.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -249,7 +249,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $inserted ) {
 			return new WP_Error(
 				'ubac_serials_consignment_not_opened',
-				__( 'The consignment could not be opened.', 'ubac-serials' ),
+				__( 'The consignment could not be opened.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -276,7 +276,7 @@ class Ubac_Serials_Consignments {
 
 			return new WP_Error(
 				'ubac_serials_consignment_not_named',
-				__( 'The consignment could not be given a reference, so it was not opened.', 'ubac-serials' ),
+				__( 'The consignment could not be given a reference, so it was not opened.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -357,7 +357,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $row ) {
 			return new WP_Error(
 				'ubac_serials_consignment_unknown',
-				__( 'No such consignment.', 'ubac-serials' ),
+				__( 'No such consignment.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -365,7 +365,7 @@ class Ubac_Serials_Consignments {
 		if ( self::OPEN !== $row['status'] ) {
 			return new WP_Error(
 				'ubac_serials_consignment_closed',
-				__( 'This consignment is no longer open, so nothing can be added to it.', 'ubac-serials' ),
+				__( 'This consignment is no longer open, so nothing can be added to it.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -413,7 +413,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_serial_unknown',
 				sprintf(
 					/* translators: %s: comma-separated serial numbers. */
-					__( 'Not a serial number on this site: %s', 'ubac-serials' ),
+					__( 'Not a serial number on this site: %s', 'dahuconcept-serial-numbers' ),
 					implode( ', ', $unknown )
 				),
 				array(
@@ -428,7 +428,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_serial_in_open_consignment',
 				sprintf(
 					/* translators: 1: serial number, 2: consignment reference. */
-					__( '%1$s is already in open consignment %2$s.', 'ubac-serials' ),
+					__( '%1$s is already in open consignment %2$s.', 'dahuconcept-serial-numbers' ),
 					(string) array_key_first( $taken ),
 					(string) reset( $taken )
 				),
@@ -497,7 +497,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $row ) {
 			return new WP_Error(
 				'ubac_serials_consignment_unknown',
-				__( 'No such consignment.', 'ubac-serials' ),
+				__( 'No such consignment.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -505,7 +505,7 @@ class Ubac_Serials_Consignments {
 		if ( self::OPEN !== $row['status'] ) {
 			return new WP_Error(
 				'ubac_serials_consignment_closed',
-				__( 'This consignment is no longer open, so nothing can be taken out of it.', 'ubac-serials' ),
+				__( 'This consignment is no longer open, so nothing can be taken out of it.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -567,7 +567,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $row ) {
 			return new WP_Error(
 				'ubac_serials_consignment_unknown',
-				__( 'No such consignment.', 'ubac-serials' ),
+				__( 'No such consignment.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -577,7 +577,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_consignment_already_closed',
 				sprintf(
 					/* translators: %s: consignment reference. */
-					__( 'Consignment %s is already closed.', 'ubac-serials' ),
+					__( 'Consignment %s is already closed.', 'dahuconcept-serial-numbers' ),
 					(string) $row['reference']
 				),
 				array( 'status' => 409 )
@@ -589,7 +589,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_consignment_cancelled',
 				sprintf(
 					/* translators: %s: consignment reference. */
-					__( 'Consignment %s was cancelled and cannot be closed.', 'ubac-serials' ),
+					__( 'Consignment %s was cancelled and cannot be closed.', 'dahuconcept-serial-numbers' ),
 					(string) $row['reference']
 				),
 				array( 'status' => 409 )
@@ -650,7 +650,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_consignment_not_closed',
 				sprintf(
 					/* translators: %s: consignment reference. */
-					__( 'Consignment %s could not be closed.', 'ubac-serials' ),
+					__( 'Consignment %s could not be closed.', 'dahuconcept-serial-numbers' ),
 					(string) $row['reference']
 				),
 				array( 'status' => 500 )
@@ -708,7 +708,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $row ) {
 			return new WP_Error(
 				'ubac_serials_consignment_unknown',
-				__( 'No such consignment.', 'ubac-serials' ),
+				__( 'No such consignment.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -718,7 +718,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_consignment_not_closed_yet',
 				sprintf(
 					/* translators: %s: consignment reference. */
-					__( 'Consignment %s is not closed. Add the tracking number when closing it.', 'ubac-serials' ),
+					__( 'Consignment %s is not closed. Add the tracking number when closing it.', 'dahuconcept-serial-numbers' ),
 					(string) $row['reference']
 				),
 				array( 'status' => 409 )
@@ -731,7 +731,7 @@ class Ubac_Serials_Consignments {
 		if ( $foreign ) {
 			return new WP_Error(
 				'ubac_serials_amend_only_tracking',
-				__( 'Only the carrier and the tracking number can be changed on a closed consignment.', 'ubac-serials' ),
+				__( 'Only the carrier and the tracking number can be changed on a closed consignment.', 'dahuconcept-serial-numbers' ),
 				array(
 					'status' => 400,
 					'fields' => array_values( array_map( 'strval', $foreign ) ),
@@ -750,7 +750,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $update ) {
 			return new WP_Error(
 				'ubac_serials_amend_nothing',
-				__( 'Give a carrier, a tracking number, or both.', 'ubac-serials' ),
+				__( 'Give a carrier, a tracking number, or both.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -765,7 +765,7 @@ class Ubac_Serials_Consignments {
 		if ( false === $written ) {
 			return new WP_Error(
 				'ubac_serials_tracking_not_written',
-				__( 'The tracking number could not be recorded.', 'ubac-serials' ),
+				__( 'The tracking number could not be recorded.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -814,7 +814,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $row ) {
 			return new WP_Error(
 				'ubac_serials_consignment_unknown',
-				__( 'No such consignment.', 'ubac-serials' ),
+				__( 'No such consignment.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -822,7 +822,7 @@ class Ubac_Serials_Consignments {
 		if ( self::OPEN !== $row['status'] ) {
 			return new WP_Error(
 				'ubac_serials_consignment_closed',
-				__( 'This consignment is no longer open, so its parcel cannot be measured.', 'ubac-serials' ),
+				__( 'This consignment is no longer open, so its parcel cannot be measured.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -844,7 +844,7 @@ class Ubac_Serials_Consignments {
 		if ( false === $written ) {
 			return new WP_Error(
 				'ubac_serials_parcel_not_written',
-				__( 'The parcel’s measurements could not be recorded.', 'ubac-serials' ),
+				__( 'The parcel’s measurements could not be recorded.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -898,7 +898,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_unit_changed',
 				sprintf(
 					/* translators: 1: unit already on file, 2: the shop's current unit. */
-					__( 'This parcel was already measured in %1$s and the shop now uses %2$s. Set the shop back, or clear the measurements already recorded, rather than mixing two units on one parcel.', 'ubac-serials' ),
+					__( 'This parcel was already measured in %1$s and the shop now uses %2$s. Set the shop back, or clear the measurements already recorded, rather than mixing two units on one parcel.', 'dahuconcept-serial-numbers' ),
 					(string) $row[ $column ],
 					$now
 				),
@@ -987,7 +987,7 @@ class Ubac_Serials_Consignments {
 		if ( isset( $row['weight'] ) && null !== $row['weight'] ) {
 			$parts[] = sprintf(
 				/* translators: 1: weight, 2: unit. */
-				_x( '%1$s %2$s', 'parcel weight', 'ubac-serials' ),
+				_x( '%1$s %2$s', 'parcel weight', 'dahuconcept-serial-numbers' ),
 				number_format_i18n( (float) $row['weight'], 3 ),
 				(string) $row['weight_unit']
 			);
@@ -1004,7 +1004,7 @@ class Ubac_Serials_Consignments {
 		if ( $sides ) {
 			$parts[] = sprintf(
 				/* translators: 1: dimensions joined by a multiplication sign, 2: unit. */
-				_x( '%1$s %2$s', 'parcel dimensions', 'ubac-serials' ),
+				_x( '%1$s %2$s', 'parcel dimensions', 'dahuconcept-serial-numbers' ),
 				implode( ' × ', $sides ),
 				(string) $row['dimension_unit']
 			);
@@ -1035,7 +1035,7 @@ class Ubac_Serials_Consignments {
 		if ( ! $row ) {
 			return new WP_Error(
 				'ubac_serials_consignment_unknown',
-				__( 'No such consignment.', 'ubac-serials' ),
+				__( 'No such consignment.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -1043,7 +1043,7 @@ class Ubac_Serials_Consignments {
 		if ( self::CLOSED === $row['status'] ) {
 			return new WP_Error(
 				'ubac_serials_consignment_already_closed',
-				__( 'A closed consignment cannot be cancelled: the parcel has gone.', 'ubac-serials' ),
+				__( 'A closed consignment cannot be cancelled: the parcel has gone.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -1073,7 +1073,7 @@ class Ubac_Serials_Consignments {
 				'ubac_serials_consignment_not_cancelled',
 				sprintf(
 					/* translators: %s: consignment reference. */
-					__( 'Consignment %s could not be cancelled.', 'ubac-serials' ),
+					__( 'Consignment %s could not be cancelled.', 'dahuconcept-serial-numbers' ),
 					(string) $row['reference']
 				),
 				array( 'status' => 500 )

@@ -401,7 +401,7 @@ class Ubac_Serials_Rest {
 		if ( ! $item instanceof WC_Order_Item_Product ) {
 			return new WP_Error(
 				'ubac_serials_item_not_found',
-				__( 'That order line cannot carry a serial number.', 'ubac-serials' ),
+				__( 'That order line cannot carry a serial number.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -411,7 +411,7 @@ class Ubac_Serials_Rest {
 		if ( '' === $serial ) {
 			return new WP_Error(
 				'ubac_serials_empty_serial',
-				__( 'The serial number is empty or unreadable.', 'ubac-serials' ),
+				__( 'The serial number is empty or unreadable.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -439,7 +439,7 @@ class Ubac_Serials_Rest {
 						'That line is for %d unit and already has its serial number.',
 						'That line is for %d units and already has all of them.',
 						(int) $item->get_quantity(),
-						'ubac-serials'
+						'dahuconcept-serial-numbers'
 					),
 					(int) $item->get_quantity()
 				),
@@ -454,7 +454,7 @@ class Ubac_Serials_Rest {
 				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'ubac-serials' ),
+					__( 'Unknown serial number: %s', 'dahuconcept-serial-numbers' ),
 					$serial
 				),
 				array( 'status' => 404 )
@@ -473,12 +473,12 @@ class Ubac_Serials_Rest {
 				$same_order
 					? sprintf(
 						/* translators: %s: serial number. */
-						__( 'Serial number %s is already on this order.', 'ubac-serials' ),
+						__( 'Serial number %s is already on this order.', 'dahuconcept-serial-numbers' ),
 						$serial
 					)
 					: sprintf(
 						/* translators: %s: serial number. */
-						__( 'Serial number %s is on another order.', 'ubac-serials' ),
+						__( 'Serial number %s is on another order.', 'dahuconcept-serial-numbers' ),
 						$serial
 					),
 				array(
@@ -493,7 +493,7 @@ class Ubac_Serials_Rest {
 				'ubac_serials_wrong_status',
 				sprintf(
 					/* translators: 1: serial number, 2: current status label. */
-					__( 'Serial number %1$s is not in stock — it is currently “%2$s”.', 'ubac-serials' ),
+					__( 'Serial number %1$s is not in stock — it is currently “%2$s”.', 'dahuconcept-serial-numbers' ),
 					$serial,
 					Ubac_Serials_Statuses::label( (string) $row['status'] )
 				),
@@ -509,7 +509,7 @@ class Ubac_Serials_Rest {
 		// would be refusing a box that is correct and a mapping that is not.
 		// It says so, and lets the person decide.
 		if ( ! empty( $row['product_id'] ) && Ubac_Serials_Products::resolve( (int) $row['product_id'] ) !== Ubac_Serials_Products::resolve( (int) $line_product_id ) ) {
-			$warning = __( 'This serial number is on file under a different product from this order line. Check before carrying on.', 'ubac-serials' );
+			$warning = __( 'This serial number is on file under a different product from this order line. Check before carrying on.', 'dahuconcept-serial-numbers' );
 		}
 
 		$assigned = Ubac_Serials_Manager::transition(
@@ -595,7 +595,7 @@ class Ubac_Serials_Rest {
 				'ubac_serials_not_on_this_order',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Serial number %s is not on this order.', 'ubac-serials' ),
+					__( 'Serial number %s is not on this order.', 'dahuconcept-serial-numbers' ),
 					$serial
 				),
 				array( 'status' => 404 )
@@ -684,7 +684,7 @@ class Ubac_Serials_Rest {
 		if ( ! empty( $result['unregistered'] ) ) {
 			$payload['warning'] = sprintf(
 				/* translators: %s: comma-separated serial numbers. */
-				__( 'These units could NOT be recorded in the parcel and did not ship: %s. Take them out of the box.', 'ubac-serials' ),
+				__( 'These units could NOT be recorded in the parcel and did not ship: %s. Take them out of the box.', 'dahuconcept-serial-numbers' ),
 				implode( ', ', $result['unregistered'] )
 			);
 		}
@@ -696,7 +696,7 @@ class Ubac_Serials_Rest {
 		if ( '' !== $result['label_error'] ) {
 			$payload['warning'] = sprintf(
 				/* translators: %s: the carrier's error message. */
-				__( 'Recorded as shipped, but the carrier could not create the label: %s', 'ubac-serials' ),
+				__( 'Recorded as shipped, but the carrier could not create the label: %s', 'dahuconcept-serial-numbers' ),
 				$result['label_error']
 			);
 		}
@@ -739,7 +739,7 @@ class Ubac_Serials_Rest {
 		if ( ! $args['order_id'] && '' === $args['tracking'] && '' === $args['reference'] && '' === $args['serial'] ) {
 			return new WP_Error(
 				'ubac_serials_consignments_unscoped',
-				__( 'Say which parcel you are looking for: an order, a tracking number, a reference or a serial number.', 'ubac-serials' ),
+				__( 'Say which parcel you are looking for: an order, a tracking number, a reference or a serial number.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -778,7 +778,7 @@ class Ubac_Serials_Rest {
 		if ( ! $consignment ) {
 			return new WP_Error(
 				'ubac_serials_consignment_unknown',
-				__( 'No such consignment.', 'ubac-serials' ),
+				__( 'No such consignment.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -850,7 +850,7 @@ class Ubac_Serials_Rest {
 				'ubac_serials_not_found',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'Unknown serial number: %s', 'ubac-serials' ),
+					__( 'Unknown serial number: %s', 'dahuconcept-serial-numbers' ),
 					$serial
 				),
 				array( 'status' => 404 )
@@ -974,7 +974,7 @@ class Ubac_Serials_Rest {
 				'ubac_serials_unknown_status',
 				sprintf(
 					/* translators: %s: status key. */
-					__( 'Unknown order status: %s', 'ubac-serials' ),
+					__( 'Unknown order status: %s', 'dahuconcept-serial-numbers' ),
 					$status
 				),
 				array( 'status' => 400 )
@@ -997,7 +997,7 @@ class Ubac_Serials_Rest {
 		if ( ! $order instanceof WC_Order ) {
 			return new WP_Error(
 				'ubac_serials_order_not_found',
-				__( 'Order not found.', 'ubac-serials' ),
+				__( 'Order not found.', 'dahuconcept-serial-numbers' ),
 				array( 'status' => 404 )
 			);
 		}

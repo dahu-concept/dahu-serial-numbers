@@ -1,4 +1,4 @@
-# Ubac Serial Numbers
+# DahuConcept Serial Numbers
 
 Per-unit traceability for WooCommerce. One row per physical unit you ship, a
 lifecycle that refuses the moves that make no sense, an append-only history,
@@ -193,7 +193,7 @@ Sendcloud, a freight forwarder, a courier who takes a CSV once a day.
 ```php
 <?php
 /**
- * Plugin Name: My carrier for Ubac Serial Numbers
+ * Plugin Name: My carrier for DahuConcept Serial Numbers
  */
 
 // 1. Create the label when the bench closes the parcel, and hand back the

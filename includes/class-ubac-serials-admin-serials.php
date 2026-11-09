@@ -25,15 +25,15 @@ class Ubac_Serials_Admin_Serials {
 	public static function render() {
 
 		if ( ! current_user_can( Ubac_Serials_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to view serial numbers.', 'ubac-serials' ) );
+			wp_die( esc_html__( 'You do not have permission to view serial numbers.', 'dahuconcept-serial-numbers' ) );
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only filter on a capability-checked screen.
 		$one = isset( $_GET['serial'] ) ? Ubac_Serials_Format::normalise( wp_unslash( $_GET['serial'] ) ) : '';
 
 		Ubac_Serials_Admin::open(
-			__( 'Serial numbers', 'ubac-serials' ),
-			__( 'Ubac Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been.', 'ubac-serials' )
+			__( 'Serial numbers', 'dahuconcept-serial-numbers' ),
+			__( 'DahuConcept Serial Numbers keeps one row per physical unit you ship, with the history of everywhere it has been.', 'dahuconcept-serial-numbers' )
 		);
 
 		self::render_move_notice();
@@ -113,18 +113,18 @@ class Ubac_Serials_Admin_Serials {
 		<form method="get" class="ubac-serials__filters">
 			<input type="hidden" name="page" value="<?php echo esc_attr( Ubac_Serials_Admin::SLUG ); ?>" />
 
-			<label class="screen-reader-text" for="ubac-sn-search"><?php esc_html_e( 'Search a serial number', 'ubac-serials' ); ?></label>
+			<label class="screen-reader-text" for="ubac-sn-search"><?php esc_html_e( 'Search a serial number', 'dahuconcept-serial-numbers' ); ?></label>
 			<input
 				type="search"
 				id="ubac-sn-search"
 				name="s"
 				value="<?php echo esc_attr( $filters['search'] ); ?>"
-				placeholder="<?php esc_attr_e( 'Serial number', 'ubac-serials' ); ?>"
+				placeholder="<?php esc_attr_e( 'Serial number', 'dahuconcept-serial-numbers' ); ?>"
 			/>
 
-			<label class="screen-reader-text" for="ubac-sn-status"><?php esc_html_e( 'Status', 'ubac-serials' ); ?></label>
+			<label class="screen-reader-text" for="ubac-sn-status"><?php esc_html_e( 'Status', 'dahuconcept-serial-numbers' ); ?></label>
 			<select id="ubac-sn-status" name="status">
-				<option value=""><?php esc_html_e( 'Any status', 'ubac-serials' ); ?></option>
+				<option value=""><?php esc_html_e( 'Any status', 'dahuconcept-serial-numbers' ); ?></option>
 				<?php foreach ( Ubac_Serials_Statuses::labels() as $key => $label ) : ?>
 					<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $filters['status'], $key ); ?>>
 						<?php echo esc_html( $label ); ?>
@@ -132,16 +132,16 @@ class Ubac_Serials_Admin_Serials {
 				<?php endforeach; ?>
 			</select>
 
-			<label class="screen-reader-text" for="ubac-sn-batch"><?php esc_html_e( 'Supplier batch', 'ubac-serials' ); ?></label>
+			<label class="screen-reader-text" for="ubac-sn-batch"><?php esc_html_e( 'Supplier batch', 'dahuconcept-serial-numbers' ); ?></label>
 			<input
 				type="text"
 				id="ubac-sn-batch"
 				name="batch"
 				value="<?php echo esc_attr( $filters['batch'] ); ?>"
-				placeholder="<?php esc_attr_e( 'Supplier batch', 'ubac-serials' ); ?>"
+				placeholder="<?php esc_attr_e( 'Supplier batch', 'dahuconcept-serial-numbers' ); ?>"
 			/>
 
-			<?php submit_button( __( 'Filter', 'ubac-serials' ), 'secondary', '', false ); ?>
+			<?php submit_button( __( 'Filter', 'dahuconcept-serial-numbers' ), 'secondary', '', false ); ?>
 		</form>
 		</div>
 		<?php
@@ -170,13 +170,13 @@ class Ubac_Serials_Admin_Serials {
 		<table class="widefat striped ubac-serials__table">
 			<thead>
 				<tr>
-					<th scope="col"><?php esc_html_e( 'Serial number', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Status', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Product', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Supplier batch', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Order', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Made', 'ubac-serials' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Last movement', 'ubac-serials' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Serial number', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Status', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Product', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Supplier batch', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Order', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Made', 'dahuconcept-serial-numbers' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Last movement', 'dahuconcept-serial-numbers' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -184,12 +184,12 @@ class Ubac_Serials_Admin_Serials {
 				<tr>
 					<td colspan="7">
 						<?php if ( '' !== $filters['search'] || '' !== $filters['status'] || '' !== $filters['batch'] ) : ?>
-							<p class="ubac-ui-hint"><?php esc_html_e( 'Nothing matches those filters.', 'ubac-serials' ); ?></p>
+							<p class="ubac-ui-hint"><?php esc_html_e( 'Nothing matches those filters.', 'dahuconcept-serial-numbers' ); ?></p>
 						<?php else : ?>
-							<p class="ubac-ui-hint"><?php esc_html_e( 'No serial number on file yet. One appears the first time a workshop post scans a unit.', 'ubac-serials' ); ?></p>
+							<p class="ubac-ui-hint"><?php esc_html_e( 'No serial number on file yet. One appears the first time a workshop post scans a unit.', 'dahuconcept-serial-numbers' ); ?></p>
 							<p>
 								<a class="ubac-ui-btn" href="<?php echo esc_url( admin_url( 'admin.php?page=ubac-serials-stations' ) ); ?>">
-									<?php esc_html_e( 'Set up a workshop post', 'ubac-serials' ); ?>
+									<?php esc_html_e( 'Set up a workshop post', 'dahuconcept-serial-numbers' ); ?>
 								</a>
 							</p>
 						<?php endif; ?>
@@ -246,7 +246,7 @@ class Ubac_Serials_Admin_Serials {
 			esc_html(
 				sprintf(
 					/* translators: 1: rows shown, 2: total rows. */
-					__( 'Showing %1$s of %2$s matching units.', 'ubac-serials' ),
+					__( 'Showing %1$s of %2$s matching units.', 'dahuconcept-serial-numbers' ),
 					number_format_i18n( min( self::PER_PAGE, $total - ( ( $filters['page'] - 1 ) * self::PER_PAGE ) ) ),
 					number_format_i18n( $total )
 				)
@@ -298,7 +298,7 @@ class Ubac_Serials_Admin_Serials {
 		printf(
 			'<p><a href="%s">%s</a></p>',
 			esc_url( admin_url( 'admin.php?page=' . Ubac_Serials_Admin::SLUG ) ),
-			esc_html__( '← All serial numbers', 'ubac-serials' )
+			esc_html__( '← All serial numbers', 'dahuconcept-serial-numbers' )
 		);
 
 		if ( ! $row ) {
@@ -306,7 +306,7 @@ class Ubac_Serials_Admin_Serials {
 				'error',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'No unit on file under %s.', 'ubac-serials' ),
+					__( 'No unit on file under %s.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);
@@ -320,14 +320,14 @@ class Ubac_Serials_Admin_Serials {
 		// at page load. A definition table is what WordPress uses for this
 		// everywhere, so it is what this uses.
 		$pairs = array(
-			__( 'Status', 'ubac-serials' )         => Ubac_Serials_Statuses::label( (string) $row['status'] ),
-			__( 'Product', 'ubac-serials' )        => self::product_name( $row ),
-			__( 'Supplier batch', 'ubac-serials' ) => '' !== (string) $row['supplier_order'] ? (string) $row['supplier_order'] : '—',
-			__( 'Supplier name', 'ubac-serials' )  => '' !== (string) $row['supplier_name'] ? (string) $row['supplier_name'] : '—',
-			__( 'Made', 'ubac-serials' )           => self::made( $row ),
-			__( 'Received', 'ubac-serials' )       => Ubac_Serials_Admin::local( $row['received_at'] ),
-			__( 'Last checked', 'ubac-serials' )   => Ubac_Serials_Admin::local( $row['checked_at'] ),
-			__( 'Last movement', 'ubac-serials' )  => Ubac_Serials_Admin::local( $row['updated_at'] ),
+			__( 'Status', 'dahuconcept-serial-numbers' )         => Ubac_Serials_Statuses::label( (string) $row['status'] ),
+			__( 'Product', 'dahuconcept-serial-numbers' )        => self::product_name( $row ),
+			__( 'Supplier batch', 'dahuconcept-serial-numbers' ) => '' !== (string) $row['supplier_order'] ? (string) $row['supplier_order'] : '—',
+			__( 'Supplier name', 'dahuconcept-serial-numbers' )  => '' !== (string) $row['supplier_name'] ? (string) $row['supplier_name'] : '—',
+			__( 'Made', 'dahuconcept-serial-numbers' )           => self::made( $row ),
+			__( 'Received', 'dahuconcept-serial-numbers' )       => Ubac_Serials_Admin::local( $row['received_at'] ),
+			__( 'Last checked', 'dahuconcept-serial-numbers' )   => Ubac_Serials_Admin::local( $row['checked_at'] ),
+			__( 'Last movement', 'dahuconcept-serial-numbers' )  => Ubac_Serials_Admin::local( $row['updated_at'] ),
 		);
 
 		echo '<table class="widefat striped ubac-serials__table"><tbody>';
@@ -342,7 +342,7 @@ class Ubac_Serials_Admin_Serials {
 
 		printf(
 			'<tr><th scope="row">%s</th><td>%s</td></tr>',
-			esc_html__( 'Order', 'ubac-serials' ),
+			esc_html__( 'Order', 'dahuconcept-serial-numbers' ),
 			wp_kses_post( self::order_link( $row ) )
 		);
 
@@ -411,7 +411,7 @@ class Ubac_Serials_Admin_Serials {
 		check_admin_referer( 'ubac-serials-move-' . $serial );
 
 		if ( ! current_user_can( Ubac_Serials_Admin::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to move a unit.', 'ubac-serials' ) );
+			wp_die( esc_html__( 'You do not have permission to move a unit.', 'dahuconcept-serial-numbers' ) );
 		}
 
 		$to   = sanitize_key( wp_unslash( $_POST['ubac_serial_move_to'] ) );
@@ -435,7 +435,7 @@ class Ubac_Serials_Admin_Serials {
 		if ( ! array_key_exists( $to, Ubac_Serials_Statuses::next( (string) $row['status'] ) ) ) {
 			self::$move_error = sprintf(
 				/* translators: 1: current status label, 2: wanted status label. */
-				__( 'A unit cannot go from “%1$s” to “%2$s”. The list on this screen only offers the moves that are allowed, so this one did not come from here.', 'ubac-serials' ),
+				__( 'A unit cannot go from “%1$s” to “%2$s”. The list on this screen only offers the moves that are allowed, so this one did not come from here.', 'dahuconcept-serial-numbers' ),
 				Ubac_Serials_Statuses::label( (string) $row['status'] ),
 				Ubac_Serials_Statuses::label( $to )
 			);
@@ -461,7 +461,7 @@ class Ubac_Serials_Admin_Serials {
 			$to,
 			array(
 				'event' => 'admin_move',
-				'note'  => '' !== $note ? $note : __( 'Moved by hand from the serial numbers screen.', 'ubac-serials' ),
+				'note'  => '' !== $note ? $note : __( 'Moved by hand from the serial numbers screen.', 'dahuconcept-serial-numbers' ),
 			)
 		);
 
@@ -509,7 +509,7 @@ class Ubac_Serials_Admin_Serials {
 			'success',
 			sprintf(
 				/* translators: %s: new status label. */
-				__( 'The unit is now “%s”, and the move is in its history.', 'ubac-serials' ),
+				__( 'The unit is now “%s”, and the move is in its history.', 'dahuconcept-serial-numbers' ),
 				Ubac_Serials_Statuses::label( $moved )
 			)
 		);
@@ -532,7 +532,7 @@ class Ubac_Serials_Admin_Serials {
 
 		$next = Ubac_Serials_Statuses::next( (string) $row['status'] );
 
-		printf( '<h3>%s</h3>', esc_html__( 'Where it can go next', 'ubac-serials' ) );
+		printf( '<h3>%s</h3>', esc_html__( 'Where it can go next', 'dahuconcept-serial-numbers' ) );
 
 		if ( ! $next ) {
 			printf(
@@ -540,7 +540,7 @@ class Ubac_Serials_Admin_Serials {
 				esc_html(
 					sprintf(
 						/* translators: %s: status label. */
-						__( 'Nothing leaves “%s”. That is deliberate: a unit that was replaced or destroyed reappearing elsewhere is either a mistake or a story this history should be able to tell.', 'ubac-serials' ),
+						__( 'Nothing leaves “%s”. That is deliberate: a unit that was replaced or destroyed reappearing elsewhere is either a mistake or a story this history should be able to tell.', 'dahuconcept-serial-numbers' ),
 						Ubac_Serials_Statuses::label( (string) $row['status'] )
 					)
 				)
@@ -561,7 +561,7 @@ class Ubac_Serials_Admin_Serials {
 
 		printf(
 			'<label class="screen-reader-text" for="ubac-serial-move-to">%s</label>',
-			esc_html__( 'New status', 'ubac-serials' )
+			esc_html__( 'New status', 'dahuconcept-serial-numbers' )
 		);
 
 		echo '<select id="ubac-serial-move-to" name="ubac_serial_move_to">';
@@ -578,14 +578,14 @@ class Ubac_Serials_Admin_Serials {
 
 		printf(
 			'<input type="text" name="ubac_serial_move_note" class="regular-text" placeholder="%s">',
-			esc_attr__( 'Why, for the history (optional)', 'ubac-serials' )
+			esc_attr__( 'Why, for the history (optional)', 'dahuconcept-serial-numbers' )
 		);
 
-		submit_button( __( 'Move this unit', 'ubac-serials' ), 'secondary', '', false );
+		submit_button( __( 'Move this unit', 'dahuconcept-serial-numbers' ), 'secondary', '', false );
 
 		printf(
 			'<p class="ubac-serials__hint">%s</p>',
-			esc_html__( 'Every move is recorded in the history below, with who made it and when. Nothing here skips the lifecycle: only the moves the register allows from where this unit is are offered.', 'ubac-serials' )
+			esc_html__( 'Every move is recorded in the history below, with who made it and when. Nothing here skips the lifecycle: only the moves the register allows from where this unit is are offered.', 'dahuconcept-serial-numbers' )
 		);
 
 		echo '</form>';
@@ -618,7 +618,7 @@ class Ubac_Serials_Admin_Serials {
 			esc_html(
 				sprintf(
 					/* translators: %s: wanted status label. */
-					__( 'Nothing leaves “%s”. The unit stays in the register with everything it has already done, and this screen will have no move left to offer it.', 'ubac-serials' ),
+					__( 'Nothing leaves “%s”. The unit stays in the register with everything it has already done, and this screen will have no move left to offer it.', 'dahuconcept-serial-numbers' ),
 					Ubac_Serials_Statuses::label( $to )
 				)
 			)
@@ -627,7 +627,7 @@ class Ubac_Serials_Admin_Serials {
 		submit_button(
 			sprintf(
 				/* translators: %s: wanted status label. */
-				__( 'Yes, move it to “%s”', 'ubac-serials' ),
+				__( 'Yes, move it to “%s”', 'dahuconcept-serial-numbers' ),
 				Ubac_Serials_Statuses::label( $to )
 			),
 			'primary',
@@ -638,7 +638,7 @@ class Ubac_Serials_Admin_Serials {
 		printf(
 			' <a href="%s">%s</a>',
 			esc_url( self::link( (string) $row['serial'] ) ),
-			esc_html__( 'Leave it where it is', 'ubac-serials' )
+			esc_html__( 'Leave it where it is', 'dahuconcept-serial-numbers' )
 		);
 
 		echo '</form>';
@@ -654,23 +654,23 @@ class Ubac_Serials_Admin_Serials {
 
 		$lines = Ubac_Serials_Log::for_serial( $serial, 0 );
 
-		printf( '<h3>%s</h3>', esc_html__( 'History', 'ubac-serials' ) );
+		printf( '<h3>%s</h3>', esc_html__( 'History', 'dahuconcept-serial-numbers' ) );
 
 		printf(
 			'<p class="ubac-serials__hint">%s</p>',
-			esc_html__( 'Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently.', 'ubac-serials' )
+			esc_html__( 'Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently.', 'dahuconcept-serial-numbers' )
 		);
 
 		echo '<table class="widefat striped ubac-serials__table"><thead><tr>';
-		printf( '<th scope="col">%s</th>', esc_html__( 'When', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Event', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Movement', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'By', 'ubac-serials' ) );
-		printf( '<th scope="col">%s</th>', esc_html__( 'Details', 'ubac-serials' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'When', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Event', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Movement', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'By', 'dahuconcept-serial-numbers' ) );
+		printf( '<th scope="col">%s</th>', esc_html__( 'Details', 'dahuconcept-serial-numbers' ) );
 		echo '</tr></thead><tbody>';
 
 		if ( ! $lines ) {
-			printf( '<tr><td colspan="5">%s</td></tr>', esc_html__( 'No history line, which should not happen: filing a unit writes one.', 'ubac-serials' ) );
+			printf( '<tr><td colspan="5">%s</td></tr>', esc_html__( 'No history line, which should not happen: filing a unit writes one.', 'dahuconcept-serial-numbers' ) );
 		}
 
 		foreach ( $lines as $line ) {
@@ -680,7 +680,7 @@ class Ubac_Serials_Admin_Serials {
 				$movement = $line['old_status']
 					? sprintf(
 						/* translators: 1: status before, 2: status after. */
-						__( '%1$s → %2$s', 'ubac-serials' ),
+						__( '%1$s → %2$s', 'dahuconcept-serial-numbers' ),
 						Ubac_Serials_Statuses::label( (string) $line['old_status'] ),
 						Ubac_Serials_Statuses::label( (string) $line['new_status'] )
 					)
@@ -742,7 +742,7 @@ class Ubac_Serials_Admin_Serials {
 			// what it was filed as.
 			return sprintf(
 				/* translators: %d: product id. */
-				__( 'Deleted product #%d', 'ubac-serials' ),
+				__( 'Deleted product #%d', 'dahuconcept-serial-numbers' ),
 				$product_id
 			);
 		}
@@ -769,7 +769,7 @@ class Ubac_Serials_Admin_Serials {
 		if ( ! $order instanceof WC_Order ) {
 			return sprintf(
 				/* translators: %d: order id. */
-				esc_html__( 'Deleted order #%d', 'ubac-serials' ),
+				esc_html__( 'Deleted order #%d', 'dahuconcept-serial-numbers' ),
 				$order_id
 			);
 		}
@@ -805,7 +805,7 @@ class Ubac_Serials_Admin_Serials {
 		// fact nobody recorded.
 		return sprintf(
 			/* translators: 1: month name, 2: year. */
-			__( '%1$s %2$d', 'ubac-serials' ),
+			__( '%1$s %2$d', 'dahuconcept-serial-numbers' ),
 			date_i18n( 'F', mktime( 0, 0, 0, $month, 1, $year ) ),
 			$year
 		);
@@ -825,7 +825,7 @@ class Ubac_Serials_Admin_Serials {
 		if ( $station_id > 0 ) {
 			return sprintf(
 				/* translators: %s: workshop post name. */
-				__( 'Post: %s', 'ubac-serials' ),
+				__( 'Post: %s', 'dahuconcept-serial-numbers' ),
 				Ubac_Serials_Stations::label( $station_id )
 			);
 		}
@@ -835,14 +835,14 @@ class Ubac_Serials_Admin_Serials {
 		if ( $user_id <= 0 ) {
 			// Zero is not a missing value: it says the site did this, on a
 			// schedule or from the command line, with nobody signed in.
-			return __( 'The site', 'ubac-serials' );
+			return __( 'The site', 'dahuconcept-serial-numbers' );
 		}
 
 		$user = get_userdata( $user_id );
 
 		return $user ? $user->display_name : sprintf(
 			/* translators: %d: user id. */
-			__( 'Deleted user #%d', 'ubac-serials' ),
+			__( 'Deleted user #%d', 'dahuconcept-serial-numbers' ),
 			$user_id
 		);
 	}

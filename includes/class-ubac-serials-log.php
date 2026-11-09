@@ -45,7 +45,7 @@ class Ubac_Serials_Log {
 		if ( '' === $serial ) {
 			return new WP_Error(
 				'ubac_serials_log_empty_serial',
-				__( 'Nothing to record: the serial number is empty.', 'ubac-serials' )
+				__( 'Nothing to record: the serial number is empty.', 'dahuconcept-serial-numbers' )
 			);
 		}
 
@@ -70,7 +70,7 @@ class Ubac_Serials_Log {
 				'ubac_serials_log_failed',
 				sprintf(
 					/* translators: %s: serial number. */
-					__( 'The history line for %s could not be written.', 'ubac-serials' ),
+					__( 'The history line for %s could not be written.', 'dahuconcept-serial-numbers' ),
 					$serial
 				)
 			);

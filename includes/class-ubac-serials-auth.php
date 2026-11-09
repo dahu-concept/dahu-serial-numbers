@@ -189,7 +189,7 @@ class Ubac_Serials_Auth {
 						'Too many failed attempts. Try again in %d minute.',
 						'Too many failed attempts. Try again in %d minutes.',
 						(int) ceil( self::lockout_window() / 60 ),
-						'ubac-serials'
+						'dahuconcept-serial-numbers'
 					),
 					(int) ceil( self::lockout_window() / 60 )
 				),

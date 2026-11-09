@@ -1,4 +1,4 @@
-=== Ubac Serial Numbers ===
+=== DahuConcept Serial Numbers ===
 Contributors: dahuconcept
 Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.2
@@ -22,7 +22,7 @@ A batch turns out to be faulty. Which customers have one, and which units are
 still on the shelf? Without serial numbers the answer is everybody who bought
 that product, which is both too many people to write to and not the right ones.
 
-Ubac Serial Numbers answers both, because every unit has a row and every row
+DahuConcept Serial Numbers answers both, because every unit has a row and every row
 has a history.
 
 = The lifecycle =

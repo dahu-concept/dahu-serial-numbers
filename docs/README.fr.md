@@ -1,4 +1,4 @@
-# Ubac Serial Numbers
+# DahuConcept Serial Numbers
 
 La traçabilité à l'unité pour WooCommerce. Une ligne par unité physique
 expédiée, un cycle de vie qui refuse les mouvements qui n'ont pas de sens, un
@@ -198,7 +198,7 @@ jour.
 ```php
 <?php
 /**
- * Plugin Name: Mon transporteur pour Ubac Serial Numbers
+ * Plugin Name: Mon transporteur pour DahuConcept Serial Numbers
  */
 
 // 1. Créer l'étiquette quand le poste ferme le colis, et rendre le numéro de
