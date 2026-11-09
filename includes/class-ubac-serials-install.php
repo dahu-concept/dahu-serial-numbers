@@ -89,6 +89,24 @@ class Ubac_Serials_Install {
 	const OPTION_CONSIGNMENTS_API = 'ubac_serials_consignments_api';
 
 	/**
+	 * Table base name this plugin shipped under before the tables were
+	 * renamed, and the option recording what became of them.
+	 *
+	 * The plugin was released as dahu-serial-numbers, whose six tables were
+	 * named from that slug. The rename to the ubac_ identifiers shipped
+	 * without a migration, so any shop that ran the earlier release still
+	 * holds its units, its history and its consignments in tables no
+	 * shipped code reads. Six tables of traceability data, unreachable, in
+	 * a plugin whose whole purpose is not losing track of a unit.
+	 */
+	const LEGACY_BASE = 'dahu_serial_numbers';
+
+	/**
+	 * Option recording the outcome of the adoption, and nothing else.
+	 */
+	const OPTION_LEGACY = 'ubac_serials_legacy_tables';
+
+	/**
 	 * One row per physical unit.
 	 *
 	 * @return string
@@ -175,6 +193,377 @@ class Ubac_Serials_Install {
 			self::consignments_table(),
 			self::consignment_serials_table(),
 		);
+	}
+
+	/**
+	 * Whether a table exists, by name.
+	 *
+	 * @param string $table Full table name, prefix included.
+	 * @return bool
+	 */
+	private static function table_exists( $table ) {
+
+		global $wpdb;
+
+		$found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema check, not a query on content.
+
+		return $found === $table;
+	}
+
+	/**
+	 * Each table under its former name, mapped to its name today.
+	 *
+	 * The suffixes are taken from the current names rather than written out
+	 * twice: a table added to tables() and forgotten here would be a table
+	 * silently left behind.
+	 *
+	 * Refuses rather than guesses. If a name ever stops starting with the
+	 * current base — a seventh table called something else — substr() would
+	 * cut into the middle of it and hand RENAME a former name this plugin
+	 * never used. An empty map stops the adoption; a fabricated one would
+	 * pull a stranger's table in.
+	 *
+	 * @return array<string,string> Former name => current name.
+	 */
+	private static function legacy_map() {
+
+		global $wpdb;
+
+		$map     = array();
+		$current = $wpdb->prefix . 'ubac_serials';
+
+		foreach ( self::tables() as $table ) {
+			if ( 0 !== strpos( $table, $current ) ) {
+				return array();
+			}
+
+			$suffix         = substr( $table, strlen( $current ) );
+			$legacy         = $wpdb->prefix . self::LEGACY_BASE . $suffix;
+			$map[ $legacy ] = $table;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Whether the release these tables came from is still installed and live.
+	 *
+	 * Two folders are two plugins as far as WordPress is concerned, so both
+	 * can be active at once. Renaming tables out from under a plugin that is
+	 * writing to them, or dropping them at uninstall, would take a shop's
+	 * production data while it is in use — and the checkbox never said that.
+	 *
+	 * Matched on the folder rather than the file: the former release's main
+	 * file name is not something this code should have to remember exactly.
+	 *
+	 * @return bool
+	 */
+	public static function legacy_plugin_active() {
+
+		$actifs = (array) get_option( 'active_plugins', array() );
+
+		if ( is_multisite() ) {
+			$actifs = array_merge( $actifs, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+		}
+
+		foreach ( $actifs as $entree ) {
+			if ( 0 === strpos( (string) $entree, 'dahu-serial-numbers/' ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Record what was decided, and why, in one place.
+	 *
+	 * @param string               $statut Outcome.
+	 * @param array<string,string> $extra  Context for the notice.
+	 * @return void
+	 */
+	private static function record_legacy( $statut, $extra = array() ) {
+
+		update_option( self::OPTION_LEGACY, array_merge( array( 'statut' => $statut ), $extra ), false );
+	}
+
+	/**
+	 * Take over the tables of the earlier release, when it is safe to.
+	 *
+	 * ## Why this is not called from the schema upgrade
+	 *
+	 * It used to be reached only through install(), which maybe_upgrade()
+	 * skips as soon as the stored schema version is current. The sites that
+	 * have these tables are exactly the sites that already ran this plugin,
+	 * so their schema version is already current: the adoption would never
+	 * have fired on a single one of them. It is now called on its own
+	 * condition — the option not yet written — and never on the schema number.
+	 *
+	 * ## All or nothing, and what that costs
+	 *
+	 * A run that moved three tables and refused three would leave a shop
+	 * whose screens show part of a history against unrelated units, joined on
+	 * the serial, with nothing saying so. Every refusal below exists because
+	 * one of those half-states was reachable without any error occurring.
+	 *
+	 * The refusals, each measured and not assumed:
+	 *
+	 * - The former release is still active. Its tables are in use.
+	 * - Fewer than six tables under the former name. An incomplete old set
+	 *   cannot be grafted onto a live one.
+	 * - Any of the six tables in use holds rows — all six are counted, not
+	 *   only the ones with a former twin. Merging two populated sets of
+	 *   serials is not a decision code makes: two rows can carry the same
+	 *   serial with different histories.
+	 * - The former pivot table has no `id` column. dbDelta never alters a
+	 *   PRIMARY KEY, so that table could not be brought up to the current
+	 *   schema after adoption, and the code that reads `id` would fail on data
+	 *   just moved.
+	 * - The former units table holds a duplicate serial, which the current
+	 *   UNIQUE KEY cannot accept and which dbDelta would silently fail to add,
+	 *   leaving the plugin believing uniqueness is enforced.
+	 *
+	 * ## Nothing is dropped
+	 *
+	 * An empty table in the way is renamed aside, not destroyed, so that a
+	 * RENAME refused half way — metadata lock, permissions, tablespace — can
+	 * be put back exactly as it was. The cost is a RENAME; the alternative is
+	 * an irreversible DROP in a function whose whole purpose is not losing
+	 * data. The names set aside are recorded, and uninstall removes them.
+	 *
+	 * @return void
+	 */
+	public static function adopt_legacy_tables() {
+
+		global $wpdb;
+
+		$map = self::legacy_map();
+
+		if ( ! $map ) {
+			return;
+		}
+
+		$legacy = array();
+
+		foreach ( $map as $old => $new ) {
+			if ( self::table_exists( $old ) ) {
+				$legacy[ $old ] = $new;
+			}
+		}
+
+		if ( ! $legacy ) {
+			return;
+		}
+
+		if ( self::legacy_plugin_active() ) {
+			self::record_legacy( 'bloque', array( 'motif' => 'plugin_ancien_actif', 'anciennes' => array_keys( $legacy ) ) );
+			return;
+		}
+
+		if ( count( $legacy ) !== count( $map ) ) {
+			self::record_legacy( 'bloque', array( 'motif' => 'jeu_ancien_incomplet', 'anciennes' => array_keys( $legacy ) ) );
+			return;
+		}
+
+		// Les six en usage, pas seulement celles qui ont une jumelle ancienne.
+		$occupees = array();
+		$a_ecarter = array();
+
+		foreach ( self::tables() as $new ) {
+			if ( ! self::table_exists( $new ) ) {
+				continue;
+			}
+
+			$lignes = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $new ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- counted to decide whether it may be moved aside.
+
+			if ( $lignes > 0 ) {
+				$occupees[] = $new;
+			} else {
+				$a_ecarter[] = $new;
+			}
+		}
+
+		if ( $occupees ) {
+			self::record_legacy( 'bloque', array( 'motif' => 'tables_en_usage_occupees', 'anciennes' => array_keys( $legacy ), 'occupees' => $occupees ) );
+			return;
+		}
+
+		$motif = self::legacy_unfit( $map );
+
+		if ( '' !== $motif ) {
+			self::record_legacy( 'bloque', array( 'motif' => $motif, 'anciennes' => array_keys( $legacy ) ) );
+			return;
+		}
+
+		// --- A partir d ici on ecrit. Chaque pas est annulable. -------------
+
+		$suffixe = '_ecartee_' . gmdate( 'YmdHis' );
+		$faits   = array();
+
+		foreach ( $a_ecarter as $table ) {
+			if ( false === self::rename_table( $table, $table . $suffixe ) ) {
+				self::rollback( $faits );
+				self::record_legacy( 'echec', array( 'motif' => 'ecart_impossible', 'table' => $table, 'anciennes' => array_keys( $legacy ) ) );
+				return;
+			}
+
+			$faits[] = array( $table . $suffixe, $table );
+		}
+
+		foreach ( $legacy as $old => $new ) {
+			if ( false === self::rename_table( $old, $new ) ) {
+				self::rollback( $faits );
+				self::record_legacy( 'echec', array( 'motif' => 'reprise_impossible', 'table' => $old, 'anciennes' => array_keys( $legacy ) ) );
+				return;
+			}
+
+			$faits[] = array( $new, $old );
+		}
+
+		self::record_legacy(
+			'adopte',
+			array(
+				'anciennes' => array_keys( $legacy ),
+				'adoptees'  => array_values( $legacy ),
+				'ecartees'  => array_map(
+					static function ( $t ) use ( $suffixe ) {
+						return $t . $suffixe;
+					},
+					$a_ecarter
+				),
+			)
+		);
+
+		// Le schema de ce qui vient d etre adopte est celui d une version
+		// precedente : dbDelta doit repasser, et le marqueur de version lui
+		// barrerait la route.
+		delete_option( self::OPTION_SCHEMA );
+		self::install();
+	}
+
+	/**
+	 * Why the former tables cannot be adopted, or '' when they can.
+	 *
+	 * Both checks exist because dbDelta cannot repair what they would leave:
+	 * it never alters a PRIMARY KEY, and an index it fails to add leaves no
+	 * error behind.
+	 *
+	 * @param array<string,string> $map Former name => current name.
+	 * @return string
+	 */
+	private static function legacy_unfit( $map ) {
+
+		global $wpdb;
+
+		$pivot_now = self::consignment_serials_table();
+		$units_now = self::serials_table();
+
+		foreach ( $map as $old => $new ) {
+			if ( $new === $pivot_now ) {
+				$colonne = $wpdb->get_var( $wpdb->prepare( 'SHOW COLUMNS FROM %i LIKE %s', $old, 'id' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema check.
+
+				if ( ! $colonne ) {
+					return 'pivot_sans_id';
+				}
+			}
+
+			if ( $new === $units_now ) {
+				$doublons = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ( SELECT serial FROM %i GROUP BY serial HAVING COUNT(*) > 1 ) d', $old ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- schema check.
+
+				if ( $doublons > 0 ) {
+					return 'serials_en_double';
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Rename a table. Rends false on failure, like $wpdb->query().
+	 *
+	 * @param string $de  Current name.
+	 * @param string $vers New name.
+	 * @return mixed
+	 */
+	private static function rename_table( $de, $vers ) {
+
+		global $wpdb;
+
+		return $wpdb->query( $wpdb->prepare( 'RENAME TABLE %i TO %i', $de, $vers ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- table names from this plugin's own schema.
+	}
+
+	/**
+	 * Put back every rename already made, newest first.
+	 *
+	 * Best effort by nature: if the database is refusing renames, it may
+	 * refuse these too. It is recorded either way, which is the difference
+	 * between a shop that knows and a shop that does not.
+	 *
+	 * @param array<int,array{0:string,1:string}> $faits Pairs: current, original.
+	 * @return void
+	 */
+	private static function rollback( $faits ) {
+
+		foreach ( array_reverse( $faits ) as $pas ) {
+			self::rename_table( $pas[0], $pas[1] );
+		}
+	}
+
+	/**
+	 * Say so when traceability data is sitting in tables nothing reads.
+	 *
+	 * Covers every outcome that left data unreachable: a refusal, and a run
+	 * that stopped part way. An adoption that worked needs no notice, and a
+	 * site that never ran the earlier release writes no option at all.
+	 *
+	 * @return void
+	 */
+	public static function legacy_notice() {
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
+
+		$etat   = get_option( self::OPTION_LEGACY );
+		$statut = is_array( $etat ) ? ( $etat['statut'] ?? '' ) : '';
+
+		if ( 'bloque' !== $statut && 'echec' !== $statut ) {
+			return;
+		}
+
+		$motifs = array(
+			'plugin_ancien_actif'      => __( 'The earlier release of this plugin is still installed and active, and those tables are in use by it.', 'dahuconcept-serial-numbers' ),
+			'jeu_ancien_incomplet'     => __( 'Only part of the earlier set of tables is still present, and an incomplete set cannot be grafted onto the one in use.', 'dahuconcept-serial-numbers' ),
+			'tables_en_usage_occupees' => __( 'The tables in use already hold rows of their own, and merging two sets of serials is not a decision this plugin makes on its own: two rows can carry the same serial with different histories.', 'dahuconcept-serial-numbers' ),
+			'pivot_sans_id'            => __( 'The earlier consignment contents table predates a column the current schema needs, and that column cannot be added to it after the fact.', 'dahuconcept-serial-numbers' ),
+			'serials_en_double'        => __( 'The earlier units table holds the same serial more than once, which the current schema does not accept.', 'dahuconcept-serial-numbers' ),
+			'ecart_impossible'         => __( 'The database refused to move an empty table out of the way, so nothing was changed.', 'dahuconcept-serial-numbers' ),
+			'reprise_impossible'       => __( 'The database refused a rename part way through, and the tables were put back as they were.', 'dahuconcept-serial-numbers' ),
+		);
+
+		$motif     = isset( $etat['motif'] ) ? (string) $etat['motif'] : '';
+		$anciennes = isset( $etat['anciennes'] ) ? (array) $etat['anciennes'] : array();
+
+		echo '<div class="notice notice-warning"><p>';
+		echo esc_html__( 'Serial numbers: this site holds tables from an earlier release of this plugin, and they still contain data that no screen here reads.', 'dahuconcept-serial-numbers' );
+		echo ' ';
+		echo isset( $motifs[ $motif ] ) ? esc_html( $motifs[ $motif ] ) : '';
+		echo '</p>';
+
+		if ( $anciennes ) {
+			echo '<p>';
+
+			foreach ( $anciennes as $table ) {
+				echo '<code>' . esc_html( $table ) . '</code> ';
+			}
+
+			echo '</p>';
+		}
+
+		echo '<p>';
+		echo esc_html__( 'Nothing has been changed or deleted. Ask whoever maintains the site to reconcile the two sets.', 'dahuconcept-serial-numbers' );
+		echo '</p></div>';
 	}
 
 	/**
@@ -378,6 +767,18 @@ class Ubac_Serials_Install {
 	 * @return void
 	 */
 	public static function maybe_upgrade() {
+
+		// Both of these come before the early return, and that order is the
+		// whole point. A site holding the earlier release's tables has
+		// already run this plugin, so its schema version is current and the
+		// return below fires: hanging either the adoption or its notice on
+		// the schema number would mean neither ever happened on the only
+		// sites that need them.
+		add_action( 'admin_notices', array( __CLASS__, 'legacy_notice' ) );
+
+		if ( false === get_option( self::OPTION_LEGACY ) ) {
+			self::adopt_legacy_tables();
+		}
 
 		if ( get_option( self::OPTION_SCHEMA ) === self::SCHEMA_VERSION ) {
 			return;

@@ -10,7 +10,7 @@
  *
  * Uninstalling is also, most of the time, a step in reinstalling — a plugin
  * deactivated to test a conflict, deleted by a host's updater, moved between
- * environments. Dropping four tables on the way past would be irreversible,
+ * environments. Dropping six tables on the way past would be irreversible,
  * silent, and done at the moment nobody is watching.
  *
  * So what always goes is what costs nothing to rebuild: the scheduled event,
@@ -18,7 +18,12 @@
  * data goes only when the box was ticked, and the box says what it does.
  *
  * What the box covers is counted, not remembered: the plugin creates six
- * tables and writes nine options, and the lists below hold six and nine.
+ * tables and writes ten options, and the lists below hold six and ten.
+ *
+ * Six tables, three times over: the same six under the name the earlier
+ * release gave them, and the empty ones the adoption moved aside, are
+ * dropped as well. The reason for each is at its loop, and so is the one
+ * case where the former six are left alone.
  * Anything added to `Ubac_Serials_Install` or to a new `OPTION_`
  * constant belongs here the same day, or a "delete everything" quietly
  * becomes a "delete most of it".
@@ -80,10 +85,20 @@ function ubac_serials_uninstall_site() {
 	// applies to the consignment API version and to the rewrite marker, which
 	// is the only thing standing between a reinstall and a flush of the
 	// workshop URL. Not one of them holds anything a shop would miss.
+	// Lu AVANT la suppression des marqueurs, qui l emporte : il porte le nom
+	// des tables vides ecartees au moment de la reprise, et c est la seule
+	// liste qui les nomme.
+	$ubac_serials_legacy = get_option( 'ubac_serials_legacy_tables' );
+	$ubac_serials_legacy = is_array( $ubac_serials_legacy ) ? $ubac_serials_legacy : array();
+
 	$markers = array(
 		'ubac_serials_schema',
 		'ubac_serials_consignments_api',
 		'ubac_serials_rewrite',
+		// What became of the tables of the earlier release. A record of one
+		// decision, holding six table names and nothing else; it goes either
+		// way, like the rest of this list.
+		'ubac_serials_legacy_tables',
 	);
 
 	foreach ( $markers as $marker ) {
@@ -123,7 +138,55 @@ function ubac_serials_uninstall_site() {
 		$wpdb->query( "DROP TABLE IF EXISTS {$table}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from $wpdb->prefix, uninstall.
 	}
 
-	// Every option this plugin writes, with the markers above: nine in all.
+	// The empty tables that the adoption moved out of the way. Empty by
+	// definition, named only by the option read at the top of this function.
+	foreach ( (array) ( $ubac_serials_legacy['ecartees'] ?? array() ) as $ecartee ) {
+		if ( ! is_string( $ecartee ) || 0 !== strpos( $ecartee, $wpdb->prefix . 'ubac_serials' ) ) {
+			continue;
+		}
+
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $ecartee ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- uninstall.
+	}
+
+	// The same six tables under the name the earlier release gave them.
+	//
+	// On nearly every site these do not exist, and this loop does nothing. On
+	// a site where the adoption was refused — the tables in use already held
+	// rows, the old set was incomplete, its schema could not be brought
+	// forward — they are still there, still holding that shop's units and
+	// history, and they are this plugin's data: a box that says it removes
+	// everything this plugin stored would be lying if it left them. Same
+	// order, for the same reason.
+	//
+	// Unless the release that owns them is still installed and active, in
+	// which case they are not a remnant, they are a running plugin's
+	// production data. The checkbox never offered to take that, so it does
+	// not. The check is inlined rather than borrowed from
+	// `Ubac_Serials_Install`: at uninstall there is no guarantee this
+	// plugin's classes are loadable.
+	$ubac_serials_ancien_actif = false;
+	$ubac_serials_actifs       = (array) get_option( 'active_plugins', array() );
+
+	if ( is_multisite() ) {
+		$ubac_serials_actifs = array_merge( $ubac_serials_actifs, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+	}
+
+	foreach ( $ubac_serials_actifs as $ubac_serials_entree ) {
+		if ( 0 === strpos( (string) $ubac_serials_entree, 'dahu-serial-numbers/' ) ) {
+			$ubac_serials_ancien_actif = true;
+			break;
+		}
+	}
+
+	if ( ! $ubac_serials_ancien_actif ) {
+		foreach ( $suffixes as $suffix ) {
+			$ancienne = $wpdb->prefix . str_replace( 'ubac_serials', 'dahu_serial_numbers', $suffix );
+
+			$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $ancienne ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- uninstall.
+		}
+	}
+
+	// Every option this plugin writes, with the markers above: ten in all.
 	// Counted against the code rather than remembered, because an option left
 	// behind by a "delete everything" is both a lie and, for the two run
 	// records, shop data — the stock pushes carry product names and the id of

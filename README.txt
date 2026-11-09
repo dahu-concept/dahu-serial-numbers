@@ -4,7 +4,7 @@ Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.4
+Stable tag: 1.6.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -160,6 +160,13 @@ records which bench did what.
 4. The packing screen on a bench tablet.
 
 == Changelog ==
+
+= 1.6.0 =
+* Added: a site that ran the first release of this plugin keeps its units, its history and its consignments. Those six tables were named from the former slug and no shipped code had read them since; they are now taken over, and the schema is then re-run over them.
+* The takeover is all or nothing, and it is refused — with nothing renamed and nothing deleted — whenever it could not be done cleanly: the earlier release still active and writing to those tables, only part of the old set left, the tables in use already holding rows of their own, or an old table whose shape the current schema cannot be applied to. In every one of those cases the site is told which tables hold the data and why it was left alone.
+* Nothing is dropped to make room. An empty table in the way is moved aside under a dated name, so a rename refused half way can be put back exactly as it was; the names moved aside are recorded, and uninstall removes them.
+* Changed: "delete everything on uninstall" now also removes those six tables under their former name — unless the release that owns them is still active, in which case they are a running plugin's data and are left alone.
+* Table names in these statements go through the database layer's identifier placeholder, as the rest of the plugin's do since 1.5.3.
 
 = 1.5.4 =
 * Changed: the compiled French catalogue now travels in the package. It was left out on the grounds that the directory serves language packs, which is true only for a copy installed from the directory and only once translations have been imported: a copy installed by hand showed English with a catalogue that was fully translated.
