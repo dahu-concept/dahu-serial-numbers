@@ -238,7 +238,7 @@ require_once UBAC_SERIALS_PATH . 'includes/ubac-welcome.php';
 register_activation_hook(
 	__FILE__,
 	static function () {
-		Ubac_Welcome::mark_activated( 'ubac-serials' );
+		Ubac_Welcome::mark_activated( 'dahuconcept-serial-numbers' );
 	}
 );
 
@@ -247,12 +247,12 @@ add_action(
 	static function () {
 		Ubac_Welcome::register(
 			array(
-				'slug'       => 'ubac-serials',
+				'slug'       => 'dahuconcept-serial-numbers',
 				'name'       => __( 'Serial numbers', 'dahuconcept-serial-numbers' ),
 				'tagline'    => __( 'Follows every unit you hold, from goods-in to the customer.', 'dahuconcept-serial-numbers' ),
 				'file'       => UBAC_SERIALS_FILE,
 				'version'    => UBAC_SERIALS_VERSION,
-				'textdomain' => 'ubac-serials',
+				'textdomain' => 'dahuconcept-serial-numbers',
 				'mark'       => array(
 					'view'  => '0 0 112 112',
 					'paths' => array(
