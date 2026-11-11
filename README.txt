@@ -167,6 +167,7 @@ records which bench did what.
 * Nothing is dropped to make room. An empty table in the way is moved aside under a dated name, so a rename refused half way can be put back exactly as it was; the names moved aside are recorded, and uninstall removes them.
 * Changed: "delete everything on uninstall" now also removes those six tables under their former name — unless the release that owns them is still active, in which case they are a running plugin's data and are left alone.
 * Table names in these statements go through the database layer's identifier placeholder, as the rest of the plugin's do since 1.5.3.
+* Fixed: five stock-planning parameters were typed `array` with a `null` default, which PHP 8.4 deprecates. They are now `?array`. The notices only appeared with WP_DEBUG on, and only on the screens that plan stock.
 
 = 1.5.4 =
 * Changed: the compiled French catalogue now travels in the package. It was left out on the grounds that the directory serves language packs, which is true only for a copy installed from the directory and only once translations have been imported: a copy installed by hand showed English with a catalogue that was fully translated.

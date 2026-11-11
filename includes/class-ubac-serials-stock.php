@@ -1367,7 +1367,7 @@ class Ubac_Serials_Stock {
 	 * @param array<int,int> $reserved   Optional. Reserved map, same reason.
 	 * @return array<string,mixed>
 	 */
-	public static function plan_one( $product_id, array $free = null, array $reserved = null, array $known = null ) {
+	public static function plan_one( $product_id, ?array $free = null, ?array $reserved = null, ?array $known = null ) {
 
 		$product_id = (int) $product_id;
 
@@ -1469,7 +1469,7 @@ class Ubac_Serials_Stock {
 	 * @param array<int,int> $reserved   Optional. Reserved map.
 	 * @return array<string,mixed> The plan, plus `written`.
 	 */
-	public static function push( $product_id, $origin, array $free = null, array $reserved = null ) {
+	public static function push( $product_id, $origin, ?array $free = null, ?array $reserved = null ) {
 
 		$plan            = self::plan_one( $product_id, $free, $reserved );
 		$plan['origin']  = (string) $origin;

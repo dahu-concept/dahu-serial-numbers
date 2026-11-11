@@ -7,7 +7,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2026-11-09 07:28+0000\n"
+"PO-Revision-Date: 2026-11-09 15:01+0000\n"
 "X-Domain: dahuconcept-serial-numbers\n"
 
 #: includes/class-ubac-serials-workshop.php:268
@@ -648,6 +648,10 @@ msgstr ""
 msgid "Nothing could be put back, so this correction is still on the list and can be tried again later."
 msgstr ""
 
+#: includes/class-ubac-serials-install.php:565
+msgid "Nothing has been changed or deleted. Ask whoever maintains the site to reconcile the two sets."
+msgstr ""
+
 #: includes/class-ubac-serials-admin-serials.php:661
 msgid "Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently."
 msgstr ""
@@ -717,6 +721,10 @@ msgstr ""
 
 #: dahuconcept-serial-numbers.php:316
 msgid "One row per unit"
+msgstr ""
+
+#: includes/class-ubac-serials-install.php:537
+msgid "Only part of the earlier set of tables is still present, and an incomplete set cannot be grafted onto the one in use."
 msgstr ""
 
 #: includes/class-ubac-serials-consignments.php:734
@@ -1026,6 +1034,10 @@ msgstr ""
 msgid "Serial numbers"
 msgstr ""
 
+#: includes/class-ubac-serials-install.php:549
+msgid "Serial numbers: this site holds tables from an earlier release of this plugin, and they still contain data that no screen here reads."
+msgstr ""
+
 #: includes/class-ubac-serials-station-auth-provider.php:200
 msgid "Session expired, please sign in again."
 msgstr ""
@@ -1213,12 +1225,32 @@ msgstr ""
 msgid "The consignment is cancelled. Its units are free to go in another parcel."
 msgstr ""
 
+#: includes/class-ubac-serials-install.php:542
+msgid "The database refused a rename part way through, and the tables were put back as they were."
+msgstr ""
+
+#: includes/class-ubac-serials-install.php:541
+msgid "The database refused to move an empty table out of the way, so nothing was changed."
+msgstr ""
+
 #: includes/class-ubac-serials-product-fix.php:149
 msgid "The destination is a variable product: pick one of its variations."
 msgstr ""
 
 #: includes/class-ubac-serials-product-fix.php:150
 msgid "The destination product is not marked as carrying serial numbers."
+msgstr ""
+
+#: includes/class-ubac-serials-install.php:539
+msgid "The earlier consignment contents table predates a column the current schema needs, and that column cannot be added to it after the fact."
+msgstr ""
+
+#: includes/class-ubac-serials-install.php:536
+msgid "The earlier release of this plugin is still installed and active, and those tables are in use by it."
+msgstr ""
+
+#: includes/class-ubac-serials-install.php:540
+msgid "The earlier units table holds the same serial more than once, which the current schema does not accept."
 msgstr ""
 
 #. translators: %s: serial number. */
@@ -1282,6 +1314,10 @@ msgstr ""
 
 #: includes/class-ubac-serials-admin-serials.php:838
 msgid "The site"
+msgstr ""
+
+#: includes/class-ubac-serials-install.php:538
+msgid "The tables in use already hold rows of their own, and merging two sets of serials is not a decision this plugin makes on its own: two rows can carry the same serial with different histories."
 msgstr ""
 
 #: includes/class-ubac-serials-consignments.php:768

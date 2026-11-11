@@ -6,7 +6,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"PO-Revision-Date: 2026-11-09 07:30+0000\n"
+"PO-Revision-Date: 2026-11-09 15:02+0000\n"
 "X-Generator: ubac i18n-build\n"
 
 #: includes/class-ubac-serials-workshop.php:268
@@ -647,6 +647,10 @@ msgstr "Rien ne peut être écrit tant qu’une ligne de cette liste est refusé
 msgid "Nothing could be put back, so this correction is still on the list and can be tried again later."
 msgstr "Rien n’a pu être annulé : cette correction reste dans la liste et pourra être retentée plus tard."
 
+#: includes/class-ubac-serials-install.php:565
+msgid "Nothing has been changed or deleted. Ask whoever maintains the site to reconcile the two sets."
+msgstr "Rien n'a été modifié ni supprimé. Demandez à la personne qui maintient le site de rapprocher les deux jeux."
+
 #: includes/class-ubac-serials-admin-serials.php:661
 msgid "Nothing in this plugin ever deletes a line from here — not a status change, not an un-assignment, not deleting the order. A history with holes in it answers worse than no history, because it answers confidently."
 msgstr "Rien dans cette extension ne supprime jamais une ligne d’ici — ni un changement de statut, ni une désaffectation, ni la suppression de la commande. Un historique troué répond plus mal que pas d’historique, parce qu’il répond avec aplomb."
@@ -717,6 +721,10 @@ msgstr "Un par ligne, ou séparés par des espaces, des virgules ou des points-v
 #: dahuconcept-serial-numbers.php:316
 msgid "One row per unit"
 msgstr "Une ligne par unité"
+
+#: includes/class-ubac-serials-install.php:537
+msgid "Only part of the earlier set of tables is still present, and an incomplete set cannot be grafted onto the one in use."
+msgstr "Une partie seulement de l'ancien jeu de tables subsiste, et un jeu incomplet ne peut pas être greffé sur celui en usage."
 
 #: includes/class-ubac-serials-consignments.php:734
 msgid "Only the carrier and the tracking number can be changed on a closed consignment."
@@ -1025,6 +1033,10 @@ msgstr "Numéro de série de plus de %1$d caractères : %2$s"
 msgid "Serial numbers"
 msgstr "Numéros de série"
 
+#: includes/class-ubac-serials-install.php:549
+msgid "Serial numbers: this site holds tables from an earlier release of this plugin, and they still contain data that no screen here reads."
+msgstr "Numéros de série : ce site porte des tables d'une version antérieure de cette extension, et elles contiennent encore des données qu'aucun écran d'ici ne lit."
+
 #: includes/class-ubac-serials-station-auth-provider.php:200
 msgid "Session expired, please sign in again."
 msgstr "Session expirée, reconnectez-vous."
@@ -1212,6 +1224,14 @@ msgstr "L’envoi n’a pas pu être ouvert."
 msgid "The consignment is cancelled. Its units are free to go in another parcel."
 msgstr "L’envoi est annulé. Ses unités sont libres de partir dans un autre colis."
 
+#: includes/class-ubac-serials-install.php:542
+msgid "The database refused a rename part way through, and the tables were put back as they were."
+msgstr "La base a refusé un renommage en cours de route, et les tables ont été remises en l'état."
+
+#: includes/class-ubac-serials-install.php:541
+msgid "The database refused to move an empty table out of the way, so nothing was changed."
+msgstr "La base a refusé d'écarter une table vide, donc rien n'a été modifié."
+
 #: includes/class-ubac-serials-product-fix.php:149
 msgid "The destination is a variable product: pick one of its variations."
 msgstr "La destination est un produit variable : choisissez une de ses variations."
@@ -1219,6 +1239,18 @@ msgstr "La destination est un produit variable : choisissez une de ses variation
 #: includes/class-ubac-serials-product-fix.php:150
 msgid "The destination product is not marked as carrying serial numbers."
 msgstr "Le produit de destination n’est pas marqué comme portant des numéros de série."
+
+#: includes/class-ubac-serials-install.php:539
+msgid "The earlier consignment contents table predates a column the current schema needs, and that column cannot be added to it after the fact."
+msgstr "L'ancienne table du contenu des envois est antérieure à une colonne dont le schéma courant a besoin, et cette colonne ne peut pas lui être ajoutée après coup."
+
+#: includes/class-ubac-serials-install.php:536
+msgid "The earlier release of this plugin is still installed and active, and those tables are in use by it."
+msgstr "La version antérieure de cette extension est toujours installée et active, et ces tables lui servent."
+
+#: includes/class-ubac-serials-install.php:540
+msgid "The earlier units table holds the same serial more than once, which the current schema does not accept."
+msgstr "L'ancienne table des unités porte le même numéro de série plusieurs fois, ce que le schéma courant n'accepte pas."
 
 #. translators: %s: serial number. */
 #: includes/class-ubac-serials-log.php:73
@@ -1282,6 +1314,10 @@ msgstr "Le jeton de connexion n’a pas pu être délivré."
 #: includes/class-ubac-serials-admin-serials.php:838
 msgid "The site"
 msgstr "Le site"
+
+#: includes/class-ubac-serials-install.php:538
+msgid "The tables in use already hold rows of their own, and merging two sets of serials is not a decision this plugin makes on its own: two rows can carry the same serial with different histories."
+msgstr "Les tables en usage portent déjà leurs propres lignes, et fusionner deux jeux de numéros de série n'est pas une décision que cette extension prend seule : deux lignes peuvent porter le même numéro avec des historiques différents."
 
 #: includes/class-ubac-serials-consignments.php:768
 msgid "The tracking number could not be recorded."
