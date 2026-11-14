@@ -6,7 +6,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"PO-Revision-Date: 2026-11-11 09:28+0000\n"
+"PO-Revision-Date: 2026-11-11 10:22+0000\n"
 "X-Generator: dahuconcept i18n-build\n"
 
 #: includes/class-ubac-serials-workshop.php:268

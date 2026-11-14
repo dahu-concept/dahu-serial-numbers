@@ -1,4 +1,4 @@
-=== DahuConcept Serial Numbers ===
+=== DahuConcept Serial Numbers for WooCommerce ===
 Contributors: dahuconcept
 Tags: serial numbers, traceability, serialised stock, warranty, packing
 Requires at least: 6.2
