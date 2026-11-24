@@ -162,7 +162,7 @@ class Ubac_Serials_Product_Field {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- may_save() verified the nonce just above.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- may_save() verified the nonce just above, and only the emptiness of each entry is read: the value itself is never stored nor echoed.
 		$submitted = isset( $_POST['ubac_serials_serialised'] ) ? (array) wp_unslash( $_POST['ubac_serials_serialised'] ) : array();
 
 		Ubac_Serials_Products::set_serialised( $variation_id, ! empty( $submitted[ $loop ] ) );

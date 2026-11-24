@@ -29,7 +29,7 @@ class Ubac_Serials_Admin_Serials {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only filter on a capability-checked screen.
-		$one = isset( $_GET['serial'] ) ? Ubac_Serials_Format::normalise( wp_unslash( $_GET['serial'] ) ) : '';
+		$one = isset( $_GET['serial'] ) ? Ubac_Serials_Format::normalise( sanitize_text_field( wp_unslash( $_GET['serial'] ) ) ) : '';
 
 		Ubac_Serials_Admin::open(
 			__( 'Serial numbers', 'dahuconcept-serial-numbers' ),
@@ -402,7 +402,7 @@ class Ubac_Serials_Admin_Serials {
 			return;
 		}
 
-		$serial = Ubac_Serials_Format::normalise( wp_unslash( $_POST['ubac_serial'] ) );
+		$serial = Ubac_Serials_Format::normalise( sanitize_text_field( wp_unslash( $_POST['ubac_serial'] ) ) );
 
 		if ( '' === $serial ) {
 			return;

@@ -65,7 +65,12 @@ class Ubac_Serials_Format {
 	 */
 	public static function normalise( $input ) {
 
-		$raw   = trim( (string) $input );
+		// Assaini ICI, et pas dans chaque appelant : cette methode est
+		// l entonnoir unique par lequel passe tout serial, d ou qu il vienne
+		// -- ecran, REST, import CSV, lecteur de code-barres. Retirer les
+		// espaces et passer en majuscules n assainit rien : « <SCRIPT> »
+		// traversait intact.
+		$raw   = trim( sanitize_text_field( (string) $input ) );
 		$input = $raw;
 
 		if ( '' === $input ) {
@@ -78,6 +83,14 @@ class Ubac_Serials_Format {
 		// a space as its suffix, or a number read off a packing list in two
 		// halves, both arrive with one in the middle.
 		$input = (string) preg_replace( '/\s+/', '', $input );
+
+		// Les octets de controle, que sanitize_text_field() laisse passer :
+		// mesure du 2026-11-24, « SN-\0\a42 » en ressortait intact. Un octet
+		// nul dans une cle d inventaire tronque les comparaisons sous la
+		// couche PHP sans que rien ne le signale, et aucun serial legitime
+		// n en contient.
+		$input = (string) preg_replace( '/[\x00-\x1F\x7F]/', '', $input );
+
 		$input = strtoupper( $input );
 
 		/**

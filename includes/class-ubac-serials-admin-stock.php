@@ -263,7 +263,7 @@ class Ubac_Serials_Admin_Stock {
 			return;
 		}
 
-		$serials = Ubac_Serials_Product_Fix::parse( isset( $_POST['ubac_serials'] ) ? wp_unslash( $_POST['ubac_serials'] ) : '' );
+		$serials = Ubac_Serials_Product_Fix::parse( isset( $_POST['ubac_serials'] ) ? sanitize_textarea_field( wp_unslash( $_POST['ubac_serials'] ) ) : '' );
 		$to      = isset( $_POST['ubac_to_product'] ) ? (int) $_POST['ubac_to_product'] : 0;
 		$reason  = isset( $_POST['ubac_reason'] ) ? sanitize_textarea_field( wp_unslash( $_POST['ubac_reason'] ) ) : '';
 
@@ -626,7 +626,7 @@ class Ubac_Serials_Admin_Stock {
 	private static function posted( $key ) {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- echoed back escaped; the nonce is checked where this is acted on.
-		return isset( $_POST[ $key ] ) ? (string) wp_unslash( $_POST[ $key ] ) : '';
+		return isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
 	}
 
 	/**
