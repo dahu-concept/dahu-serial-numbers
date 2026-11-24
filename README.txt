@@ -1,6 +1,6 @@
 === DahuConcept Serial Numbers for WooCommerce ===
 Contributors: dahuconcept
-Tags: serial numbers, traceability, serialised stock, warranty, packing
+Tags: serial numbers, traceability, serialised stock, warranty, woocommerce
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4

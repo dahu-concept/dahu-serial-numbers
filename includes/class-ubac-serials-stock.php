@@ -136,7 +136,7 @@ class Ubac_Serials_Stock {
 		add_action( 'ubac_serials_created', array( __CLASS__, 'on_created' ), 10, 2 );
 		add_action( 'ubac_serials_product_changed', array( __CLASS__, 'on_product_changed' ), 10, 4 );
 
-		// NOTHING IS HOOKED ON THE FLAG BEING WRITTEN, AND THAT IS THE POINT.
+		// NOTHING IS WRITTEN WHEN THE FLAG IS SET, AND THAT IS THE POINT.
 		// Marking a product serialised used to queue a push, on the reasoning
 		// that its WooCommerce stock owed nothing to its serials and the first
 		// push made the two agree. Measured on a shop halfway through its
@@ -149,6 +149,26 @@ class Ubac_Serials_Stock {
 		// where that happens, because it shows the plan first and writes only
 		// what was accepted. resync_plan() lists the product from the moment
 		// the flag is set, so nothing is lost by not pushing here.
+		//
+		// WRITING NOTHING IS NOT THE SAME AS SAYING NOTHING, and the silence
+		// was the other half of the defect: an adversarial review named it. A
+		// product whose serials are ALREADY in the table -- imported, or
+		// unticked and ticked again -- keeps the stock that was typed by hand,
+		// and no unit event ever comes to correct it. Three units really
+		// there, forty on sale, thirty-seven sold that do not exist. That is
+		// worse for a shop than a product briefly out of sale, and the Stock
+		// screen cannot help someone who has no reason to open it.
+		//
+		// So the flag is still watched -- but only to put the product on a
+		// short list the shop is TOLD about, with a link to the screen that
+		// settles it. Recording an id is one option write: it draws no plan
+		// and reads no serial, so the page that ticks the box pays nothing.
+		foreach ( array( 'added_post_meta', 'updated_post_meta' ) as $hook ) {
+			add_action( $hook, array( __CLASS__, 'on_flag_written' ), 10, 4 );
+		}
+
+		add_action( 'admin_notices', array( __CLASS__, 'awaiting_review_notice' ) );
+
 		add_action( 'deleted_post_meta', array( __CLASS__, 'on_flag_removed' ), 10, 4 );
 
 		// A product that goes back on sale. Units may have moved while it was
@@ -292,12 +312,68 @@ class Ubac_Serials_Stock {
 	}
 
 	/**
+	 * The option holding the products whose flag was written and whose stock
+	 * has not been settled since.
+	 *
+	 * @var string
+	 */
+	const AWAITING_OPTION = 'ubac_serials_flag_awaiting_review';
+
+	/**
+	 * How many products that list holds at most.
+	 *
+	 * The list exists to raise one notice, not to be a second queue: past this
+	 * many the notice says the same thing, so the ids stop being collected
+	 * rather than growing an option without end.
+	 *
+	 * @var int
+	 */
+	const AWAITING_MAX = 50;
+
+	/**
+	 * The serialised flag was written on a product.
+	 *
+	 * Writes NO stock -- see init() for why -- and records the product so the
+	 * shop is told its stock has not been touched.
+	 *
+	 * @param int    $meta_id    Meta row id.
+	 * @param int    $object_id  Product id.
+	 * @param string $meta_key   Meta key.
+	 * @param mixed  $meta_value Meta value.
+	 * @return void
+	 */
+	public static function on_flag_written( $meta_id, $object_id, $meta_key, $meta_value ) {
+
+		unset( $meta_id );
+
+		if ( Ubac_Serials_Products::META_KEY !== $meta_key || 'yes' !== $meta_value ) {
+			return;
+		}
+
+		$ids = self::awaiting();
+
+		if ( count( $ids ) >= self::AWAITING_MAX || in_array( (int) $object_id, $ids, true ) ) {
+			return;
+		}
+
+		$ids[] = (int) $object_id;
+
+		update_option( self::AWAITING_OPTION, $ids, false );
+	}
+
+	/**
 	 * The serialised flag was removed from a product.
 	 *
-	 * One last push, and then never again: the product's stock is left where
-	 * the serials put it, and from here on it is the shop's to manage. Not
-	 * pushing at all would leave a number that counted serials this product
-	 * no longer claims.
+	 * This queues one last push -- and that push is then REFUSED. Measured on
+	 * the bench on 2026-11-24: flush() answers `not_serialised` for this very
+	 * product, because it has just stopped being serialised, so the stock is
+	 * left exactly where it was and the reasoning below never comes true. The
+	 * queue entry and the refused push are all that happen.
+	 *
+	 * The reasoning it was written for: not pushing at all would leave a
+	 * number that counted serials this product no longer claims. It is kept
+	 * here, unchanged in behaviour, because removing the hook is a decision
+	 * about what the extension does and not a defect to tidy away.
 	 *
 	 * @param array  $meta_ids  Meta row ids.
 	 * @param int    $object_id Product id.
@@ -314,6 +390,111 @@ class Ubac_Serials_Stock {
 		}
 
 		self::queue( (int) $object_id, 'serialised_flag_removed' );
+
+		// Nothing left to review on a product that is no longer serialised.
+		self::forget_awaiting( (int) $object_id );
+	}
+
+	/**
+	 * The products waiting to be reviewed on the Stock screen.
+	 *
+	 * @return array<int,int>
+	 */
+	public static function awaiting() {
+
+		$ids = get_option( self::AWAITING_OPTION, array() );
+
+		if ( ! is_array( $ids ) ) {
+			return array();
+		}
+
+		return array_values( array_filter( array_map( 'absint', $ids ) ) );
+	}
+
+	/**
+	 * Takes one product off the waiting list, or empties it.
+	 *
+	 * @param int|null $product_id Product to forget, or null for all of them.
+	 * @return void
+	 */
+	public static function forget_awaiting( $product_id = null ) {
+
+		if ( null === $product_id ) {
+			delete_option( self::AWAITING_OPTION );
+
+			return;
+		}
+
+		$ids   = self::awaiting();
+		$left = array_values( array_diff( $ids, array( (int) $product_id ) ) );
+
+		if ( $left === $ids ) {
+			return;
+		}
+
+		if ( array() === $left ) {
+			delete_option( self::AWAITING_OPTION );
+
+			return;
+		}
+
+		update_option( self::AWAITING_OPTION, $left, false );
+	}
+
+	/**
+	 * Tells the shop that a product was marked serialised and its stock left
+	 * where it was.
+	 *
+	 * Deliberately says nothing about HOW MANY units disagree: counting that
+	 * means drawing the whole plan, which belongs on the screen that runs on
+	 * demand, not on every admin page. The notice carries the link instead.
+	 *
+	 * @return void
+	 */
+	public static function awaiting_review_notice() {
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
+
+		// Not on the screen that settles it: there the list is in front of the
+		// reader already.
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( $screen && false !== strpos( (string) $screen->id, 'ubac-serials-stock' ) ) {
+			return;
+		}
+
+		$ids = self::awaiting();
+
+		if ( array() === $ids ) {
+			return;
+		}
+
+		$count = count( $ids );
+
+		printf(
+			'<div class="notice notice-warning"><p>%s %s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: %d: number of products. */
+					_n(
+						'%d product was marked as carrying serial numbers. Its WooCommerce stock has not been changed, so it may still be selling units that are not in the table.',
+						'%d products were marked as carrying serial numbers. Their WooCommerce stock has not been changed, so they may still be selling units that are not in the table.',
+						$count,
+						'dahuconcept-serial-numbers'
+					),
+					$count
+				)
+			),
+			wp_kses_post(
+				sprintf(
+					'<a href="%s">%s</a>',
+					esc_url( admin_url( 'admin.php?page=ubac-serials-stock' ) ),
+					esc_html__( 'Review the stock', 'dahuconcept-serial-numbers' )
+				)
+			)
+		);
 	}
 
 	/**
@@ -785,12 +966,12 @@ class Ubac_Serials_Stock {
 			array( Ubac_Serials_Statuses::ASSIGNED, Ubac_Serials_Statuses::SHIPPED )
 		);
 
-		// Les deux listes interpolees ci-dessous sont elles-memes faites de
-		// %d et de %s, construites ici par array_fill() et jamais avec quoi
-		// que ce soit venu de l appelant ; le nom de table passe par %i. Le
-		// sniff pointe la ligne de la chaine, pas celle de l appel, donc un
-		// phpcs:ignore pose avant prepare() ne la couvre pas : il faut
-		// encadrer.
+		// The two interpolated lists below are themselves made of %d and %s,
+		// built here by array_fill() and never from anything the caller
+		// supplied; the table name goes through %i. The sniff points at the
+		// line of the string and not at the line of the call, so an ignore
+		// placed before prepare() does not cover it -- the region has to be
+		// bracketed instead.
 		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$rows = self::lignes(
 			$wpdb->prepare(
@@ -1086,8 +1267,13 @@ class Ubac_Serials_Stock {
 		 * The table knows nothing about this one. It does carry the meta,
 		 * though, so it is enumerable -- and it has to be: marking a product
 		 * "serialised" without giving it a unit is precisely what preparing it
-		 * looks like, and its WooCommerce stock must fall to zero rather than
-		 * stay sellable. */
+		 * looks like, and the gap between its WooCommerce stock and its (empty)
+		 * table is exactly what this screen exists to show.
+		 *
+		 * Carrying it here is what makes that gap visible AT ALL since
+		 * 2026-11-24: the flag no longer writes a stock of its own accord, so
+		 * without this enumeration a product ticked and left alone would appear
+		 * nowhere, and its stock would stay sellable in silence. */
 		/* NO CEILING, AND THAT IS DELIBERATE.
 		 *
 		 * A page of 500 would have two defects, and the second is worse than
@@ -1419,10 +1605,10 @@ class Ubac_Serials_Stock {
 		 *   which is intended, but it is a decision of another kind -- and it is
 		 *   taken on a product the shop may still be preparing.
 		 *
-		 * The flag does push the stock in both cases: that is the contract that
-		 * was chosen. But the screen must be able to tell them apart, or whoever
-		 * approves is approving four rows that look identical, of which only two
-		 * rest on real units.
+		 * Since 2026-11-24 the flag pushes NEITHER of them: both zeroes arrive
+		 * on this screen, and this is where they are settled. The screen still
+		 * has to tell them apart, or whoever approves is approving four rows
+		 * that look identical, of which only two rest on real units.
 		 *
 		 * `known_map()` counts the table's rows whatever their status (see that
 		 * method): zero there means "never one unit", and it is the only source
@@ -1679,6 +1865,12 @@ class Ubac_Serials_Stock {
 			$done = self::push( $row['product_id'], 'resync', $free, $reserved );
 
 			if ( ! empty( $done['written'] ) ) {
+				// This one is settled, so it leaves the waiting list and the
+				// notice goes quiet once the list is empty. A refusal or a
+				// failure leaves it there, which is the point: the notice must
+				// outlive an approval that did not go through.
+				self::forget_awaiting( (int) $row['product_id'] );
+
 				$written[] = $done;
 			} else {
 				$failed[] = $done;
