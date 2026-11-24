@@ -365,7 +365,7 @@ class Ubac_Serials_Install {
 			return;
 		}
 
-		// Les six en usage, pas seulement celles qui ont une jumelle ancienne.
+		// All six in use, not only those with an older twin.
 		$occupees = array();
 		$a_ecarter = array();
 
@@ -395,7 +395,7 @@ class Ubac_Serials_Install {
 			return;
 		}
 
-		// --- A partir d ici on ecrit. Chaque pas est annulable. -------------
+		// --- From here on it writes. Every step can be undone. -------------
 
 		$suffixe = '_ecartee_' . gmdate( 'YmdHis' );
 		$faits   = array();
@@ -434,9 +434,9 @@ class Ubac_Serials_Install {
 			)
 		);
 
-		// Le schema de ce qui vient d etre adopte est celui d une version
-		// precedente : dbDelta doit repasser, et le marqueur de version lui
-		// barrerait la route.
+		// What has just been adopted carries the schema of an earlier version,
+		// so dbDelta has to run over it again -- and the version marker would
+		// bar its way.
 		delete_option( self::OPTION_SCHEMA );
 		self::install();
 	}

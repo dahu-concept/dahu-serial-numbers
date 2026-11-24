@@ -54,10 +54,10 @@ function ubac_serials_uninstall_site() {
 	// they are deleted here — and the welcome screen and the guided tour
 	// would then stay silent for good, with nothing on screen to explain why.
 	delete_option( 'ubac_welcome_seen_ubac-serials' );
-	// Les memes clefs sous le nouveau slug : elle est construite au runtime
-	// a partir du slug, donc elle a change avec lui. Sans ces trois lignes,
-	// une mise a jour depuis la version Ubac laisse des orphelines que plus
-	// rien ne nomme.
+	// The same keys under the new slug: the key is built at runtime from the
+	// slug, so it changed when the slug did. Without these three lines, an
+	// update from the Ubac-named version leaves orphans that nothing names
+	// any more.
 	delete_option( 'ubac_welcome_seen_dahuconcept-serial-numbers' );
 	delete_option( 'ubac_welcome_pending_ubac-serials' );
 	delete_option( 'ubac_welcome_pending_dahuconcept-serial-numbers' );
@@ -85,9 +85,9 @@ function ubac_serials_uninstall_site() {
 	// applies to the consignment API version and to the rewrite marker, which
 	// is the only thing standing between a reinstall and a flush of the
 	// workshop URL. Not one of them holds anything a shop would miss.
-	// Lu AVANT la suppression des marqueurs, qui l emporte : il porte le nom
-	// des tables vides ecartees au moment de la reprise, et c est la seule
-	// liste qui les nomme.
+	// Read BEFORE the markers are deleted, which would take it with them: it
+	// holds the names of the empty tables set aside when the legacy set was
+	// adopted, and it is the only list that names them.
 	$ubac_serials_legacy = get_option( 'ubac_serials_legacy_tables' );
 	$ubac_serials_legacy = is_array( $ubac_serials_legacy ) ? $ubac_serials_legacy : array();
 
