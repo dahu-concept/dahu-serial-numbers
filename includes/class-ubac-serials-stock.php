@@ -136,14 +136,19 @@ class Ubac_Serials_Stock {
 		add_action( 'ubac_serials_created', array( __CLASS__, 'on_created' ), 10, 2 );
 		add_action( 'ubac_serials_product_changed', array( __CLASS__, 'on_product_changed' ), 10, 4 );
 
-		// The serialised flag, in all the shapes WordPress writes a meta in.
-		// A product that has just been marked serialised has a WooCommerce
-		// stock number that owes nothing to its serials, and the first push
-		// is what makes the two agree.
-		foreach ( array( 'added_post_meta', 'updated_post_meta' ) as $hook ) {
-			add_action( $hook, array( __CLASS__, 'on_flag_written' ), 10, 4 );
-		}
-
+		// NOTHING IS HOOKED ON THE FLAG BEING WRITTEN, AND THAT IS THE POINT.
+		// Marking a product serialised used to queue a push, on the reasoning
+		// that its WooCommerce stock owed nothing to its serials and the first
+		// push made the two agree. Measured on a shop halfway through its
+		// inventory -- forty units on the shelf, three filed -- that push set
+		// the stock to three and took the product out of sale, from a product
+		// screen that showed no summary and asked for no confirmation. The
+		// shop had no way to see it coming and no way back.
+		//
+		// The gap is real and still has to be closed; the Stock screen is
+		// where that happens, because it shows the plan first and writes only
+		// what was accepted. resync_plan() lists the product from the moment
+		// the flag is set, so nothing is lost by not pushing here.
 		add_action( 'deleted_post_meta', array( __CLASS__, 'on_flag_removed' ), 10, 4 );
 
 		// A product that goes back on sale. Units may have moved while it was
@@ -287,26 +292,6 @@ class Ubac_Serials_Stock {
 	}
 
 	/**
-	 * The serialised flag was written on a product.
-	 *
-	 * @param int    $meta_id    Meta row id.
-	 * @param int    $object_id  Product id.
-	 * @param string $meta_key   Meta key.
-	 * @param mixed  $meta_value Meta value.
-	 * @return void
-	 */
-	public static function on_flag_written( $meta_id, $object_id, $meta_key, $meta_value ) {
-
-		unset( $meta_id );
-
-		if ( Ubac_Serials_Products::META_KEY !== $meta_key || 'yes' !== $meta_value ) {
-			return;
-		}
-
-		self::queue( (int) $object_id, 'serialised_flag' );
-	}
-
-	/**
 	 * The serialised flag was removed from a product.
 	 *
 	 * One last push, and then never again: the product's stock is left where
@@ -382,8 +367,10 @@ class Ubac_Serials_Stock {
 		// its last five hundred lines: measured, an import of six hundred
 		// products wiped every real stock write from the history and left
 		// nothing but refusals. A product that has just been created has no
-		// units that moved while it was out of sale, and if it is marked as
-		// serialised, the flag written on it queues it already.
+		// units that moved while it was out of sale, so there is nothing here to
+		// push. This line used to add that the serialised flag queued such a
+		// product anyway; it no longer does, and the Stock screen is what
+		// closes the gap. See init().
 		if ( in_array( (string) $old_status, array( 'new', 'auto-draft' ), true ) ) {
 			return;
 		}
@@ -798,9 +785,15 @@ class Ubac_Serials_Stock {
 			array( Ubac_Serials_Statuses::ASSIGNED, Ubac_Serials_Statuses::SHIPPED )
 		);
 
+		// Les deux listes interpolees ci-dessous sont elles-memes faites de
+		// %d et de %s, construites ici par array_fill() et jamais avec quoi
+		// que ce soit venu de l appelant ; le nom de table passe par %i. Le
+		// sniff pointe la ligne de la chaine, pas celle de l appel, donc un
+		// phpcs:ignore pose avant prepare() ne la couvre pas : il faut
+		// encadrer.
+		// phpcs:disable WordPress.DB.PreparedSQLPlaceholders, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$rows = self::lignes(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders -- the lists are %d/%s placeholders.
 				"SELECT order_id, order_item_id, product_id, COUNT(*) AS held
 				 FROM %i
 				 WHERE order_id IN ({$in_orders}) AND status IN ({$in_statuses})
@@ -809,6 +802,7 @@ class Ubac_Serials_Stock {
 			),
 			array( 'order_id', 'order_item_id', 'product_id', 'held' )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQLPlaceholders, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		foreach ( (array) $rows as $row ) {
 			$order_id   = (int) $row['order_id'];
@@ -908,7 +902,7 @@ class Ubac_Serials_Stock {
 		 *
 		 * query()'s return value is the only signal that tells this
 		 * short-circuit apart from a legitimately empty result. */
-		$issue = $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL -- own table, prepared by the caller.
+		$issue = $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL, PluginCheck.Security.DirectDB.UnescapedDBParameter -- own table, prepared by the caller.
 
 		if ( false === $issue ) {
 			$raison = (string) $wpdb->last_error;

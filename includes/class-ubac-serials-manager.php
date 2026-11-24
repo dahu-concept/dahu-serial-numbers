@@ -184,7 +184,7 @@ class Ubac_Serials_Manager {
 
 		$sql .= ' ORDER BY order_item_id ASC, serial ASC';
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, placeholders generated here, every value prepared.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- table name from $wpdb->prefix, placeholders generated here, every value prepared.
 		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A );
 
 		foreach ( (array) $rows as $row ) {
@@ -356,9 +356,9 @@ class Ubac_Serials_Manager {
 		// length of the page.
 		$count_sql = "SELECT COUNT(*) FROM {$table} WHERE {$clause}";
 		$total     = (int) ( $params
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- clause built from literals here, every value prepared.
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- clause built from literals here, every value prepared.
 			? $wpdb->get_var( $wpdb->prepare( $count_sql, $params ) )
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- this branch runs only when $params is empty, so every $where entry is a literal and the clause carries no user value.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- this branch runs only when $params is empty, so every $where entry is a literal and the clause carries no user value.
 			: $wpdb->get_var( $count_sql ) );
 
 		$rows_sql       = "SELECT * FROM {$table} WHERE {$clause} ORDER BY updated_at DESC, id DESC LIMIT %d OFFSET %d";
@@ -366,7 +366,7 @@ class Ubac_Serials_Manager {
 		$rows_params[]  = $per_page;
 		$rows_params[]  = ( $page - 1 ) * $per_page;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- clause built from literals here, every value prepared.
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- clause built from literals here, every value prepared.
 		$rows = $wpdb->get_results( $wpdb->prepare( $rows_sql, $rows_params ), ARRAY_A );
 
 		return array(
@@ -392,7 +392,7 @@ class Ubac_Serials_Manager {
 
 		$table = Ubac_Serials_Install::serials_table();
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table name from $wpdb->prefix, own table.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery, PluginCheck.Security.DirectDB.UnescapedDBParameter -- table name from $wpdb->prefix, own table.
 		$rows = $wpdb->get_results( "SELECT status, COUNT(*) AS total FROM {$table} GROUP BY status", ARRAY_A );
 
 		foreach ( (array) $rows as $row ) {
