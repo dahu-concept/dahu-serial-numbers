@@ -65,12 +65,7 @@ class Ubac_Serials_Format {
 	 */
 	public static function normalise( $input ) {
 
-		// Assaini ICI, et pas dans chaque appelant : cette methode est
-		// l entonnoir unique par lequel passe tout serial, d ou qu il vienne
-		// -- ecran, REST, import CSV, lecteur de code-barres. Retirer les
-		// espaces et passer en majuscules n assainit rien : « <SCRIPT> »
-		// traversait intact.
-		$raw   = trim( sanitize_text_field( (string) $input ) );
+		$raw   = trim( (string) $input );
 		$input = $raw;
 
 		if ( '' === $input ) {
@@ -84,12 +79,27 @@ class Ubac_Serials_Format {
 		// halves, both arrive with one in the middle.
 		$input = (string) preg_replace( '/\s+/', '', $input );
 
-		// Les octets de controle, que sanitize_text_field() laisse passer :
-		// mesure du 2026-11-24, « SN-\0\a42 » en ressortait intact. Un octet
-		// nul dans une cle d inventaire tronque les comparaisons sous la
-		// couche PHP sans que rien ne le signale, et aucun serial legitime
-		// n en contient.
-		$input = (string) preg_replace( '/[\x00-\x1F\x7F]/', '', $input );
+		// A serial is an identifier, not free text, so it is NOT run through
+		// sanitize_text_field(). Read in WordPress 7.1.3 on 2026-11-24, that
+		// function would rewrite real serials three ways:
+		//   - wp_check_invalid_utf8() without $strip returns '' for the WHOLE
+		//     string on one invalid byte, so a barcode reader sending Latin-1
+		//     would blank the serial outright;
+		//   - the percent-encoded loop REMOVES '%[a-f0-9]{2}' rather than
+		//     decoding it, so 'SN%2A12' becomes 'SN12' and can collide with a
+		//     different unit;
+		//   - wp_pre_kses_less_than() turns a bare '<' into '&lt;', so
+		//     'AB<12' becomes 'AB&LT;12'.
+		// Worse, normalise() also runs on serials read back OUT of storage, so
+		// any of those would make an already-filed unit unfindable without
+		// anything saying why.
+		//
+		// What is removed instead is the narrow set that is dangerous and
+		// cannot be part of a serial: the control bytes, and the angle
+		// brackets. Removing the brackets one by one -- rather than letting
+		// strip_tags() eat from '<' to the end -- keeps the rest of the
+		// identifier, and no tag can form once neither bracket survives.
+		$input = (string) preg_replace( '/[\x00-\x1F\x7F<>]/', '', $input );
 
 		$input = strtoupper( $input );
 

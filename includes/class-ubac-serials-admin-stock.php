@@ -263,7 +263,8 @@ class Ubac_Serials_Admin_Stock {
 			return;
 		}
 
-		$serials = Ubac_Serials_Product_Fix::parse( isset( $_POST['ubac_serials'] ) ? sanitize_textarea_field( wp_unslash( $_POST['ubac_serials'] ) ) : '' );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- parse() normalises every entry, which is the sanitiser for a serial; sanitizing the textarea first would blank the whole paste on one invalid UTF-8 byte.
+		$serials = Ubac_Serials_Product_Fix::parse( isset( $_POST['ubac_serials'] ) ? wp_unslash( $_POST['ubac_serials'] ) : '' );
 		$to      = isset( $_POST['ubac_to_product'] ) ? (int) $_POST['ubac_to_product'] : 0;
 		$reason  = isset( $_POST['ubac_reason'] ) ? sanitize_textarea_field( wp_unslash( $_POST['ubac_reason'] ) ) : '';
 
@@ -625,8 +626,17 @@ class Ubac_Serials_Admin_Stock {
 	 */
 	private static function posted( $key ) {
 
+		// This one IS free text, echoed back into the form after a refused
+		// submission, so it is sanitised -- with the textarea variant, which
+		// keeps the newlines of a one-per-line list.
+		//
+		// The annotation below stays the LAST line before the code: PHPCS
+		// honours a phpcs:ignore only when it immediately precedes what it
+		// covers, so a comment slipped in between would make it cover that
+		// comment instead. This file carried exactly that defect for the time
+		// it took to measure it.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- echoed back escaped; the nonce is checked where this is acted on.
-		return isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
+		return isset( $_POST[ $key ] ) ? sanitize_textarea_field( wp_unslash( $_POST[ $key ] ) ) : '';
 	}
 
 	/**

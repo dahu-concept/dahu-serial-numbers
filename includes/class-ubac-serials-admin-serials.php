@@ -28,8 +28,8 @@ class Ubac_Serials_Admin_Serials {
 			wp_die( esc_html__( 'You do not have permission to view serial numbers.', 'dahuconcept-serial-numbers' ) );
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a read-only filter on a capability-checked screen.
-		$one = isset( $_GET['serial'] ) ? Ubac_Serials_Format::normalise( sanitize_text_field( wp_unslash( $_GET['serial'] ) ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- a read-only filter on a capability-checked screen; normalise() is the sanitiser for a serial and strips the control bytes and angle brackets, where sanitize_text_field() would blank the value on one invalid UTF-8 byte and drop percent sequences, rewriting an inventory key.
+		$one = isset( $_GET['serial'] ) ? Ubac_Serials_Format::normalise( wp_unslash( $_GET['serial'] ) ) : '';
 
 		Ubac_Serials_Admin::open(
 			__( 'Serial numbers', 'dahuconcept-serial-numbers' ),
@@ -402,7 +402,8 @@ class Ubac_Serials_Admin_Serials {
 			return;
 		}
 
-		$serial = Ubac_Serials_Format::normalise( sanitize_text_field( wp_unslash( $_POST['ubac_serial'] ) ) );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- normalise() is the sanitiser for a serial; see class-ubac-serials-format.php for why sanitize_text_field() is not used on an identifier.
+		$serial = Ubac_Serials_Format::normalise( wp_unslash( $_POST['ubac_serial'] ) );
 
 		if ( '' === $serial ) {
 			return;
