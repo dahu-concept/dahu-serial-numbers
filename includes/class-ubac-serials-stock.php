@@ -457,23 +457,67 @@ class Ubac_Serials_Stock {
 			return;
 		}
 
-		// Not on the screen that settles it: there the list is in front of the
-		// reader already.
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
-		if ( $screen && false !== strpos( (string) $screen->id, 'ubac-serials-stock' ) ) {
+		if ( ! $screen || ! self::notice_belongs_on( (string) $screen->id, (string) $screen->post_type ) ) {
 			return;
 		}
+
+		echo wp_kses_post( self::awaiting_review_html() );
+	}
+
+	/**
+	 * Whether the waiting-list notice belongs on a given admin screen.
+	 *
+	 * Guideline 11 asks that notices be limited in scope, and it is right to:
+	 * a warning about stock has no business on the dashboard, on the users
+	 * list or on someone else's settings page, however true it is. It belongs
+	 * where products and orders are being handled -- which is also where the
+	 * reader can do something about it.
+	 *
+	 * Kept apart from the printing so it can be asserted without dragging
+	 * wp-admin into a command-line bench, which wakes WooCommerce's whole
+	 * admin and proves nothing about this decision.
+	 *
+	 * @param string $screen_id Screen id.
+	 * @param string $post_type Screen post type, when it has one.
+	 * @return bool
+	 */
+	public static function notice_belongs_on( $screen_id, $post_type = '' ) {
+
+		// Not on the screen that settles it: there the list is in front of the
+		// reader already.
+		if ( false !== strpos( $screen_id, 'ubac-serials-stock' ) ) {
+			return false;
+		}
+
+		return false !== strpos( $screen_id, 'ubac-serials' )
+			|| false !== strpos( $screen_id, 'woocommerce' )
+			|| 'product' === $post_type
+			|| 'edit-product' === $screen_id
+			|| 'plugins' === $screen_id;
+	}
+
+	/**
+	 * The notice's markup, or an empty string when there is nothing to say.
+	 *
+	 * Deliberately says nothing about HOW MANY units disagree: counting that
+	 * means drawing the whole plan, which belongs on the screen that runs on
+	 * demand, not on every admin page. The notice carries the link instead.
+	 *
+	 * @return string
+	 */
+	public static function awaiting_review_html() {
 
 		$ids = self::awaiting();
 
 		if ( array() === $ids ) {
-			return;
+			return '';
 		}
 
 		$count = count( $ids );
 
-		printf(
+		return sprintf(
 			'<div class="notice notice-warning"><p>%s %s</p></div>',
 			esc_html(
 				sprintf(
@@ -487,12 +531,10 @@ class Ubac_Serials_Stock {
 					$count
 				)
 			),
-			wp_kses_post(
-				sprintf(
-					'<a href="%s">%s</a>',
-					esc_url( admin_url( 'admin.php?page=ubac-serials-stock' ) ),
-					esc_html__( 'Review the stock', 'dahuconcept-serial-numbers' )
-				)
+			sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( 'admin.php?page=ubac-serials-stock' ) ),
+				esc_html__( 'Review the stock', 'dahuconcept-serial-numbers' )
 			)
 		);
 	}

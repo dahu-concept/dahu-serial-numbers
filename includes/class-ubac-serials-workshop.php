@@ -178,6 +178,38 @@ class Ubac_Serials_Workshop {
 	 */
 	public static function html() {
 
+		/* THE ASSETS GO THROUGH THE ENQUEUE API, AND ARE THEN PRINTED BY HAND.
+		 *
+		 * This is a standalone document: it builds its own <html> and <head>
+		 * and never calls wp_head() or wp_footer(), because the packing screen
+		 * is a scanning surface on a workshop tablet and not a page of the
+		 * site -- pulling in the theme's head would be wrong here, not merely
+		 * heavy.
+		 *
+		 * Printing the two tags by hand was the obvious reading of that, and
+		 * it cost the plugin a review finding. Registering them properly and
+		 * printing only these handles keeps the document standalone AND gives
+		 * back what the API is for: versioned URLs, dependencies, and the
+		 * filters a host or a shop may rely on.
+		 */
+		wp_register_style(
+			'ubac-serials-workshop',
+			UBAC_SERIALS_URL . 'assets/css/workshop.css',
+			array(),
+			UBAC_SERIALS_VERSION
+		);
+
+		wp_register_script(
+			'ubac-serials-workshop',
+			UBAC_SERIALS_URL . 'assets/js/workshop.js',
+			array(),
+			UBAC_SERIALS_VERSION,
+			true
+		);
+
+		wp_enqueue_style( 'ubac-serials-workshop' );
+		wp_enqueue_script( 'ubac-serials-workshop' );
+
 		ob_start();
 
 		?>
@@ -188,8 +220,7 @@ class Ubac_Serials_Workshop {
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 	<meta name="robots" content="noindex, nofollow" />
 	<title><?php echo esc_html( self::title() ); ?></title>
-	<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- standalone document built with ob_start(): it has its own <html> and <head> and never calls wp_head(), so an enqueued style would be printed nowhere. ?>
-	<link rel="stylesheet" href="<?php echo esc_url( UBAC_SERIALS_URL . 'assets/css/workshop.css?ver=' . UBAC_SERIALS_VERSION ); ?>" />
+	<?php wp_print_styles( 'ubac-serials-workshop' ); ?>
 </head>
 <body class="ubac-packing">
 	<noscript>
@@ -201,8 +232,7 @@ class Ubac_Serials_Workshop {
 	<script type="application/json" id="ubac-packing-config">
 		<?php echo wp_json_encode( self::config() ); ?>
 	</script>
-	<?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- same standalone document: no wp_footer(), so an enqueued script would be printed nowhere. ?>
-	<script src="<?php echo esc_url( UBAC_SERIALS_URL . 'assets/js/workshop.js?ver=' . UBAC_SERIALS_VERSION ); ?>"></script>
+	<?php wp_print_scripts( 'ubac-serials-workshop' ); ?>
 </body>
 </html>
 		<?php

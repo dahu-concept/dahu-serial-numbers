@@ -65,7 +65,17 @@ class Ubac_Serials_Format {
 	 */
 	public static function normalise( $input ) {
 
-		$raw   = trim( (string) $input );
+		// THE DANGEROUS BYTES GO FIRST, BEFORE ANYTHING KEEPS A COPY.
+		//
+		// They used to be removed further down, after $raw had already been
+		// taken from the untouched input -- and $raw is handed to the
+		// ubac_serials_normalise filter below. A shop filter that builds its
+		// serial from $raw, which is exactly what that argument is for, got
+		// the request string with nothing removed, so the cleaning could be
+		// walked straight past. Removing them here means no copy of the input
+		// ever carries them.
+		$input = self::strip_dangerous( (string) $input );
+		$raw   = trim( $input );
 		$input = $raw;
 
 		if ( '' === $input ) {
@@ -74,32 +84,14 @@ class Ubac_Serials_Format {
 
 		$input = self::from_url( $input );
 
+		// Again after from_url(): a percent-encoded control byte or angle
+		// bracket in the query string only becomes one once decoded.
+		$input = self::strip_dangerous( $input );
+
 		// Whitespace anywhere, not just at the ends: a reader configured with
 		// a space as its suffix, or a number read off a packing list in two
 		// halves, both arrive with one in the middle.
 		$input = (string) preg_replace( '/\s+/', '', $input );
-
-		// A serial is an identifier, not free text, so it is NOT run through
-		// sanitize_text_field(). Read in WordPress 7.1.3 on 2026-11-24, that
-		// function would rewrite real serials three ways:
-		//   - wp_check_invalid_utf8() without $strip returns '' for the WHOLE
-		//     string on one invalid byte, so a barcode reader sending Latin-1
-		//     would blank the serial outright;
-		//   - the percent-encoded loop REMOVES '%[a-f0-9]{2}' rather than
-		//     decoding it, so 'SN%2A12' becomes 'SN12' and can collide with a
-		//     different unit;
-		//   - wp_pre_kses_less_than() turns a bare '<' into '&lt;', so
-		//     'AB<12' becomes 'AB&LT;12'.
-		// Worse, normalise() also runs on serials read back OUT of storage, so
-		// any of those would make an already-filed unit unfindable without
-		// anything saying why.
-		//
-		// What is removed instead is the narrow set that is dangerous and
-		// cannot be part of a serial: the control bytes, and the angle
-		// brackets. Removing the brackets one by one -- rather than letting
-		// strip_tags() eat from '<' to the end -- keeps the rest of the
-		// identifier, and no tag can form once neither bracket survives.
-		$input = (string) preg_replace( '/[\x00-\x1F\x7F<>]/', '', $input );
 
 		$input = strtoupper( $input );
 
@@ -111,11 +103,48 @@ class Ubac_Serials_Format {
 		 * zeroes, or anything else nobody here can guess.
 		 *
 		 * @param string $serial Normalised serial.
-		 * @param string $input  Raw input, before normalising.
+		 * @param string $input  The input before normalising, already stripped
+		 *                       of the bytes that cannot appear in a serial.
 		 */
 		$serial = (string) apply_filters( 'ubac_serials_normalise', $input, $raw );
 
-		return trim( $serial );
+		// And once more on the way out. A filter is the shop's own code, but
+		// it is also the one place where a serial can be rebuilt from
+		// something this method never saw, so what it returns is held to the
+		// same rule as what it was given.
+		return trim( self::strip_dangerous( $serial ) );
+	}
+
+	/**
+	 * Removes the bytes that are dangerous and cannot belong to a serial.
+	 *
+	 * A serial is an identifier, not free text, so it is NOT run through
+	 * sanitize_text_field(). Read in WordPress 7.1.3 on 2026-11-24, that
+	 * function would rewrite real serials three ways:
+	 *   - wp_check_invalid_utf8() without $strip returns '' for the WHOLE
+	 *     string on one invalid byte, so a barcode reader sending Latin-1
+	 *     would blank the serial outright;
+	 *   - the percent-encoded loop REMOVES '%[a-f0-9]{2}' rather than
+	 *     decoding it, so 'SN%2A12' becomes 'SN12' and can collide with a
+	 *     different unit;
+	 *   - wp_pre_kses_less_than() turns a bare '<' into '&lt;', so 'AB<12'
+	 *     becomes 'AB&LT;12'.
+	 * Worse, normalise() also runs on serials read back OUT of storage, so any
+	 * of those would make an already-filed unit unfindable without anything
+	 * saying why.
+	 *
+	 * What is removed instead is the narrow set that is dangerous and cannot
+	 * be part of a serial: the control bytes, and the angle brackets. Removing
+	 * the brackets one by one -- rather than letting strip_tags() eat from '<'
+	 * to the end -- keeps the rest of the identifier, and no tag can form once
+	 * neither bracket survives.
+	 *
+	 * @param string $value Value to clean.
+	 * @return string
+	 */
+	private static function strip_dangerous( $value ) {
+
+		return (string) preg_replace( '/[\x00-\x1F\x7F<>]/', '', (string) $value );
 	}
 
 	/**
